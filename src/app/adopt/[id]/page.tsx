@@ -12,9 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function PetDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const { id } = params;
 
-  const pet = allPets.find(p => p.id === id);
+  const pet = allPets.find(p => p.id === params.id);
 
   if (!pet) {
     notFound();
