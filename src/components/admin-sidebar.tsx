@@ -38,13 +38,13 @@ export default function AdminSidebar() {
               <span className="group-data-[collapsible=icon]:hidden">PetVerse</span>
             </Link>
         </SidebarHeader>
-        <SidebarContent className="flex-1 overflow-y-auto">
+        <SidebarContent>
           <SidebarMenu>
             {menuItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                     asChild
-                    isActive={item.href === '/admin' ? pathname === item.href : pathname.startsWith(item.href)}
+                    isActive={pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))}
                     tooltip={{ children: item.label }}
                 >
                     <Link href={item.href}>
