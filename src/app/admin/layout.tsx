@@ -31,7 +31,7 @@ export default function AdminLayout({
   return (
     <SidebarProvider>
       <div className="flex min-h-[calc(100vh-4rem)]">
-        <Sidebar collapsible="icon" className="top-16">
+        <Sidebar collapsible="icon">
             <SidebarHeader>
               <Link href="/admin" className="flex items-center gap-2 text-xl font-bold font-headline">
                   <PawPrint className="h-6 w-6 text-primary" />
