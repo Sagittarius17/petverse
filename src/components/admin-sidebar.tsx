@@ -38,7 +38,7 @@ export default function AdminSidebar() {
               <span className="group-data-[collapsible=icon]:hidden">PetVerse</span>
             </Link>
         </SidebarHeader>
-        <SidebarContent>
+        <SidebarContent className="flex-1 overflow-y-auto">
           <SidebarMenu>
             {menuItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
