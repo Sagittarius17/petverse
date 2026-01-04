@@ -1,11 +1,9 @@
+'use client';
+
 import { Dog, Users, FileText, Heart } from 'lucide-react';
 import StatsCard from '@/components/stats-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-
-export const metadata = {
-  title: 'Admin Dashboard - PetVerse',
-};
 
 const data = [
     { name: 'Jan', adoptions: 4, signups: 24 },
