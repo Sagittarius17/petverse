@@ -1,26 +1,17 @@
-import { notFound } from 'next/navigation';
+'use client';
+
+import { notFound, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { allCareGuides } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
-export async function generateMetadata({ params }: { params: { id: string } }) {
-  const guide = allCareGuides.find(g => g.id === params.id);
-
-  if (!guide) {
-    return {
-      title: 'Guide Not Found',
-    };
-  }
-
-  return {
-    title: `${guide.title} - PetVerse`,
-    description: guide.summary,
-  };
-}
-
+// Using a client component to use the useRouter hook
 export default function CareGuidePage({ params }: { params: { id: string } }) {
+  const router = useRouter();
   const guide = allCareGuides.find(g => g.id === params.id);
 
   if (!guide) {
@@ -29,8 +20,6 @@ export default function CareGuidePage({ params }: { params: { id: string } }) {
 
   const image = PlaceHolderImages.find(p => p.id === guide.imageId);
 
-  // This is a simple way to render the markdown-like content as HTML.
-  // In a real app, you'd use a dedicated library like 'marked' or 'react-markdown'.
   const renderContent = (content: string) => {
     return content
       .split('\n')
@@ -52,6 +41,10 @@ export default function CareGuidePage({ params }: { params: { id: string } }) {
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
+       <Button variant="ghost" onClick={() => router.back()} className="mb-4 pl-0">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Go Back
+        </Button>
       <article>
         <header className="mb-8">
           <Badge variant="outline" className="mb-2">{guide.petType}</Badge>
