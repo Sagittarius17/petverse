@@ -2,11 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Menu, X, PawPrint } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { useUser } from '@/firebase';
+import { useUser, useAuth } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -16,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ThemeSwitcher } from './theme-switcher';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -28,7 +27,7 @@ const navLinks = [
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isUserLoading } = useUser();
-  const { auth } = useUser.length > 0 && useAuth ? useAuth() : { auth: null };
+  const auth = useAuth();
 
 
   const handleLogout = () => {
@@ -53,6 +52,7 @@ export default function Header() {
           ))}
         </nav>
         <div className="hidden items-center gap-2 md:flex">
+          <ThemeSwitcher />
           {isUserLoading ? null : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -115,6 +115,9 @@ export default function Header() {
                 {label}
               </Link>
             ))}
+            <div className="mt-4">
+              <ThemeSwitcher />
+            </div>
             <div className="mt-6 flex flex-col gap-4 w-full">
               {user ? (
                  <Button variant="outline" size="lg" onClick={handleLogout}>
