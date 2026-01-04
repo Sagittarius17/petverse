@@ -44,7 +44,7 @@ export default function AdminSidebar() {
                 <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                     asChild
-                    isActive={pathname === item.href}
+                    isActive={pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href))}
                     tooltip={{ children: item.label }}
                 >
                     <Link href={item.href}>
@@ -59,7 +59,7 @@ export default function AdminSidebar() {
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip={{children: 'Settings'}} isActive={pathname === '/admin/settings'}>
+                <SidebarMenuButton asChild tooltip={{children: 'Settings'}} isActive={pathname.startsWith('/admin/settings')}>
                     <Link href="/admin/settings">
                         <Settings />
                         <span>Settings</span>
@@ -79,4 +79,3 @@ export default function AdminSidebar() {
       </>
     );
   }
-  
