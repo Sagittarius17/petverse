@@ -1,3 +1,100 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-1",
+      "description": "A happy golden retriever playing in a sunny field.",
+      "imageUrl": "https://images.unsplash.com/photo-1641004217215-7955d4a92b7a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxkb2clMjBmaWVsZHxlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog field"
+    },
+    {
+      "id": "dog-1",
+      "description": "A friendly Golden Retriever puppy.",
+      "imageUrl": "https://images.unsplash.com/photo-1642581684512-52947badee8c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxkb2clMjBwdXBweXxlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog puppy"
+    },
+    {
+      "id": "dog-2",
+      "description": "A majestic German Shepherd standing in a forest.",
+      "imageUrl": "https://images.unsplash.com/photo-1669541740007-bec4c8cf214b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxkb2clMjBhZHVsdHxlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog adult"
+    },
+    {
+      "id": "dog-3",
+      "description": "A small, fluffy Poodle.",
+      "imageUrl": "https://images.unsplash.com/photo-1721942035436-4d2a52da1f64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxkb2clMjBzbWFsbHxlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog small"
+    },
+    {
+      "id": "dog-4",
+      "description": "A playful Beagle with floppy ears.",
+      "imageUrl": "https://images.unsplash.com/photo-1701809206272-95d81f813816?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxkb2clMjBhZHVsdHxlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog adult"
+    },
+    {
+      "id": "cat-1",
+      "description": "A curious Siamese cat with blue eyes.",
+      "imageUrl": "https://images.unsplash.com/photo-1615901372949-296704779939?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjYXQlMjBhZHVsdHxlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cat adult"
+    },
+    {
+      "id": "cat-2",
+      "description": "A fluffy Persian kitten playing with a toy.",
+      "imageUrl": "https://images.unsplash.com/photo-1751402985543-2cc6991f1256?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjYXQlMjBraXR0ZW58ZW58MHx8fHwxNzY3NTI5MjA1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cat kitten"
+    },
+    {
+      "id": "cat-3",
+      "description": "A sleek black cat lounging on a sofa.",
+      "imageUrl": "https://images.unsplash.com/photo-1617602819745-7780a53e3518?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjYXQlMjBhZHVsdHxlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cat adult"
+    },
+    {
+      "id": "cat-4",
+      "description": "A ginger tabby cat looking out a window.",
+      "imageUrl": "https://images.unsplash.com/photo-1588325690222-fbc2a58189c6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y2F0JTIwYWR1bHR8ZW58MHx8fHwxNzY3NTI5MjA1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cat adult"
+    },
+    {
+      "id": "bird-1",
+      "description": "A colorful parrot perched on a branch.",
+      "imageUrl": "https://images.unsplash.com/photo-1623922282992-7cf0ed185b8d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxiaXJkJTIwcGFycm90fGVufDB8fHx8MTc2NzUyOTIwNXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bird parrot"
+    },
+    {
+      "id": "bird-2",
+      "description": "A small canary singing in its cage.",
+      "imageUrl": "https://images.unsplash.com/photo-1730054478328-aac735cb49e4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxiaXJkJTIwc21hbGx8ZW58MHx8fHwxNzY3NTI5MjA1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bird small"
+    },
+    {
+      "id": "guide-dog",
+      "description": "A person training a happy dog.",
+      "imageUrl": "https://images.unsplash.com/photo-1568393691622-c7ba131d63b4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxkb2clMjB0cmFpbmluZ3xlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog training"
+    },
+    {
+      "id": "guide-cat",
+      "description": "A cat peacefully sleeping in a cozy bed.",
+      "imageUrl": "https://images.unsplash.com/photo-1587417639866-0da8bb24b7d1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjYXQlMjBzbGVlcGluZ3xlbnwwfHx8fDE3Njc0NDE1NTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cat sleeping"
+    },
+    {
+      "id": "guide-bird",
+      "description": "A colorful bird eating from a feeder.",
+      "imageUrl": "https://images.unsplash.com/photo-1692212268925-524c44e64bab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxiaXJkJTIwZWF0aW5nfGVufDB8fHx8MTc2NzUyOTIwNXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bird eating"
+    },
+    {
+      "id": "guide-fish",
+      "description": "Colorful fish swimming in a clean aquarium.",
+      "imageUrl": "https://images.unsplash.com/photo-1667680231289-1701f8b8b544?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxmaXNoJTIwYXF1YXJpdW18ZW58MHx8fHwxNzY3NTI5MjA1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "fish aquarium"
+    },
+    {
+      "id": "user-avatar-1",
+      "description": "A placeholder avatar for a user profile.",
+      "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3Njc1MTExMDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person portrait"
+    }
+  ]
 }
