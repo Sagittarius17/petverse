@@ -21,8 +21,9 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo.svg" alt="PetVerse Logo" width={140} height={35} />
+        <Link href="/" className="flex items-center gap-2 text-xl font-bold font-headline">
+          <PawPrint className="h-6 w-6 text-primary" />
+          PetVerse
         </Link>
         <nav className="hidden items-center gap-6 md:flex">
           {navLinks.map(({ href, label }) => (
@@ -48,8 +49,9 @@ export default function Header() {
       {isMenuOpen && (
         <div className="fixed inset-0 z-50 bg-background md:hidden">
           <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-            <Link href="/" className="flex items-center gap-2" onClick={() => setIsMenuOpen(false)}>
-              <Image src="/logo.svg" alt="PetVerse Logo" width={140} height={35} />
+            <Link href="/" className="flex items-center gap-2 text-xl font-bold font-headline" onClick={() => setIsMenuOpen(false)}>
+              <PawPrint className="h-6 w-6 text-primary" />
+               PetVerse
             </Link>
             <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(false)}>
               <X className="h-6 w-6" />
