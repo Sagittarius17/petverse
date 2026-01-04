@@ -1,0 +1,368 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the PetVerse application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user entity."
+        },
+        "username": {
+          "type": "string",
+          "description": "The username of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user.",
+          "format": "email"
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the user."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the user."
+        },
+        "profilePicture": {
+          "type": "string",
+          "description": "URL of the user's profile picture.",
+          "format": "uri"
+        },
+        "bio": {
+          "type": "string",
+          "description": "A short biography of the user."
+        }
+      },
+      "required": [
+        "id",
+        "username",
+        "email"
+      ]
+    },
+    "Pet": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Pet",
+      "type": "object",
+      "description": "Represents a pet available for adoption or listed as lost/found.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the pet entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the pet."
+        },
+        "species": {
+          "type": "string",
+          "description": "The species of the pet (e.g., dog, cat, bird)."
+        },
+        "breed": {
+          "type": "string",
+          "description": "The breed of the pet."
+        },
+        "age": {
+          "type": "number",
+          "description": "The age of the pet in months/years."
+        },
+        "gender": {
+          "type": "string",
+          "description": "The gender of the pet."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the pet."
+        },
+        "photoUrls": {
+          "type": "array",
+          "description": "An array of URLs to photos of the pet.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "isAdoptable": {
+          "type": "boolean",
+          "description": "Indicates whether the pet is available for adoption."
+        },
+        "isLost": {
+          "type": "boolean",
+          "description": "Indicates whether the pet is lost."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who owns/found the pet. (Relationship: User 1:N Pet)"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "species"
+      ]
+    },
+    "Blog": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Blog",
+      "type": "object",
+      "description": "Represents a blog post or article.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the blog entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the blog post."
+        },
+        "content": {
+          "type": "string",
+          "description": "The content of the blog post."
+        },
+        "authorId": {
+          "type": "string",
+          "description": "Reference to the User who authored the blog post. (Relationship: User 1:N Blog)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "The date and time the blog post was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "The date and time the blog post was last updated.",
+          "format": "date-time"
+        },
+        "categoryIds": {
+          "type": "array",
+          "description": "References to Categories. (Relationship: Category N:N Blog)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "content",
+        "authorId"
+      ]
+    },
+    "Category": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Category",
+      "type": "object",
+      "description": "Represents a category for blog posts or pet care guides.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the category entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the category."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the category."
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "VetService": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "VetService",
+      "type": "object",
+      "description": "Represents a veterinary service or clinic.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the vet service entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the veterinary service."
+        },
+        "address": {
+          "type": "string",
+          "description": "The address of the veterinary service."
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "The phone number of the veterinary service."
+        },
+        "website": {
+          "type": "string",
+          "description": "The website URL of the veterinary service.",
+          "format": "uri"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who owns/manages the vet service. (Relationship: User 1:N VetService)"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "LostFoundReport": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "LostFoundReport",
+      "type": "object",
+      "description": "Represents a report of a lost or found pet.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the lost/found report entity."
+        },
+        "petId": {
+          "type": "string",
+          "description": "Reference to the Pet that is lost or found. (Relationship: Pet 1:N LostFoundReport)"
+        },
+        "reportType": {
+          "type": "string",
+          "description": "The type of report (lost or found)."
+        },
+        "reportDate": {
+          "type": "string",
+          "description": "The date the report was created.",
+          "format": "date-time"
+        },
+        "location": {
+          "type": "string",
+          "description": "The location where the pet was lost or found."
+        },
+        "contactInfo": {
+          "type": "string",
+          "description": "Contact information for the person reporting the lost/found pet."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who filed the report. (Relationship: User 1:N LostFoundReport)"
+        }
+      },
+      "required": [
+        "id",
+        "petId",
+        "reportType"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles.  Accessible only to the authenticated user.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/pets/{petId}",
+        "definition": {
+          "entityName": "Pet",
+          "schema": {
+            "$ref": "#/backend/entities/Pet"
+          },
+          "description": "Pets owned/managed by a user. Includes denormalized 'userId' field for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "petId",
+              "description": "The unique identifier of the pet."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/blogs/{blogId}",
+        "definition": {
+          "entityName": "Blog",
+          "schema": {
+            "$ref": "#/backend/entities/Blog"
+          },
+          "description": "Stores blog posts. Public read access, restricted creation/editing.",
+          "params": [
+            {
+              "name": "blogId",
+              "description": "The unique identifier of the blog post."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/categories/{categoryId}",
+        "definition": {
+          "entityName": "Category",
+          "schema": {
+            "$ref": "#/backend/entities/Category"
+          },
+          "description": "Stores categories for blogs and pet care guides. Public access.",
+          "params": [
+            {
+              "name": "categoryId",
+              "description": "The unique identifier of the category."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/vet_services/{vetServiceId}",
+        "definition": {
+          "entityName": "VetService",
+          "schema": {
+            "$ref": "#/backend/entities/VetService"
+          },
+          "description": "Stores veterinary services. Includes denormalized 'userId' field for authorization independence.",
+          "params": [
+            {
+              "name": "vetServiceId",
+              "description": "The unique identifier of the vet service."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/lost_found_reports/{lostFoundReportId}",
+        "definition": {
+          "entityName": "LostFoundReport",
+          "schema": {
+            "$ref": "#/backend/entities/LostFoundReport"
+          },
+          "description": "Stores lost/found reports. Includes denormalized 'userId' and 'petId' for authorization independence and efficient queries.",
+          "params": [
+            {
+              "name": "lostFoundReportId",
+              "description": "The unique identifier of the lost/found report."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to ensure security, scalability, and debuggability, adhering to the principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters). Authorization Independence is achieved through denormalization, copying relevant authorization data (like user IDs or membership maps) into subcollections to avoid costly and insecure `get()` calls in security rules. Structural Segregation separates data with different access requirements into distinct collections. Access Modeling employs consistent patterns like path-based ownership (`/users/{userId}/...`) and membership maps for collaborative data.\n\nSpecifically:\n\n*   `/users/{userId}`: Stores user profiles. User data is private and accessible only to the authenticated user.\n*   `/users/{userId}/pets/{petId}`: Pets owned/managed by a user. The `userId` field in the Pet document duplicates the parent path, ensuring authorization independence.\n*   `/blogs/{blogId}`: Stores blog posts. While a `authorId` field exists, access to blogs will be public, though editing/creation is restricted to admins.\n*   `/categories/{categoryId}`: Stores categories for blogs and pet care guides. Access is public.\n*   `/vet_services/{vetServiceId}`: Stores veterinary services. A `userId` field is present indicating the owner, enabling path-based access control for owners and public read access.\n*   `/lost_found_reports/{lostFoundReportId}`: Stores lost/found reports. The `userId` is duplicated within the document, providing authorization independence. The `petId` allows retrieval of reports by pet.\n\nThis structure facilitates simple, robust, and easily debuggable security rules by making authorization context explicit and eliminating hierarchical dependencies. QAPs are supported through structural segregation and well-defined ownership, allowing secure listing operations."
+  }
+}
