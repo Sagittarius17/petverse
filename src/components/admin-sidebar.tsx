@@ -59,7 +59,7 @@ export default function AdminSidebar() {
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip={{children: 'Settings'}}>
+                <SidebarMenuButton asChild tooltip={{children: 'Settings'}} isActive={pathname === '/admin/settings'}>
                     <Link href="/admin/settings">
                         <Settings />
                         <span>Settings</span>
