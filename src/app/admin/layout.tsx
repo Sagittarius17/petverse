@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -30,7 +29,7 @@ export default function AdminLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-[calc(100vh-4rem)]">
+      <div className="flex h-[calc(100vh-4rem)]">
         <Sidebar collapsible="icon">
             <SidebarHeader>
               <Link href="/admin" className="flex items-center gap-2 text-xl font-bold font-headline">
