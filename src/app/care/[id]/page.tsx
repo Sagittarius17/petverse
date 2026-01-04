@@ -12,7 +12,8 @@ import { ArrowLeft } from 'lucide-react';
 // Using a client component to use the useRouter hook
 export default function CareGuidePage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const guide = allCareGuides.find(g => g.id === params.id);
+  const { id } = params;
+  const guide = allCareGuides.find(g => g.id === id);
 
   if (!guide) {
     notFound();
