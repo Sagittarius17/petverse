@@ -8,8 +8,8 @@ export default function AdminLayout({
 }) {
   return (
     <SidebarProvider>
-      <div className="flex min-h-[calc(100vh-4rem)] bg-background">
-        <Sidebar collapsible="icon">
+      <div className="flex min-h-[calc(100vh-4rem)]">
+        <Sidebar collapsible="icon" className="top-16">
           <AdminSidebar />
         </Sidebar>
         <SidebarInset>
