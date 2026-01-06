@@ -34,16 +34,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <SidebarProvider>
-      {/* FULL HEIGHT COLUMN */}
-      <div className="flex min-h-screen flex-col">
-
-        {/* ===== NAVBAR (already exists globally) ===== */}
-        {/* Do NOT subtract height manually */}
-
-        {/* ===== MAIN ADMIN AREA ===== */}
-        <div className="flex flex-1 overflow-hidden">
-          
-          {/* SIDEBAR */}
+      <div className="flex h-screen">
           <Sidebar
             collapsible="icon"
             className="flex h-full flex-col border-r"
@@ -60,7 +51,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </Link>
             </SidebarHeader>
 
-            {/* SCROLLABLE MENU */}
             <SidebarContent className="flex-1 overflow-y-auto">
               <SidebarMenu>
                 {menuItems.map((item) => (
@@ -83,7 +73,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </SidebarMenu>
             </SidebarContent>
 
-            {/* FIXED SIDEBAR FOOTER */}
             <SidebarFooter className="shrink-0 border-t">
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -111,15 +100,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </SidebarFooter>
           </Sidebar>
 
-          {/* MAIN CONTENT */}
           <main className="flex-1 overflow-y-auto">
             <div className="p-4 sm:p-6 lg:p-8">
               {children}
             </div>
           </main>
-        </div>
-
-        {/* ===== GLOBAL FOOTER (NO COLLISION NOW) ===== */}
       </div>
     </SidebarProvider>
   );

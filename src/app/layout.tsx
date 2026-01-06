@@ -1,10 +1,9 @@
 import type { Metadata } from 'next';
 import { Toaster } from "@/components/ui/toaster"
-import Header from '@/components/header';
-import Footer from '@/components/footer';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase';
 import { ThemeProvider } from '@/components/theme-provider';
+import MainLayout from '@/components/main-layout';
 
 export const metadata: Metadata = {
   title: 'PetVerse - Your Universe for Pets',
@@ -32,11 +31,9 @@ export default function RootLayout({
           themes={['light', 'dark', 'system', 'dark-forest', 'light-rose']}
         >
           <FirebaseClientProvider>
-            <div className="flex min-h-screen flex-col">
-              <Header />
-              <main className="flex-grow">{children}</main>
-              <Footer />
-            </div>
+            <MainLayout>
+              {children}
+            </MainLayout>
             <Toaster />
           </FirebaseClientProvider>
         </ThemeProvider>
