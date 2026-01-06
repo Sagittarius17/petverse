@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Menu, X, PawPrint } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUser, useAuth } from '@/firebase';
@@ -15,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ThemeSwitcher } from './theme-switcher';
+import { cn } from '@/lib/utils';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -27,6 +29,7 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
+  const pathname = usePathname();
 
 
   const handleLogout = () => {
@@ -45,7 +48,14 @@ export default function Header() {
         </Link>
         <nav className="hidden items-center gap-6 md:flex">
           {navLinks.map(({ href, label }) => (
-            <Link key={href} href={href} className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+            <Link 
+              key={href} 
+              href={href} 
+              className={cn(
+                "text-sm font-medium transition-colors hover:text-foreground",
+                pathname === href ? "text-foreground" : "text-muted-foreground"
+              )}
+            >
               {label}
             </Link>
           ))}
@@ -74,9 +84,6 @@ export default function Header() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/profile">Profile</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/admin">Admin</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout}>
                   Log out
@@ -113,7 +120,15 @@ export default function Header() {
           </div>
           <div className="flex flex-col items-center gap-6 p-8">
             {navLinks.map(({ href, label }) => (
-              <Link key={href} href={href} className="text-lg font-medium" onClick={() => setIsMenuOpen(false)}>
+              <Link 
+                key={href} 
+                href={href} 
+                className={cn(
+                  "text-lg font-medium",
+                  pathname === href ? "text-foreground" : "text-muted-foreground"
+                )}
+                onClick={() => setIsMenuOpen(false)}
+              >
                 {label}
               </Link>
             ))}
