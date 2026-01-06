@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -16,7 +17,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Wand2, Lightbulb, Loader2, Send } from 'lucide-react';
 import type { AnalyzePetImageForMatchingOutput } from '@/ai/flows/analyze-pet-image-for-matching';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 
 const formSchema = z.object({
   reportType: z.enum(['Lost', 'Found'], {
@@ -152,114 +153,116 @@ export default function LostPetForm({ onReportSubmit }: LostPetFormProps) {
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onFinalSubmit)} className="space-y-8">
-      <div className="space-y-6">
-        <FormField
-          control={form.control}
-          name="reportType"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel>What are you reporting?</FormLabel>
-              <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  className="flex space-x-4"
-                >
-                  <FormItem className="flex items-center space-x-2 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="Lost" />
-                    </FormControl>
-                    <FormLabel className="font-normal">I lost my pet</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-2 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="Found" />
-                    </FormControl>
-                    <FormLabel className="font-normal">I found a pet</FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onFinalSubmit)} className="space-y-8">
+        <div className="space-y-6">
+          <FormField
+            control={form.control}
+            name="reportType"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel>What are you reporting?</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex space-x-4"
+                  >
+                    <FormItem className="flex items-center space-x-2 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="Lost" />
+                      </FormControl>
+                      <FormLabel className="font-normal">I lost my pet</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-2 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="Found" />
+                      </FormControl>
+                      <FormLabel className="font-normal">I found a pet</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="ownerName">Your Name</Label>
-            <Input id="ownerName" {...form.register('ownerName')} />
-            {form.formState.errors.ownerName && <p className="text-destructive text-sm mt-1">{form.formState.errors.ownerName.message}</p>}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="ownerName">Your Name</Label>
+              <Input id="ownerName" {...form.register('ownerName')} />
+              {form.formState.errors.ownerName && <p className="text-destructive text-sm mt-1">{form.formState.errors.ownerName.message}</p>}
+            </div>
+            <div>
+              <Label htmlFor="contactEmail">Contact Email</Label>
+              <Input id="contactEmail" type="email" {...form.register('contactEmail')} />
+              {form.formState.errors.contactEmail && <p className="text-destructive text-sm mt-1">{form.formState.errors.contactEmail.message}</p>}
+            </div>
+            <div>
+              <Label htmlFor="petName">Pet&apos;s Name</Label>
+              <Input id="petName" {...form.register('petName')} />
+              {form.formState.errors.petName && <p className="text-destructive text-sm mt-1">{form.formState.errors.petName.message}</p>}
+            </div>
+            <div>
+              <Label htmlFor="lastSeenLocation">Location (Lost or Found)</Label>
+              <Input id="lastSeenLocation" {...form.register('lastSeenLocation')} />
+              {form.formState.errors.lastSeenLocation && <p className="text-destructive text-sm mt-1">{form.formState.errors.lastSeenLocation.message}</p>}
+            </div>
           </div>
+
           <div>
-            <Label htmlFor="contactEmail">Contact Email</Label>
-            <Input id="contactEmail" type="email" {...form.register('contactEmail')} />
-            {form.formState.errors.contactEmail && <p className="text-destructive text-sm mt-1">{form.formState.errors.contactEmail.message}</p>}
-          </div>
-          <div>
-            <Label htmlFor="petName">Pet&apos;s Name</Label>
-            <Input id="petName" {...form.register('petName')} />
-            {form.formState.errors.petName && <p className="text-destructive text-sm mt-1">{form.formState.errors.petName.message}</p>}
-          </div>
-          <div>
-            <Label htmlFor="lastSeenLocation">Location (Lost or Found)</Label>
-            <Input id="lastSeenLocation" {...form.register('lastSeenLocation')} />
-            {form.formState.errors.lastSeenLocation && <p className="text-destructive text-sm mt-1">{form.formState.errors.lastSeenLocation.message}</p>}
+            <Label htmlFor="petImages">Pet&apos;s Photos</Label>
+            <div className="mt-2">
+              <Input id="petImages" type="file" accept="image/*" multiple onChange={handleImageChange} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"/>
+            </div>
+            {form.formState.errors.petImages && <p className="text-destructive text-sm mt-1">A photo of your pet is required.</p>}
+            {imagePreviews.length > 0 && (
+              <div className="mt-4 flex gap-4 flex-wrap">
+                {imagePreviews.map((src, index) => (
+                  <div key={index} className="w-24 h-24 rounded-md bg-secondary flex items-center justify-center overflow-hidden border">
+                    <Image src={src} alt={`Pet preview ${index + 1}`} width={96} height={96} className="object-cover" />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
+        
+        <div className="flex flex-col gap-4 items-start">
+          <Button type="button" onClick={handleAnalysis} disabled={isAnalyzing || imagePreviews.length === 0} className="w-full md:w-auto">
+            {isAnalyzing ? (
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing...</>
+            ) : (
+              <><Wand2 className="mr-2 h-4 w-4" /> Analyze Photo</>
+            )}
+          </Button>
 
-        <div>
-          <Label htmlFor="petImages">Pet&apos;s Photos</Label>
-          <div className="mt-2">
-            <Input id="petImages" type="file" accept="image/*" multiple onChange={handleImageChange} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"/>
-          </div>
-          {form.formState.errors.petImages && <p className="text-destructive text-sm mt-1">A photo of your pet is required.</p>}
-          {imagePreviews.length > 0 && (
-            <div className="mt-4 flex gap-4 flex-wrap">
-              {imagePreviews.map((src, index) => (
-                <div key={index} className="w-24 h-24 rounded-md bg-secondary flex items-center justify-center overflow-hidden border">
-                  <Image src={src} alt={`Pet preview ${index + 1}`} width={96} height={96} className="object-cover" />
-                </div>
-              ))}
+          {analysisResult && (
+            <div className="w-full space-y-4">
+              <Alert>
+                  <Lightbulb className="h-4 w-4" />
+                  <AlertTitle>AI Analysis Complete</AlertTitle>
+                  <AlertDescription>
+                  <p className="font-semibold mt-2">Identified Attributes (from first image):</p>
+                  <p>{analysisResult.attributeSummary}</p>
+                  {analysisResult.isAnalysisHelpful ? (
+                      <p className="mt-2 text-green-700 dark:text-green-400">This summary should be helpful for finding a match.</p>
+                  ) : (
+                      <p className="mt-2 text-amber-700 dark:text-amber-400">Analysis may be limited. A clearer photo might provide better results.</p>
+                  )}
+                  </AlertDescription>
+              </Alert>
+              <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto bg-accent hover:bg-accent/90 text-accent-foreground">
+                {isSubmitting ? (
+                   <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Posting...</>
+                ) : (
+                   <><Send className="mr-2 h-4 w-4" /> Post Report</>
+                )}
+              </Button>
             </div>
           )}
         </div>
-      </div>
-      
-      <div className="flex flex-col gap-4 items-start">
-        <Button type="button" onClick={handleAnalysis} disabled={isAnalyzing || imagePreviews.length === 0} className="w-full md:w-auto">
-          {isAnalyzing ? (
-            <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing...</>
-          ) : (
-            <><Wand2 className="mr-2 h-4 w-4" /> Analyze Photo</>
-          )}
-        </Button>
-
-        {analysisResult && (
-          <div className="w-full space-y-4">
-            <Alert>
-                <Lightbulb className="h-4 w-4" />
-                <AlertTitle>AI Analysis Complete</AlertTitle>
-                <AlertDescription>
-                <p className="font-semibold mt-2">Identified Attributes (from first image):</p>
-                <p>{analysisResult.attributeSummary}</p>
-                {analysisResult.isAnalysisHelpful ? (
-                    <p className="mt-2 text-green-700 dark:text-green-400">This summary should be helpful for finding a match.</p>
-                ) : (
-                    <p className="mt-2 text-amber-700 dark:text-amber-400">Analysis may be limited. A clearer photo might provide better results.</p>
-                )}
-                </AlertDescription>
-            </Alert>
-            <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto bg-accent hover:bg-accent/90 text-accent-foreground">
-              {isSubmitting ? (
-                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Posting...</>
-              ) : (
-                 <><Send className="mr-2 h-4 w-4" /> Post Report</>
-              )}
-            </Button>
-          </div>
-        )}
-      </div>
-    </form>
+      </form>
+    </Form>
   );
 }
