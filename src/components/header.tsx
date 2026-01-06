@@ -51,14 +51,17 @@ export default function Header() {
           <PawPrint className="h-6 w-6 text-primary" />
           PetVerse
         </Link>
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav className="hidden items-center gap-8 md:flex">
           {navLinks.map(({ href, label }) => (
             <Link 
               key={href} 
               href={href} 
               className={cn(
-                "text-sm font-medium transition-colors hover:text-foreground",
-                isClient && pathname === href ? "text-foreground" : "text-muted-foreground"
+                "relative text-sm font-medium transition-colors hover:text-foreground",
+                "after:absolute after:bottom-[-4px] after:left-0 after:h-[2px] after:w-full after:bg-primary after:scale-x-0 after:origin-left after:transition-transform after:duration-300 hover:after:scale-x-100",
+                isClient && pathname === href
+                  ? "text-foreground after:scale-x-100"
+                  : "text-muted-foreground"
               )}
             >
               {label}
