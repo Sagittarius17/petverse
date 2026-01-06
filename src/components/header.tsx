@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X, PawPrint } from 'lucide-react';
@@ -30,6 +30,11 @@ export default function Header() {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const pathname = usePathname();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
 
   const handleLogout = () => {
@@ -53,7 +58,7 @@ export default function Header() {
               href={href} 
               className={cn(
                 "text-sm font-medium transition-colors hover:text-foreground",
-                pathname === href ? "text-foreground" : "text-muted-foreground"
+                isClient && pathname === href ? "text-foreground" : "text-muted-foreground"
               )}
             >
               {label}
