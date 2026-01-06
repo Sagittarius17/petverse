@@ -35,6 +35,10 @@ export interface PetSpecies {
   name: string;
   description: string;
   imageId: string;
+  careDetails: {
+    title: string;
+    content: string;
+  }[];
 }
 
 export interface PetCategory {
@@ -227,28 +231,64 @@ export const petCategories: PetCategory[] = [
     category: 'Mammals',
     description: 'Warm-blooded animals that are popular as household pets.',
     species: [
-      { name: 'Dogs', description: 'Known for their loyalty and diverse breeds, from tiny Chihuahuas to giant Great Danes.', imageId: 'dog-1' },
-      { name: 'Cats', description: 'Independent yet affectionate companions, available in many breeds with distinct personalities.', imageId: 'cat-1' },
-      { name: 'Rabbits', description: 'Quiet and gentle, rabbits can be litter-trained and form strong bonds with their owners.', imageId: 'know-rabbit' },
-      { name: 'Hamsters', description: 'Small, nocturnal rodents that are easy to care for and entertaining to watch.', imageId: 'know-hamster' },
+      { 
+        name: 'Dogs', 
+        description: 'Known for their loyalty and diverse breeds, from tiny Chihuahuas to giant Great Danes.', 
+        imageId: 'dog-1',
+        careDetails: [
+          {
+            title: 'How to Pet Them',
+            content: 'Most dogs enjoy being pet on their chest, shoulders, and the base of their tail. Avoid patting the top of their head, which can be seen as threatening. Watch for cues like a wagging tail and leaning in, which indicate they are enjoying the affection.'
+          },
+          {
+            title: 'Care When Sick',
+            content: 'Common signs of illness include lethargy, loss of appetite, and changes in behavior. Provide a quiet, comfortable space and ensure they have water. Always consult a veterinarian for diagnosis and treatment. Never give a dog human medication without professional advice.'
+          },
+          {
+            title: 'Understanding Their Emotions',
+            content: 'A wagging tail can mean happiness, but a stiff, high tail can signal aggression. A relaxed body and soft eyes show contentment, while cowering or tucking the tail indicates fear. Baring teeth is a clear warning sign. Play bows are an invitation to have fun!'
+          }
+        ] 
+      },
+      { 
+        name: 'Cats', 
+        description: 'Independent yet affectionate companions, available in many breeds with distinct personalities.', 
+        imageId: 'cat-1',
+        careDetails: [
+          {
+            title: 'How to Pet Them',
+            content: 'Cats prefer to be pet on their own terms. Focus on their cheeks, the base of their ears, and under their chin. Most cats dislike having their belly or tail touched. A purr and leaning into your hand are good signs; a twitching tail or flattened ears mean "stop".'
+          },
+          {
+            title: 'Care When Sick',
+            content: 'Cats are masters at hiding illness. Look for changes like hiding, poor grooming, or avoiding the litter box. If you suspect illness, contact a vet. Provide a safe, warm hiding spot and ensure food and water are easily accessible.'
+          },
+          {
+            title: 'Understanding Their Emotions',
+            content: 'A slow blink is a sign of trust and affection (a "kitty kiss"). A tail held high is a sign of a confident, happy cat. Hissing or growling means they feel threatened. Purring often means contentment, but can also be a self-soothing mechanism when in pain.'
+          }
+        ]
+      },
+      { name: 'Rabbits', description: 'Quiet and gentle, rabbits can be litter-trained and form strong bonds with their owners.', imageId: 'know-rabbit', careDetails: [] },
+      { name: 'Hamsters', description: 'Small, nocturnal rodents that are easy to care for and entertaining to watch.', imageId: 'know-hamster', careDetails: [] },
     ],
   },
   {
     category: 'Birds',
     description: 'Intelligent and social creatures that can bring song and color into your home.',
     species: [
-      { name: 'Parrots', description: 'Highly intelligent birds, some of which can mimic human speech. They require significant attention.', imageId: 'bird-1' },
-      { name: 'Finches & Canaries', description: 'Small, cheerful birds that are best enjoyed for their songs and beauty rather than handling.', imageId: 'bird-2' },
-      { name: 'Cockatiels', description: 'Smaller than most parrots, cockatiels are known for being gentle and can learn to whistle tunes.', imageId: 'know-cockatiel' },
+      { name: 'Parrots', description: 'Highly intelligent birds, some of which can mimic human speech. They require significant attention.', imageId: 'bird-1', careDetails: [] },
+      { name: 'Finches & Canaries', description: 'Small, cheerful birds that are best enjoyed for their songs and beauty rather than handling.', imageId: 'bird-2', careDetails: [] },
+      { name: 'Cockatiels', description: 'Smaller than most parrots, cockatiels are known for being gentle and can learn to whistle tunes.', imageId: 'know-cockatiel', careDetails: [] },
     ],
   },
   {
     category: 'Reptiles',
     description: 'Fascinating and unique, these pets require specific environments to thrive.',
     species: [
-      { name: 'Lizards', description: 'From geckos to bearded dragons, lizards are fascinating pets with specific habitat needs.', imageId: 'know-lizard' },
-      { name: 'Snakes', description: 'Quiet and low-maintenance, many snake species make great pets for those who appreciate them.', imageId: 'know-snake' },
-      { name: 'Turtles', description: 'Aquatic or land-based, turtles are long-lived pets that require dedicated care.', imageId: 'know-turtle' },
+      { name: 'Lizards', description: 'From geckos to bearded dragons, lizards are fascinating pets with specific habitat needs.', imageId: 'know-lizard', careDetails: [] },
+      { name: 'Snakes', description: 'Quiet and low-maintenance, many snake species make great pets for those who appreciate them.', imageId: 'know-snake', careDetails: [] },
+      { name: 'Turtles', description: 'Aquatic or land-based, turtles are long-lived pets that require dedicated care.', imageId: 'know-turtle', careDetails: [] },
     ],
   },
 ];
