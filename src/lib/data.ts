@@ -25,6 +25,7 @@ export interface LostPetReport {
   ownerName: string;
   contactEmail: string;
   petName: string;
+  reportType: 'Lost' | 'Found';
   lastSeenLocation: string;
   petImage: string; // URL of the uploaded image
   analysis: AnalyzePetImageForMatchingOutput;

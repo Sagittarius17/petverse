@@ -18,6 +18,7 @@ const initialReports: LostPetReport[] = [
         petName: 'Buddy',
         lastSeenLocation: 'Central Park, near the fountain',
         petImage: 'https://images.unsplash.com/photo-1642581684512-52947badee8c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxkb2clMjBwdXBweXxlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib=rb-4.1.0&q=80&w=1080',
+        reportType: 'Lost',
         analysis: {
             attributeSummary: 'Golden Retriever puppy, light golden fur, appears to be young. No distinguishing collar or tags visible.',
             isAnalysisHelpful: true,
@@ -30,6 +31,7 @@ const initialReports: LostPetReport[] = [
         petName: 'Mochi',
         lastSeenLocation: 'Downtown, 4th and Main St.',
         petImage: 'https://images.unsplash.com/photo-1615901372949-296704779939?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjYXQlMjBhZHVsdHxlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib=rb-4.1.0&q=80&w=1080',
+        reportType: 'Found',
         analysis: {
             attributeSummary: 'Siamese cat with classic color points, blue eyes, and a slender build.',
             isAnalysisHelpful: true,
@@ -50,7 +52,7 @@ export default function LostAndFoundPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold font-headline tracking-tight">Lost & Found Pets</h1>
+        <h1 className="text-4xl font-bold font-headline tracking-tight">Lost &amp; Found Pets</h1>
         <p className="mt-2 text-lg text-muted-foreground">
           Let&apos;s help bring them home.
         </p>
@@ -59,18 +61,18 @@ export default function LostAndFoundPage() {
       <Tabs defaultValue="search" className="w-full max-w-4xl mx-auto">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="report">
-            <PawPrint className="mr-2 h-4 w-4"/> Report a Lost Pet
+            <PawPrint className="mr-2 h-4 w-4"/> Report a Pet
           </TabsTrigger>
           <TabsTrigger value="search">
-            <Search className="mr-2 h-4 w-4"/> Search Found Pets
+            <Search className="mr-2 h-4 w-4"/> Search Reports
           </TabsTrigger>
         </TabsList>
         <TabsContent value="report">
           <Card>
             <CardHeader>
-              <CardTitle>Report Your Lost Pet</CardTitle>
+              <CardTitle>Submit a Report</CardTitle>
               <CardDescription>
-                Fill out the form below. Our AI can help analyze your pet&apos;s photo to create a helpful description for matching.
+                Fill out the form below to report a lost or found pet. Our AI can help analyze the pet&apos;s photo to create a helpful description for matching.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -83,7 +85,7 @@ export default function LostAndFoundPage() {
             <CardHeader>
               <CardTitle>Recently Reported Pets</CardTitle>
               <CardDescription>
-                Browse pets that have been reported as lost. Contact the owner if you have any information.
+                Browse pets that have been reported as lost or found. Contact the owner if you have any information.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -93,7 +95,7 @@ export default function LostAndFoundPage() {
                 ))
               ) : (
                 <div className="text-center py-16 text-muted-foreground">
-                  <p>No lost pets have been reported yet.</p>
+                  <p>No pets have been reported yet.</p>
                   <p>Be the first to file a report!</p>
                 </div>
               )}

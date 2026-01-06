@@ -15,9 +15,14 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Wand2, Lightbulb, Loader2, Send } from 'lucide-react';
 import type { AnalyzePetImageForMatchingOutput } from '@/ai/flows/analyze-pet-image-for-matching';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 
 const formSchema = z.object({
-  ownerName: z.string().min(2, { message: 'Owner name must be at least 2 characters.' }),
+  reportType: z.enum(['Lost', 'Found'], {
+    required_error: "You need to select a report type.",
+  }),
+  ownerName: z.string().min(2, { message: 'Your name must be at least 2 characters.' }),
   contactEmail: z.string().email({ message: 'Please enter a valid email address.' }),
   petName: z.string().min(1, { message: 'Pet name is required.' }),
   lastSeenLocation: z.string().min(5, { message: 'Please provide a more detailed location.' }),
@@ -39,6 +44,9 @@ export default function LostPetForm({ onReportSubmit }: LostPetFormProps) {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      reportType: "Lost",
+    }
   });
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,7 +120,7 @@ export default function LostPetForm({ onReportSubmit }: LostPetFormProps) {
       toast({
         variant: 'destructive',
         title: 'Analysis Required',
-        description: 'Please analyze your pet\'s photo before submitting the report.',
+        description: 'Please analyze the pet\'s photo before submitting the report.',
       });
       setIsSubmitting(false);
       return;
@@ -122,6 +130,7 @@ export default function LostPetForm({ onReportSubmit }: LostPetFormProps) {
         ownerName: data.ownerName,
         contactEmail: data.contactEmail,
         petName: data.petName,
+        reportType: data.reportType,
         lastSeenLocation: data.lastSeenLocation,
         petImage: imagePreviews[0], // Using the first previewed image
         analysis: analysisResult,
@@ -132,7 +141,7 @@ export default function LostPetForm({ onReportSubmit }: LostPetFormProps) {
 
     toast({
       title: "Report Submitted!",
-      description: `Your lost pet report for ${data.petName} has been posted.`,
+      description: `Your ${data.reportType.toLowerCase()} pet report for ${data.petName} has been posted.`,
     });
     
     // Reset form state after successful submission
@@ -145,6 +154,37 @@ export default function LostPetForm({ onReportSubmit }: LostPetFormProps) {
   return (
     <form onSubmit={form.handleSubmit(onFinalSubmit)} className="space-y-8">
       <div className="space-y-6">
+        <FormField
+          control={form.control}
+          name="reportType"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel>What are you reporting?</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="flex space-x-4"
+                >
+                  <FormItem className="flex items-center space-x-2 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="Lost" />
+                    </FormControl>
+                    <FormLabel className="font-normal">I lost my pet</FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-2 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="Found" />
+                    </FormControl>
+                    <FormLabel className="font-normal">I found a pet</FormLabel>
+                  </FormItem>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="ownerName">Your Name</Label>
@@ -162,7 +202,7 @@ export default function LostPetForm({ onReportSubmit }: LostPetFormProps) {
             {form.formState.errors.petName && <p className="text-destructive text-sm mt-1">{form.formState.errors.petName.message}</p>}
           </div>
           <div>
-            <Label htmlFor="lastSeenLocation">Last Seen Location</Label>
+            <Label htmlFor="lastSeenLocation">Location (Lost or Found)</Label>
             <Input id="lastSeenLocation" {...form.register('lastSeenLocation')} />
             {form.formState.errors.lastSeenLocation && <p className="text-destructive text-sm mt-1">{form.formState.errors.lastSeenLocation.message}</p>}
           </div>
