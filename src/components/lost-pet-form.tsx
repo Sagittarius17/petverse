@@ -213,7 +213,7 @@ export default function LostPetForm({ onReportSubmit }: LostPetFormProps) {
           <div>
             <Label htmlFor="petImages">Pet&apos;s Photos</Label>
             <div className="mt-2">
-              <Input id="petImages" type="file" accept="image/*" multiple onChange={handleImageChange} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"/>
+              <Input id="petImages" type="file" accept="image/*" multiple onChange={handleImageChange} className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"/>
             </div>
             {form.formState.errors.petImages && <p className="text-destructive text-sm mt-1">A photo of your pet is required.</p>}
             {imagePreviews.length > 0 && (
