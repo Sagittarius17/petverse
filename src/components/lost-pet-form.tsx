@@ -7,12 +7,13 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from "@/hooks/use-toast";
 import { handleLostPetReport } from '@/app/lost-and-found/actions';
+import type { LostPetReport } from '@/lib/data';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Upload, Wand2, Lightbulb, Loader2, Send } from 'lucide-react';
+import { Wand2, Lightbulb, Loader2, Send } from 'lucide-react';
 import type { AnalyzePetImageForMatchingOutput } from '@/ai/flows/analyze-pet-image-for-matching';
 
 const formSchema = z.object({
@@ -25,7 +26,11 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export default function LostPetForm() {
+interface LostPetFormProps {
+  onReportSubmit: (report: Omit<LostPetReport, 'id'>) => void;
+}
+
+export default function LostPetForm({ onReportSubmit }: LostPetFormProps) {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [analysisResult, setAnalysisResult] = useState<AnalyzePetImageForMatchingOutput | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -101,26 +106,40 @@ export default function LostPetForm() {
 
   const onFinalSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
-    // In a real app, this is where you'd save the form data, image URLs (after uploading them to storage),
-    // and the analysisResult to your database.
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // We require analysis to be done before submitting.
+    if (!analysisResult) {
+      toast({
+        variant: 'destructive',
+        title: 'Analysis Required',
+        description: 'Please analyze your pet\'s photo before submitting the report.',
+      });
+      setIsSubmitting(false);
+      return;
+    }
 
-    console.log("Submitting report:", {
-      formData: data,
-      analysis: analysisResult,
-    });
+    const newReport: Omit<LostPetReport, 'id'> = {
+        ownerName: data.ownerName,
+        contactEmail: data.contactEmail,
+        petName: data.petName,
+        lastSeenLocation: data.lastSeenLocation,
+        petImage: imagePreviews[0], // Using the first previewed image
+        analysis: analysisResult,
+    };
     
+    // Pass the new report up to the parent component
+    onReportSubmit(newReport);
+
     toast({
       title: "Report Submitted!",
       description: `Your lost pet report for ${data.petName} has been posted.`,
     });
+    
+    // Reset form state after successful submission
+    form.reset();
+    setImagePreviews([]);
+    setAnalysisResult(null);
     setIsSubmitting(false);
-    // Optionally reset the form
-    // form.reset();
-    // setImagePreviews([]);
-    // setAnalysisResult(null);
   };
 
   return (

@@ -1,3 +1,5 @@
+import { AnalyzePetImageForMatchingOutput } from "@/ai/flows/analyze-pet-image-for-matching";
+
 export interface Pet {
   id: string;
   name: string;
@@ -17,6 +19,17 @@ export interface CareGuide {
   imageId: string;
   content: string;
 }
+
+export interface LostPetReport {
+  id: string;
+  ownerName: string;
+  contactEmail: string;
+  petName: string;
+  lastSeenLocation: string;
+  petImage: string; // URL of the uploaded image
+  analysis: AnalyzePetImageForMatchingOutput;
+}
+
 
 export const allPets: Pet[] = [
   { id: 'p1', name: 'Buddy', species: 'Dog', breed: 'Golden Retriever', age: '2 years', gender: 'Male', imageId: 'dog-1', description: 'A very good boy who loves to play fetch.' },
