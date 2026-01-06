@@ -11,10 +11,8 @@ import { handleLostPetReport } from '@/app/lost-and-found/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Upload, Wand2, Lightbulb, Loader2 } from 'lucide-react';
+import { Upload, Wand2, Lightbulb, Loader2, Send } from 'lucide-react';
 import type { AnalyzePetImageForMatchingOutput } from '@/ai/flows/analyze-pet-image-for-matching';
 
 const formSchema = z.object({
@@ -22,15 +20,16 @@ const formSchema = z.object({
   contactEmail: z.string().email({ message: 'Please enter a valid email address.' }),
   petName: z.string().min(1, { message: 'Pet name is required.' }),
   lastSeenLocation: z.string().min(5, { message: 'Please provide a more detailed location.' }),
-  petImage: z.any().refine(file => file instanceof File, 'Image is required.'),
+  petImages: z.any().refine(files => files?.length > 0, 'At least one image is required.'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 export default function LostPetForm() {
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [analysisResult, setAnalysisResult] = useState<AnalyzePetImageForMatchingOutput | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -38,24 +37,33 @@ export default function LostPetForm() {
   });
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      form.setValue('petImage', file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-        setAnalysisResult(null); // Clear previous analysis
-      };
-      reader.readAsDataURL(file);
+    const files = event.target.files;
+    if (files) {
+      form.setValue('petImages', Array.from(files));
+      const newPreviews = Array.from(files).map(file => URL.createObjectURL(file));
+      setImagePreviews(newPreviews);
+      setAnalysisResult(null); // Clear previous analysis
     }
   };
 
-  const onSubmit = async (data: FormValues) => {
-    setIsLoading(true);
+  const handleAnalysis = async () => {
+    setIsAnalyzing(true);
     setAnalysisResult(null);
 
+    const files = form.getValues('petImages');
+    if (!files || files.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "No Image Selected",
+        description: "Please upload at least one photo of your pet to analyze.",
+      });
+      setIsAnalyzing(false);
+      return;
+    }
+
+    const firstFile = files[0];
     const reader = new FileReader();
-    reader.readAsDataURL(data.petImage);
+    reader.readAsDataURL(firstFile);
     reader.onloadend = async () => {
       const base64data = reader.result as string;
       
@@ -65,6 +73,10 @@ export default function LostPetForm() {
             throw new Error(result.error);
         }
         setAnalysisResult(result.data);
+         toast({
+          title: "Analysis Complete",
+          description: "The AI has analyzed your pet's photo. Review the details below.",
+        });
       } catch (error) {
         console.error("Analysis failed:", error);
         toast({
@@ -73,74 +85,122 @@ export default function LostPetForm() {
           description: "There was a problem with the AI analysis. Please try again.",
         });
       } finally {
-        setIsLoading(false);
+        setIsAnalyzing(false);
       }
+    };
+     reader.onerror = () => {
+      console.error("Failed to read file.");
+      toast({
+        variant: "destructive",
+        title: "File Read Error",
+        description: "Could not read the selected image file.",
+      });
+      setIsAnalyzing(false);
     };
   };
 
-  return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="ownerName">Your Name</Label>
-          <Input id="ownerName" {...form.register('ownerName')} />
-          {form.formState.errors.ownerName && <p className="text-destructive text-sm mt-1">{form.formState.errors.ownerName.message}</p>}
-        </div>
-        <div>
-          <Label htmlFor="contactEmail">Contact Email</Label>
-          <Input id="contactEmail" type="email" {...form.register('contactEmail')} />
-          {form.formState.errors.contactEmail && <p className="text-destructive text-sm mt-1">{form.formState.errors.contactEmail.message}</p>}
-        </div>
-        <div>
-          <Label htmlFor="petName">Pet&apos;s Name</Label>
-          <Input id="petName" {...form.register('petName')} />
-          {form.formState.errors.petName && <p className="text-destructive text-sm mt-1">{form.formState.errors.petName.message}</p>}
-        </div>
-        <div>
-          <Label htmlFor="lastSeenLocation">Last Seen Location</Label>
-          <Input id="lastSeenLocation" {...form.register('lastSeenLocation')} />
-           {form.formState.errors.lastSeenLocation && <p className="text-destructive text-sm mt-1">{form.formState.errors.lastSeenLocation.message}</p>}
-        </div>
-      </div>
+  const onFinalSubmit = async (data: FormValues) => {
+    setIsSubmitting(true);
+    // In a real app, this is where you'd save the form data, image URLs (after uploading them to storage),
+    // and the analysisResult to your database.
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
-      <div>
-        <Label htmlFor="petImage">Pet&apos;s Photo</Label>
-        <div className="mt-2 flex items-center gap-4">
-          <div className="w-24 h-24 rounded-md bg-secondary flex items-center justify-center overflow-hidden">
-            {imagePreview ? (
-              <Image src={imagePreview} alt="Pet preview" width={96} height={96} className="object-cover" />
-            ) : (
-              <Upload className="h-8 w-8 text-muted-foreground" />
-            )}
+    console.log("Submitting report:", {
+      formData: data,
+      analysis: analysisResult,
+    });
+    
+    toast({
+      title: "Report Submitted!",
+      description: `Your lost pet report for ${data.petName} has been posted.`,
+    });
+    setIsSubmitting(false);
+    // Optionally reset the form
+    // form.reset();
+    // setImagePreviews([]);
+    // setAnalysisResult(null);
+  };
+
+  return (
+    <form onSubmit={form.handleSubmit(onFinalSubmit)} className="space-y-8">
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="ownerName">Your Name</Label>
+            <Input id="ownerName" {...form.register('ownerName')} />
+            {form.formState.errors.ownerName && <p className="text-destructive text-sm mt-1">{form.formState.errors.ownerName.message}</p>}
           </div>
-          <Input id="petImage" type="file" accept="image/*" onChange={handleImageChange} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"/>
+          <div>
+            <Label htmlFor="contactEmail">Contact Email</Label>
+            <Input id="contactEmail" type="email" {...form.register('contactEmail')} />
+            {form.formState.errors.contactEmail && <p className="text-destructive text-sm mt-1">{form.formState.errors.contactEmail.message}</p>}
+          </div>
+          <div>
+            <Label htmlFor="petName">Pet&apos;s Name</Label>
+            <Input id="petName" {...form.register('petName')} />
+            {form.formState.errors.petName && <p className="text-destructive text-sm mt-1">{form.formState.errors.petName.message}</p>}
+          </div>
+          <div>
+            <Label htmlFor="lastSeenLocation">Last Seen Location</Label>
+            <Input id="lastSeenLocation" {...form.register('lastSeenLocation')} />
+            {form.formState.errors.lastSeenLocation && <p className="text-destructive text-sm mt-1">{form.formState.errors.lastSeenLocation.message}</p>}
+          </div>
         </div>
-        {form.formState.errors.petImage && <p className="text-destructive text-sm mt-1">A photo of your pet is required.</p>}
+
+        <div>
+          <Label htmlFor="petImages">Pet&apos;s Photos</Label>
+          <div className="mt-2">
+            <Input id="petImages" type="file" accept="image/*" multiple onChange={handleImageChange} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"/>
+          </div>
+          {form.formState.errors.petImages && <p className="text-destructive text-sm mt-1">A photo of your pet is required.</p>}
+          {imagePreviews.length > 0 && (
+            <div className="mt-4 flex gap-4 flex-wrap">
+              {imagePreviews.map((src, index) => (
+                <div key={index} className="w-24 h-24 rounded-md bg-secondary flex items-center justify-center overflow-hidden border">
+                  <Image src={src} alt={`Pet preview ${index + 1}`} width={96} height={96} className="object-cover" />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
       
-      <Button type="submit" disabled={isLoading || !imagePreview} className="w-full md:w-auto">
-        {isLoading ? (
-          <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing...</>
-        ) : (
-          <><Wand2 className="mr-2 h-4 w-4" /> Analyze Photo & Submit Report</>
-        )}
-      </Button>
+      <div className="flex flex-col gap-4 items-start">
+        <Button type="button" onClick={handleAnalysis} disabled={isAnalyzing || imagePreviews.length === 0} className="w-full md:w-auto">
+          {isAnalyzing ? (
+            <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing...</>
+          ) : (
+            <><Wand2 className="mr-2 h-4 w-4" /> Analyze Photo</>
+          )}
+        </Button>
 
-      {analysisResult && (
-        <Alert>
-            <Lightbulb className="h-4 w-4" />
-            <AlertTitle>AI Analysis Complete</AlertTitle>
-            <AlertDescription>
-            <p className="font-semibold mt-2">Identified Attributes:</p>
-            <p>{analysisResult.attributeSummary}</p>
-            {analysisResult.isAnalysisHelpful ? (
-                <p className="mt-2 text-green-700 dark:text-green-400">This summary should be helpful for finding a match.</p>
-            ) : (
-                <p className="mt-2 text-amber-700 dark:text-amber-400">Analysis may be limited. A clearer photo might provide better results.</p>
-            )}
-            </AlertDescription>
-        </Alert>
-      )}
+        {analysisResult && (
+          <div className="w-full space-y-4">
+            <Alert>
+                <Lightbulb className="h-4 w-4" />
+                <AlertTitle>AI Analysis Complete</AlertTitle>
+                <AlertDescription>
+                <p className="font-semibold mt-2">Identified Attributes (from first image):</p>
+                <p>{analysisResult.attributeSummary}</p>
+                {analysisResult.isAnalysisHelpful ? (
+                    <p className="mt-2 text-green-700 dark:text-green-400">This summary should be helpful for finding a match.</p>
+                ) : (
+                    <p className="mt-2 text-amber-700 dark:text-amber-400">Analysis may be limited. A clearer photo might provide better results.</p>
+                )}
+                </AlertDescription>
+            </Alert>
+            <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto bg-accent hover:bg-accent/90 text-accent-foreground">
+              {isSubmitting ? (
+                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Posting...</>
+              ) : (
+                 <><Send className="mr-2 h-4 w-4" /> Post Report</>
+              )}
+            </Button>
+          </div>
+        )}
+      </div>
     </form>
   );
 }

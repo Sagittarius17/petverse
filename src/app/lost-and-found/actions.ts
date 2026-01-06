@@ -4,6 +4,7 @@ import { analyzePetImageForMatching, AnalyzePetImageForMatchingInput, AnalyzePet
 import { z } from "zod";
 
 const actionInputSchema = z.object({
+  // It still expects a single data URI for analysis.
   petImageDataUri: z.string(),
 });
 
@@ -17,6 +18,7 @@ export async function handleLostPetReport(
   }
 
   try {
+    // The flow will analyze the single image provided.
     const output = await analyzePetImageForMatching(parsedInput.data);
     
     // In a real application, you would now save the report and the analysis to your database.
