@@ -21,7 +21,6 @@ const navLinks = [
   { href: '/adopt', label: 'Adoption' },
   { href: '/care', label: 'Care Guides' },
   { href: '/lost-and-found', label: 'Lost & Found' },
-  { href: '/admin', label: 'Admin' },
 ];
 
 export default function Header() {
@@ -75,6 +74,9 @@ export default function Header() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/profile">Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/admin">Admin</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout}>
                   Log out
