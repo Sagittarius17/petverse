@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { SidebarProvider, Sidebar, SidebarInset, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "@/components/ui/sidebar";
+import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "@/components/ui/sidebar";
 import { 
   LayoutDashboard, 
   Dog, 
@@ -30,14 +30,14 @@ export default function AdminLayout({
   return (
     <SidebarProvider>
       <div className="flex h-[calc(100vh-4rem)]">
-        <Sidebar collapsible="icon">
+        <Sidebar collapsible="icon" className="flex flex-col">
             <SidebarHeader>
               <Link href="/admin" className="flex items-center gap-2 text-xl font-bold font-headline">
                   <PawPrint className="h-6 w-6 text-primary" />
                   <span className="group-data-[collapsible=icon]:hidden">PetVerse</span>
                 </Link>
             </SidebarHeader>
-            <SidebarContent>
+            <SidebarContent className="flex-1">
               <SidebarMenu>
                 {menuItems.map((item) => (
                     <SidebarMenuItem key={item.href}>
@@ -76,11 +76,11 @@ export default function AdminLayout({
               </SidebarMenu>
             </SidebarFooter>
         </Sidebar>
-        <SidebarInset className="overflow-auto">
+        <main className="flex-1 overflow-auto">
           <div className="p-4 sm:p-6 lg:p-8">
             {children}
           </div>
-        </SidebarInset>
+        </main>
       </div>
     </SidebarProvider>
   );
