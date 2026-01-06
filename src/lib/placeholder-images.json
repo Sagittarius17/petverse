@@ -95,6 +95,42 @@
       "description": "A placeholder avatar for a user profile.",
       "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3Njc1MTExMDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person portrait"
+    },
+    {
+      "id": "know-rabbit",
+      "description": "A fluffy rabbit in a green field.",
+      "imageUrl": "https://images.unsplash.com/photo-1595972727402-084f2162d637?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxyYWJiaXQlMjBuYXR1cmV8ZW58MHx8fHwxNzY3NzIxNjI1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "rabbit nature"
+    },
+    {
+      "id": "know-hamster",
+      "description": "A small hamster eating a seed.",
+      "imageUrl": "https://images.unsplash.com/photo-1630412989932-7d422f8ac136?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxoYW1zdGVyJTIwY3V0ZXxlbnwwfHx8fDE3Njc3MjE2MjR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "hamster cute"
+    },
+    {
+      "id": "know-cockatiel",
+      "description": "A cockatiel with a yellow crest.",
+      "imageUrl": "https://images.unsplash.com/photo-1761627064452-68769313f360?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjb2NrYXRpZWwlMjBiaXJkfGVufDB8fHx8MTc2NzcyMTYyNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cockatiel bird"
+    },
+    {
+      "id": "know-lizard",
+      "description": "A green lizard on a rock.",
+      "imageUrl": "https://images.unsplash.com/photo-1722709276773-27d3720f70b4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxsaXphcmQlMjByZXB0aWxlfGVufDB8fHx8MTc2NzcyMTYyNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "lizard reptile"
+    },
+    {
+      "id": "know-snake",
+      "description": "A snake coiled on a branch.",
+      "imageUrl": "https://images.unsplash.com/photo-1751111303717-edf242287942?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzbmFrZSUyMHJlcHRpbGV8ZW58MHx8fHwxNzY3NzIxNjI0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "snake reptile"
+    },
+    {
+      "id": "know-turtle",
+      "description": "A turtle swimming in water.",
+      "imageUrl": "https://images.unsplash.com/photo-1690666056631-32e11d63df12?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8dHVydGxlJTIwd2F0ZXJ8ZW58MHx8fHwxNzY3NzIxNjI0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "turtle water"
     }
   ]
 }

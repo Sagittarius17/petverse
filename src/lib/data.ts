@@ -31,6 +31,18 @@ export interface LostPetReport {
   analysis: AnalyzePetImageForMatchingOutput;
 }
 
+export interface PetSpecies {
+  name: string;
+  description: string;
+  imageId: string;
+}
+
+export interface PetCategory {
+  category: string;
+  description: string;
+  species: PetSpecies[];
+}
+
 
 export const allPets: Pet[] = [
   { id: 'p1', name: 'Buddy', species: 'Dog', breed: 'Golden Retriever', age: '2 years', gender: 'Male', imageId: 'dog-1', description: 'A very good boy who loves to play fetch.' },
@@ -48,11 +60,11 @@ export const allPets: Pet[] = [
 export const featuredPets = allPets.slice(0, 4);
 
 export const allCareGuides: CareGuide[] = [
-    { 
-      id: 'cg1', 
-      title: 'Beginner\'s Guide to Dog Care', 
-      petType: 'Dogs', 
-      summary: 'Learn the basics of feeding, grooming, and training your new dog.', 
+    {
+      id: 'cg1',
+      title: 'Beginner\'s Guide to Dog Care',
+      petType: 'Dogs',
+      summary: 'Learn the basics of feeding, grooming, and training your new dog.',
       imageId: 'guide-dog',
       content: `
 ### Welcome to Dog Ownership!
@@ -79,11 +91,11 @@ Training is essential for a well-behaved dog. Start with basic commands like "si
 Socialization is equally important. Expose your puppy to various people, places, and other animals from a young age to help them become a well-adjusted adult.
       `
     },
-    { 
-      id: 'cg2', 
-      title: 'Keeping Your Cat Happy Indoors', 
-      petType: 'Cats', 
-      summary: 'Tips and tricks for enriching your indoor cat\'s life.', 
+    {
+      id: 'cg2',
+      title: 'Keeping Your Cat Happy Indoors',
+      petType: 'Cats',
+      summary: 'Tips and tricks for enriching your indoor cat\'s life.',
       imageId: 'guide-cat',
       content: `
 ### A Fulfilling Life Indoors
@@ -108,11 +120,11 @@ Interactive play mimics hunting and is a great way for your cat to burn off ener
 Set up a comfortable perch near a window. A bird feeder outside can provide hours of entertainment (what cat owners affectionately call "kitty TV").
       `
     },
-    { 
-      id: 'cg3', 
-      title: 'Choosing the Right Cage for Your Bird', 
-      petType: 'Birds', 
-      summary: 'Size, material, and placement are key for your bird\'s home.', 
+    {
+      id: 'cg3',
+      title: 'Choosing the Right Cage for Your Bird',
+      petType: 'Birds',
+      summary: 'Size, material, and placement are key for your bird\'s home.',
       imageId: 'guide-bird',
       content: `
 ### A Safe and Comfortable Home
@@ -135,11 +147,11 @@ Stainless steel is the safest and most durable cage material, though it can be e
 - **Toys:** A variety of toys for shredding, chewing, and foraging will keep your bird mentally stimulated.
       `
     },
-    { 
-      id: 'cg4', 
-      title: 'Aquarium 101: Setting Up Your First Tank', 
-      petType: 'Fish', 
-      summary: 'A step-by-step guide to creating a healthy environment for your fish.', 
+    {
+      id: 'cg4',
+      title: 'Aquarium 101: Setting Up Your First Tank',
+      petType: 'Fish',
+      summary: 'A step-by-step guide to creating a healthy environment for your fish.',
       imageId: 'guide-fish',
       content: `
 ### Diving into the World of Fishkeeping
@@ -160,11 +172,11 @@ For beginners, a larger tank (20 gallons or more) is actually easier to manage t
 This is the most important concept for new aquarists. You must "cycle" your tank before adding fish. This process establishes a colony of beneficial bacteria that converts toxic fish waste (ammonia) into less harmful substances (nitrates). This can take 2-6 weeks.
       `
     },
-    { 
-      id: 'cg5', 
-      title: 'Nutrition for a Healthy Dog Coat', 
-      petType: 'Dogs', 
-      summary: 'Discover the best foods for a shiny, healthy coat.', 
+    {
+      id: 'cg5',
+      title: 'Nutrition for a Healthy Dog Coat',
+      petType: 'Dogs',
+      summary: 'Discover the best foods for a shiny, healthy coat.',
       imageId: 'dog-1',
       content: `
 ### The Secret to a Shiny Coat
@@ -183,11 +195,11 @@ Choose a well-balanced commercial dog food from a reputable brand. If you suspec
 In some cases, your vet might recommend supplements like fish oil capsules or a skin and coat supplement. Always consult your veterinarian before adding any supplements to your dog's diet.
       `
     },
-    { 
-      id: 'cg6', 
-      title: 'Understanding Cat Behavior', 
-      petType: 'Cats', 
-      summary: 'Decode your cat\'s body language and vocalizations.', 
+    {
+      id: 'cg6',
+      title: 'Understanding Cat Behavior',
+      petType: 'Cats',
+      summary: 'Decode your cat\'s body language and vocalizations.',
       imageId: 'cat-1',
       content: `
 ### Cracking the Feline Code
@@ -209,3 +221,34 @@ Cats communicate in subtle ways. Understanding their body language and vocalizat
 ];
 
 export const featuredCareGuides = allCareGuides.slice(0, 3);
+
+export const petCategories: PetCategory[] = [
+  {
+    category: 'Mammals',
+    description: 'Warm-blooded animals that are popular as household pets.',
+    species: [
+      { name: 'Dogs', description: 'Known for their loyalty and diverse breeds, from tiny Chihuahuas to giant Great Danes.', imageId: 'dog-1' },
+      { name: 'Cats', description: 'Independent yet affectionate companions, available in many breeds with distinct personalities.', imageId: 'cat-1' },
+      { name: 'Rabbits', description: 'Quiet and gentle, rabbits can be litter-trained and form strong bonds with their owners.', imageId: 'know-rabbit' },
+      { name: 'Hamsters', description: 'Small, nocturnal rodents that are easy to care for and entertaining to watch.', imageId: 'know-hamster' },
+    ],
+  },
+  {
+    category: 'Birds',
+    description: 'Intelligent and social creatures that can bring song and color into your home.',
+    species: [
+      { name: 'Parrots', description: 'Highly intelligent birds, some of which can mimic human speech. They require significant attention.', imageId: 'bird-1' },
+      { name: 'Finches & Canaries', description: 'Small, cheerful birds that are best enjoyed for their songs and beauty rather than handling.', imageId: 'bird-2' },
+      { name: 'Cockatiels', description: 'Smaller than most parrots, cockatiels are known for being gentle and can learn to whistle tunes.', imageId: 'know-cockatiel' },
+    ],
+  },
+  {
+    category: 'Reptiles',
+    description: 'Fascinating and unique, these pets require specific environments to thrive.',
+    species: [
+      { name: 'Lizards', description: 'From geckos to bearded dragons, lizards are fascinating pets with specific habitat needs.', imageId: 'know-lizard' },
+      { name: 'Snakes', description: 'Quiet and low-maintenance, many snake species make great pets for those who appreciate them.', imageId: 'know-snake' },
+      { name: 'Turtles', description: 'Aquatic or land-based, turtles are long-lived pets that require dedicated care.', imageId: 'know-turtle' },
+    ],
+  },
+];

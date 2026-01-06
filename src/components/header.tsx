@@ -23,6 +23,7 @@ const navLinks = [
   { href: '/adopt', label: 'Adoption' },
   { href: '/care', label: 'Care Guides' },
   { href: '/lost-and-found', label: 'Lost & Found' },
+  { href: '/know-your-pet', label: 'Know Your Pet' },
 ];
 
 export default function Header() {
@@ -53,9 +54,9 @@ export default function Header() {
         </Link>
         <nav className="hidden items-center gap-8 md:flex">
           {navLinks.map(({ href, label }) => (
-            <Link 
-              key={href} 
-              href={href} 
+            <Link
+              key={href}
+              href={href}
               className={cn(
                 "relative text-sm font-medium transition-colors hover:text-foreground",
                 "after:absolute after:bottom-[-4px] after:left-0 after:h-[2px] after:w-full after:bg-primary after:scale-x-0 after:origin-left after:transition-transform after:duration-300 hover:after:scale-x-100",
@@ -128,9 +129,9 @@ export default function Header() {
           </div>
           <div className="flex flex-col items-center gap-6 p-8">
             {navLinks.map(({ href, label }) => (
-              <Link 
-                key={href} 
-                href={href} 
+              <Link
+                key={href}
+                href={href}
                 className={cn(
                   "text-lg font-medium",
                   pathname === href ? "text-foreground" : "text-muted-foreground"
