@@ -58,8 +58,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <SidebarMenuButton
                       asChild
                       isActive={
-                        pathname === item.href ||
-                        (item.href !== "/admin" && pathname.startsWith(item.href))
+                        item.href === "/admin"
+                          ? pathname === item.href
+                          : pathname.startsWith(item.href)
                       }
                       tooltip={{ children: item.label }}
                     >
