@@ -31,10 +31,21 @@ export interface LostPetReport {
   analysis: AnalyzePetImageForMatchingOutput;
 }
 
+export interface PetBreed {
+  name: string;
+  description: string;
+  imageId: string;
+  careDetails: {
+    title: string;
+    content: string;
+  }[];
+}
+
 export interface PetSpecies {
   name: string;
   description: string;
   imageId: string;
+  breeds?: PetBreed[];
   careDetails: {
     title: string;
     content: string;
@@ -76,150 +87,13 @@ export const allCareGuides: CareGuide[] = [
 Bringing a new dog into your home is an exciting experience. To ensure your new friend has a happy and healthy life, it's important to understand the basics of their care.
 
 #### Nutrition
-A balanced diet is crucial for your dog's health. Choose a high-quality dog food that is appropriate for their age, size, and activity level. Puppies, adults, and senior dogs have different nutritional needs. Always provide fresh, clean water.
-
-- **Puppies:** Need more calories and protein for growth.
-- **Adults:** Require a maintenance diet to stay healthy.
-- **Seniors:** May need fewer calories and more fiber.
+A balanced diet is crucial for your dog's health. Choose a high-quality dog food that is appropriate for their age, size, and activity level.
 
 #### Grooming
 Regular grooming keeps your dog's coat and skin healthy. The frequency of grooming depends on the breed and coat type.
 
-- **Brushing:** Prevents matting and reduces shedding. Long-haired breeds need daily brushing.
-- **Bathing:** Bathe your dog as needed, but not too often, as it can strip natural oils from their skin.
-- **Nail Trimming:** Trim nails regularly to prevent discomfort and walking problems.
-
 #### Training and Socialization
-Training is essential for a well-behaved dog. Start with basic commands like "sit," "stay," and "come." Use positive reinforcement techniques, such as treats and praise.
-
-Socialization is equally important. Expose your puppy to various people, places, and other animals from a young age to help them become a well-adjusted adult.
-      `
-    },
-    {
-      id: 'cg2',
-      title: 'Keeping Your Cat Happy Indoors',
-      petType: 'Cats',
-      summary: 'Tips and tricks for enriching your indoor cat\'s life.',
-      imageId: 'guide-cat',
-      content: `
-### A Fulfilling Life Indoors
-
-Indoor cats live longer, safer lives, but they need environmental enrichment to stay happy and healthy. Here's how you can create a stimulating world for your feline friend.
-
-#### Create a "Cat-ified" Environment
-Your home is your cat's jungle. Provide opportunities for them to express their natural behaviors.
-
-- **Vertical Space:** Cats love to climb. Install cat trees, shelves, or perches to give them a view from above.
-- **Scratching Posts:** Provide sturdy scratching posts to satisfy their natural urge to scratch, saving your furniture in the process. Offer different materials like sisal, cardboard, and carpet.
-- **Hiding Spots:** Boxes, tunnels, and cozy beds provide a sense of security.
-
-#### Playtime is Essential
-Interactive play mimics hunting and is a great way for your cat to burn off energy.
-
-- **Wand Toys:** Feather wands or toys on a string are great for interactive sessions.
-- **Puzzle Feeders:** Make your cat work for their food. This engages their mind and prevents boredom.
-- **Solo Play:** Rotate a variety of toys like fuzzy mice, crinkle balls, and springs.
-
-#### Window to the World
-Set up a comfortable perch near a window. A bird feeder outside can provide hours of entertainment (what cat owners affectionately call "kitty TV").
-      `
-    },
-    {
-      id: 'cg3',
-      title: 'Choosing the Right Cage for Your Bird',
-      petType: 'Birds',
-      summary: 'Size, material, and placement are key for your bird\'s home.',
-      imageId: 'guide-bird',
-      content: `
-### A Safe and Comfortable Home
-
-A cage is your bird's home base, so it's vital to choose one that is safe, comfortable, and appropriately sized.
-
-#### Size Matters
-The cage should be large enough for your bird to stretch its wings fully and fly short distances between perches. For larger birds, the cage should be as big as you can afford and accommodate. Bar spacing is also critical; it should be narrow enough that your bird cannot get its head stuck.
-
-- **Small Birds (Finches, Canaries):** Wider cages are better than taller ones to allow for flight.
-- **Medium Birds (Cockatiels, Conures):** Need plenty of room for toys and climbing.
-- **Large Birds (Macaws, Cockatoos):** Require very large, durable cages.
-
-#### Material and Safety
-Stainless steel is the safest and most durable cage material, though it can be expensive. Powder-coated metal cages are a good alternative, but inspect them regularly for chipping, which could be ingested. Avoid cages made of zinc or lead, which are toxic to birds.
-
-#### Cage Setup
-- **Perches:** Provide a variety of perches of different diameters and textures to exercise your bird's feet. Natural wood branches are an excellent choice.
-- **Food and Water Bowls:** Should be placed away from perches to avoid contamination.
-- **Toys:** A variety of toys for shredding, chewing, and foraging will keep your bird mentally stimulated.
-      `
-    },
-    {
-      id: 'cg4',
-      title: 'Aquarium 101: Setting Up Your First Tank',
-      petType: 'Fish',
-      summary: 'A step-by-step guide to creating a healthy environment for your fish.',
-      imageId: 'guide-fish',
-      content: `
-### Diving into the World of Fishkeeping
-
-Setting up your first aquarium can be a rewarding experience. A proper setup from the start is key to the health and happiness of your aquatic pets.
-
-#### Choosing Your Tank
-For beginners, a larger tank (20 gallons or more) is actually easier to manage than a small one. Water parameters are more stable in larger volumes of water. Decide whether you want a freshwater or saltwater tank; freshwater is generally recommended for beginners.
-
-#### Essential Equipment
-- **Filter:** Crucial for removing waste and keeping water clean. Choose a filter rated for your tank size.
-- **Heater:** Most tropical fish require a consistent water temperature, typically between 75-80°F (24-27°C).
-- **Substrate:** Gravel or sand for the bottom of the tank.
-- **Lighting:** An aquarium hood with a light will help you see your fish and is necessary if you plan to have live plants.
-- **Water Conditioner:** To remove chlorine and other harmful chemicals from tap water.
-
-#### The Nitrogen Cycle
-This is the most important concept for new aquarists. You must "cycle" your tank before adding fish. This process establishes a colony of beneficial bacteria that converts toxic fish waste (ammonia) into less harmful substances (nitrates). This can take 2-6 weeks.
-      `
-    },
-    {
-      id: 'cg5',
-      title: 'Nutrition for a Healthy Dog Coat',
-      petType: 'Dogs',
-      summary: 'Discover the best foods for a shiny, healthy coat.',
-      imageId: 'dog-1',
-      content: `
-### The Secret to a Shiny Coat
-
-A dog's coat is often a reflection of their overall health. A dull, dry coat can be a sign of nutritional deficiencies. Feeding the right diet is the first step towards a lustrous shine.
-
-#### Key Nutrients for Skin and Coat
-- **Omega-3 and Omega-6 Fatty Acids:** These are essential fatty acids that your dog cannot produce on their own. They help maintain skin hydration and reduce inflammation. Look for foods with fish oil (like salmon oil), flaxseed, and sunflower oil.
-- **High-Quality Protein:** Hair is primarily made of protein. A diet with a named meat source (e.g., chicken, lamb, beef) as the first ingredient provides the necessary building blocks.
-- **Vitamins and Minerals:** Vitamin E, zinc, and biotin are particularly important for skin health and hair growth.
-
-#### Food Choices
-Choose a well-balanced commercial dog food from a reputable brand. If you suspect a food allergy is causing skin issues (symptoms include itching, redness, and hair loss), consult your vet. They may recommend a limited ingredient diet or a food trial.
-
-#### Supplements
-In some cases, your vet might recommend supplements like fish oil capsules or a skin and coat supplement. Always consult your veterinarian before adding any supplements to your dog's diet.
-      `
-    },
-    {
-      id: 'cg6',
-      title: 'Understanding Cat Behavior',
-      petType: 'Cats',
-      summary: 'Decode your cat\'s body language and vocalizations.',
-      imageId: 'cat-1',
-      content: `
-### Cracking the Feline Code
-
-Cats communicate in subtle ways. Understanding their body language and vocalizations can strengthen your bond and help you meet their needs more effectively.
-
-#### Body Language
-- **Tail:** A high, upright tail signals a happy, confident cat. A twitching tail can mean excitement or agitation. A tucked tail indicates fear. A puffy, "bottlebrush" tail means they are terrified or extremely angry.
-- **Ears:** Forward-facing ears show interest and alertness. Ears flattened to the side ("airplane ears") are a sign of irritation or fear.
-- **Eyes:** Slow blinks are the feline equivalent of a kiss, showing trust and affection. Dilated pupils can mean excitement, fear, or arousal.
-
-#### Vocalizations
-- **Meow:** The classic "meow" is primarily used to communicate with humans, not other cats. It can mean anything from "hello" to "feed me."
-- **Purr:** Usually a sign of contentment, but cats also purr when they are in pain or distressed as a self-soothing mechanism.
-- **Hiss/Growl:** A clear warning to back off. Your cat feels threatened.
-- **Chirping/Chattering:** Often observed when a cat is watching birds or squirrels. It's thought to be a sign of excitement or frustration.
+Training is essential for a well-behaved dog. Start with basic commands like "sit," "stay," and "come."
       `
     },
 ];
@@ -233,62 +107,232 @@ export const petCategories: PetCategory[] = [
     species: [
       { 
         name: 'Dogs', 
-        description: 'Known for their loyalty and diverse breeds, from tiny Chihuahuas to giant Great Danes.', 
+        description: 'Known for their loyalty and diverse breeds.', 
         imageId: 'dog-1',
-        careDetails: [
+        breeds: [
           {
-            title: 'How to Pet Them',
-            content: 'Most dogs enjoy being pet on their chest, shoulders, and the base of their tail. Avoid patting the top of their head, which can be seen as threatening. Watch for cues like a wagging tail and leaning in, which indicate they are enjoying the affection.'
+            name: 'Golden Retriever',
+            description: 'Friendly, reliable, and trustworthy dogs.',
+            imageId: 'dog-1',
+            careDetails: [
+              { title: 'Overview', content: 'The Golden Retriever is one of the most popular dog breeds, known for its friendly and tolerant attitude.' },
+              { title: 'Temperament', content: 'Intelligent, kind, and trustworthy.' },
+              { title: 'Lifespan', content: '10-12 years.' },
+              { title: 'Size', content: '55-75 lbs (25-34 kg).' },
+              { title: 'Diet', content: 'Balanced diet with high-quality protein.' },
+              { title: 'Exercise Needs', content: 'High; at least 1 hour of active exercise daily.' },
+              { title: 'Grooming', content: 'Regular brushing to manage shedding.' },
+              { title: 'Health Issues', content: 'Prone to hip dysplasia and certain heart conditions.' },
+              { title: 'Training Difficulty', content: 'Low; highly motivated by praise and treats.' },
+              { title: 'Suitability for Families', content: 'Exceptional; famous for being great with kids.' },
+              { title: 'Climate Adaptability', content: 'High; handles both cold and warm weather well.' },
+              { title: 'Living Space Requirements', content: 'Prefer houses with yards but can adapt to apartments with active owners.' },
+              { title: 'Fun Facts', content: 'They are excellent swimmers and have a "soft mouth" originally for retrieving waterfowl.' }
+            ]
           },
           {
-            title: 'Care When Sick',
-            content: 'Common signs of illness include lethargy, loss of appetite, and changes in behavior. Provide a quiet, comfortable space and ensure they have water. Always consult a veterinarian for diagnosis and treatment. Never give a dog human medication without professional advice.'
+            name: 'German Shepherd',
+            description: 'Confident, courageous, and smart.',
+            imageId: 'dog-2',
+            careDetails: [
+              { title: 'Overview', content: 'A versatile and highly capable working dog, known for its intelligence and loyalty.' },
+              { title: 'Temperament', content: 'Confident, courageous, and smart.' },
+              { title: 'Lifespan', content: '7-10 years.' },
+              { title: 'Size', content: '50-90 lbs (23-41 kg).' },
+              { title: 'Diet', content: 'High-quality diet appropriate for large working breeds.' },
+              { title: 'Exercise Needs', content: 'Very High; requires significant physical and mental stimulation.' },
+              { title: 'Grooming', content: 'Double coat requires frequent brushing; "German Shedders".' },
+              { title: 'Health Issues', content: 'Hip and elbow dysplasia are common concerns.' },
+              { title: 'Training Difficulty', content: 'Low; they learn quickly and love having a job.' },
+              { title: 'Suitability for Families', content: 'Good; protective and loyal, but needs early socialization.' },
+              { title: 'Climate Adaptability', content: 'High; double coat protects from various weather conditions.' },
+              { title: 'Living Space Requirements', content: 'Needs space; a house with a secure yard is ideal.' },
+              { title: 'Fun Facts', content: 'They were the first breed used as service dogs for the blind.' }
+            ]
           },
           {
-            title: 'Understanding Their Emotions',
-            content: 'A wagging tail can mean happiness, but a stiff, high tail can signal aggression. A relaxed body and soft eyes show contentment, while cowering or tucking the tail indicates fear. Baring teeth is a clear warning sign. Play bows are an invitation to have fun!'
+            name: 'Poodle',
+            description: 'Proud, active and very smart.',
+            imageId: 'dog-3',
+            careDetails: [
+              { title: 'Overview', content: 'Highly intelligent and elegant, Poodles come in three sizes but all share the same sharp mind.' },
+              { title: 'Temperament', content: 'Proud, active, and very smart.' },
+              { title: 'Lifespan', content: '10-18 years (depending on size).' },
+              { title: 'Size', content: 'Toy, Miniature, or Standard (6-70 lbs).' },
+              { title: 'Diet', content: 'High-quality food; be mindful of portions to avoid bloating.' },
+              { title: 'Exercise Needs', content: 'Moderate to High; they enjoy swimming and fetching.' },
+              { title: 'Grooming', content: 'High; hypoallergenic coat requires regular professional grooming.' },
+              { title: 'Health Issues', content: 'Eye disorders and joint problems.' },
+              { title: 'Training Difficulty', content: 'Very Low; one of the easiest breeds to train.' },
+              { title: 'Suitability for Families', content: 'Very Good; they are playful and get along well with others.' },
+              { title: 'Climate Adaptability', content: 'Moderate; need protection in extreme cold.' },
+              { title: 'Living Space Requirements', content: 'Very adaptable; suitable for apartments or houses.' },
+              { title: 'Fun Facts', content: 'Despite the fancy haircuts, they were originally bred as water retrievers.' }
+            ]
+          },
+          {
+            name: 'Labrador Retriever',
+            description: 'Friendly, outgoing, and high-spirited companion.',
+            imageId: 'dog-1',
+            careDetails: [
+              { title: 'Overview', content: 'The Labrador Retriever has long held the top spot as America\'s most popular dog breed.' },
+              { title: 'Temperament', content: 'Kind, pleasant, and outgoing.' },
+              { title: 'Lifespan', content: '10-12 years.' },
+              { title: 'Size', content: '55-80 lbs.' },
+              { title: 'Diet', content: 'High-quality diet; be careful with calories as they love to eat!' },
+              { title: 'Exercise Needs', content: 'High; they are high-energy dogs that need daily vigorous exercise.' },
+              { title: 'Grooming', content: 'Moderate; they have a thick water-repellent double coat that sheds.' },
+              { title: 'Training Difficulty', content: 'Very Low; they are eager to please and very intelligent.' },
+              { title: 'Suitability for Families', content: 'Excellent; they are famously good with children.' },
+              { title: 'Living Space Requirements', content: 'Best in a home with a yard for play.' },
+              { title: 'Fun Facts', content: 'They have webbed toes which makes them fantastic swimmers!' }
+            ]
+          },
+          {
+            name: 'Beagle',
+            description: 'Merry, friendly, and curious small hound.',
+            imageId: 'dog-4',
+            careDetails: [
+              { title: 'Overview', content: 'Beagles are small, hardy, and energetic dogs with an amazing sense of smell.' },
+              { title: 'Temperament', content: 'Merry, friendly, and curious.' },
+              { title: 'Lifespan', content: '12-15 years.' },
+              { title: 'Size', content: '20-30 lbs.' },
+              { title: 'Exercise Needs', content: 'Moderate; need plenty of long walks and scent games.' },
+              { title: 'Grooming', content: 'Low; short coat is easy to maintain.' },
+              { title: 'Health Issues', content: 'Can be prone to obesity and ear infections.' },
+              { title: 'Training Difficulty', content: 'Moderate; can be stubborn when they catch a scent.' },
+              { title: 'Suitability for Families', content: 'Very Good; they are great companions for active families.' },
+              { title: 'Fun Facts', content: 'A Beagle named Snoopy is the most famous Beagle in the world!' }
+            ]
           }
-        ] 
+        ],
+        careDetails: [] 
       },
       { 
         name: 'Cats', 
-        description: 'Independent yet affectionate companions, available in many breeds with distinct personalities.', 
+        description: 'Independent yet affectionate companions.', 
         imageId: 'cat-1',
-        careDetails: [
+        breeds: [
           {
-            title: 'How to Pet Them',
-            content: 'Cats prefer to be pet on their own terms. Focus on their cheeks, the base of their ears, and under their chin. Most cats dislike having their belly or tail touched. A purr and leaning into your hand are good signs; a twitching tail or flattened ears mean "stop".'
+            name: 'Siamese',
+            description: 'Vocal, social, and intelligent.',
+            imageId: 'cat-1',
+            careDetails: [
+              { title: 'Overview', content: 'Distinguished by their striking blue eyes and pointed coats, Siamese are highly social cats.' },
+              { title: 'Temperament', content: 'Vocal, social, and intelligent.' },
+              { title: 'Lifespan', content: '15-20 years.' },
+              { title: 'Size', content: '8-12 lbs.' },
+              { title: 'Grooming', content: 'Low; short coat requires minimal brushing.' },
+              { title: 'Social Needs', content: 'Very High; they don\'t like being left alone for long.' },
+              { title: 'Fun Facts', content: 'They are one of the oldest breeds of domesticated cats.' }
+            ]
           },
           {
-            title: 'Care When Sick',
-            content: 'Cats are masters at hiding illness. Look for changes like hiding, poor grooming, or avoiding the litter box. If you suspect illness, contact a vet. Provide a safe, warm hiding spot and ensure food and water are easily accessible.'
+            name: 'Persian',
+            description: 'Quiet, sweet, and docile.',
+            imageId: 'cat-2',
+            careDetails: [
+              { title: 'Overview', content: 'Known for their long, luxurious coats and flat faces, Persians are the epitome of a lap cat.' },
+              { title: 'Temperament', content: 'Quiet, sweet, and docile.' },
+              { title: 'Lifespan', content: '12-17 years.' },
+              { title: 'Grooming', content: 'Very High; daily brushing is essential to prevent mats.' },
+              { title: 'Suitability for Families', content: 'Good for quiet households.' },
+              { title: 'Fun Facts', content: 'They have been popular among royalty for centuries.' }
+            ]
           },
           {
-            title: 'Understanding Their Emotions',
-            content: 'A slow blink is a sign of trust and affection (a "kitty kiss"). A tail held high is a sign of a confident, happy cat. Hissing or growling means they feel threatened. Purring often means contentment, but can also be a self-soothing mechanism when in pain.'
+            name: 'Maine Coon',
+            description: 'Large, gentle giants with a friendly nature.',
+            imageId: 'cat-3',
+            careDetails: [
+              { title: 'Overview', content: 'One of the largest domestic cat breeds, known for their rugged appearance.' },
+              { title: 'Temperament', content: 'Friendly, gentle, and playful.' },
+              { title: 'Lifespan', content: '12-15 years.' },
+              { title: 'Size', content: '10-25 lbs.' },
+              { title: 'Grooming', content: 'High; long, thick coat requires regular brushing.' },
+              { title: 'Fun Facts', content: 'They are often called the "dogs of the cat world" because of their loyalty.' }
+            ]
           }
-        ]
-      },
-      { name: 'Rabbits', description: 'Quiet and gentle, rabbits can be litter-trained and form strong bonds with their owners.', imageId: 'know-rabbit', careDetails: [] },
-      { name: 'Hamsters', description: 'Small, nocturnal rodents that are easy to care for and entertaining to watch.', imageId: 'know-hamster', careDetails: [] },
+        ],
+        careDetails: []
+      }
     ],
   },
   {
     category: 'Birds',
-    description: 'Intelligent and social creatures that can bring song and color into your home.',
+    description: 'Intelligent and social creatures.',
     species: [
-      { name: 'Parrots', description: 'Highly intelligent birds, some of which can mimic human speech. They require significant attention.', imageId: 'bird-1', careDetails: [] },
-      { name: 'Finches & Canaries', description: 'Small, cheerful birds that are best enjoyed for their songs and beauty rather than handling.', imageId: 'bird-2', careDetails: [] },
-      { name: 'Cockatiels', description: 'Smaller than most parrots, cockatiels are known for being gentle and can learn to whistle tunes.', imageId: 'know-cockatiel', careDetails: [] },
+      { 
+        name: 'Parrots', 
+        description: 'Highly intelligent birds.', 
+        imageId: 'bird-1',
+        breeds: [
+            {
+                name: 'African Grey',
+                description: 'Famous for their incredible talking ability and intelligence.',
+                imageId: 'bird-1',
+                careDetails: [
+                    { title: 'Overview', content: 'Regarded as one of the most intelligent bird species in the world.' },
+                    { title: 'Lifespan', content: '40-60 years.' },
+                    { title: 'Diet', content: 'Pellets, fresh fruits, vegetables, and seeds.' },
+                    { title: 'Social Needs', content: 'Requires several hours of daily interaction.' },
+                    { title: 'Fun Facts', content: 'They can understand and use human language in context.' }
+                ]
+            }
+        ],
+        careDetails: [] 
+      }
     ],
   },
   {
     category: 'Reptiles',
-    description: 'Fascinating and unique, these pets require specific environments to thrive.',
+    description: 'Fascinating and unique pets.',
     species: [
-      { name: 'Lizards', description: 'From geckos to bearded dragons, lizards are fascinating pets with specific habitat needs.', imageId: 'know-lizard', careDetails: [] },
-      { name: 'Snakes', description: 'Quiet and low-maintenance, many snake species make great pets for those who appreciate them.', imageId: 'know-snake', careDetails: [] },
-      { name: 'Turtles', description: 'Aquatic or land-based, turtles are long-lived pets that require dedicated care.', imageId: 'know-turtle', careDetails: [] },
+      { 
+        name: 'Lizards', 
+        description: 'Fascinating pets with specific habitat needs.', 
+        imageId: 'know-lizard',
+        breeds: [
+            {
+                name: 'Bearded Dragon',
+                description: 'Friendly and docile lizard, great for beginners.',
+                imageId: 'know-lizard',
+                careDetails: [
+                    { title: 'Overview', content: 'Popular reptile pets known for their calm nature.' },
+                    { title: 'Lifespan', content: '10-15 years.' },
+                    { title: 'Diet', content: 'Omnivores; eat insects and leafy greens.' },
+                    { title: 'Habitat', content: 'Requires a heat lamp and UVB lighting.' },
+                    { title: 'Fun Facts', content: 'They "wave" to show submission or recognition.' }
+                ]
+            }
+        ],
+        careDetails: [] 
+      }
     ],
   },
+  {
+    category: 'Fish',
+    description: 'Beautiful aquatic pets.',
+    species: [
+      {
+        name: 'Freshwater Fish',
+        description: 'Diverse species for your home aquarium.',
+        imageId: 'guide-fish',
+        breeds: [
+          {
+            name: 'Betta Fish',
+            description: 'Vibrant and intelligent freshwater fish.',
+            imageId: 'guide-fish',
+            careDetails: [
+              { title: 'Overview', content: 'Known for their long, flowing fins and bright colors.' },
+              { title: 'Lifespan', content: '3-5 years.' },
+              { title: 'Habitat', content: 'Need a filtered and heated tank of at least 5 gallons.' },
+              { title: 'Fun Facts', content: 'They can breathe air from the surface!' }
+            ]
+          }
+        ],
+        careDetails: []
+      }
+    ]
+  }
 ];

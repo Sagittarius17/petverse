@@ -21,7 +21,6 @@ import { cn } from '@/lib/utils';
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/adopt', label: 'Adoption' },
-  { href: '/care', label: 'Care Guides' },
   { href: '/lost-and-found', label: 'Lost & Found' },
   { href: '/know-your-pet', label: 'Know Your Pet' },
 ];
