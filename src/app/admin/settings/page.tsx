@@ -1,5 +1,6 @@
 'use client';
 
+import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -11,9 +12,13 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
+import { Sun, Moon, Trees, Flower, Monitor } from 'lucide-react';
 
 export default function AdminSettingsPage() {
+  const { theme, setTheme } = useTheme();
+
   return (
     <div className="grid gap-6">
       <Card>
@@ -45,6 +50,46 @@ export default function AdminSettingsPage() {
           <Button>Save Settings</Button>
         </CardFooter>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Appearance</CardTitle>
+          <CardDescription>
+            Customize the look and feel of the application.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RadioGroup
+            value={theme}
+            onValueChange={setTheme}
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"
+          >
+            {[
+              { value: 'light', label: 'Light', icon: Sun },
+              { value: 'dark', label: 'Dark', icon: Moon },
+              { value: 'dark-forest', label: 'Forest', icon: Trees },
+              { value: 'light-rose', label: 'Rose', icon: Flower },
+              { value: 'system', label: 'System', icon: Monitor },
+            ].map(({ value, label, icon: Icon }) => (
+              <div key={value}>
+                <RadioGroupItem
+                  value={value}
+                  id={value}
+                  className="peer sr-only"
+                />
+                <Label
+                  htmlFor={value}
+                  className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                >
+                  <Icon className="mb-2 h-6 w-6" />
+                  {label}
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
+        </CardContent>
+      </Card>
+      
        <Card>
         <CardHeader>
           <CardTitle>Notifications</CardTitle>
