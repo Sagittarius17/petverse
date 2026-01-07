@@ -12,12 +12,12 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { PetSpecies } from "@/lib/data";
+import type { PetBreed } from "@/lib/data";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
 
 interface PetInfoDialogProps {
-  pet: PetSpecies | null;
+  pet: PetBreed | null;
   isOpen: boolean;
   onClose: () => void;
 }
