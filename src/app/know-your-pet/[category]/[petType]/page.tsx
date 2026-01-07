@@ -30,8 +30,8 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
   const [currentCategory, setCurrentCategory] = useState<PetCategory | null>(null);
   const [currentPetType, setCurrentPetType] = useState<PetSpecies | null>(null);
 
-  const categoryName = useMemo(() => decodeURIComponent(params.category), [params.category]);
-  const petTypeName = useMemo(() => decodeURIComponent(params.petType), [params.petType]);
+  const categoryName = useMemo(() => decodeURIComponent(params.category), [params]);
+  const petTypeName = useMemo(() => decodeURIComponent(params.petType), [params]);
 
   useEffect(() => {
     const fetchData = async () => {
