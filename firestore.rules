@@ -97,11 +97,11 @@ service cloud.firestore {
       // Admins and Superusers can see the list of users.
       allow list: if isSuperuser() || isAdmin();
       // Users can only read their own profile. Admins/Superusers can read any.
-      allow get: if (isOwner(userId) || isSuperuser() || isAdmin());
+      allow get: if (isOwner(userId) || isSuperuser() || isAdmin()) && isActive(userId);
       // Anyone can create their own user document.
       allow create: if isOwner(userId);
       // Admin can update any user. Superuser can update 'User' roles. Users can update their own profile.
-      allow update: if canUpdateUser(userId);
+      allow update: if canUpdateUser(userId) && isActive(request.auth.uid);
       // Only Admins can delete users.
       allow delete: if false; // Disallow hard deletes. Status should be set to 'Inactive' via update.
     }
@@ -139,11 +139,11 @@ service cloud.firestore {
     }
 
     match /lost_found_reports/{lostFoundReportId} {
+      update: if isOwner(resource.data.userId) && isImmutable('userId') && isActive(request.auth.uid);
+      delete: if isOwner(resource.data.userId) && isActive(request.auth.uid);
       allow get: if true;
       allow list: if true;
       allow create: if createdByAuthenticatedUser('userId');
-      update: if isOwner(resource.data.userId) && isImmutable('userId') && isActive(request.auth.uid);
-      delete: if isOwner(resource.data.userId) && isActive(request.auth.uid);
     }
   }
 }
