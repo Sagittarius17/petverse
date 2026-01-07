@@ -9,7 +9,7 @@ export type BreedCareDetail = z.infer<typeof BreedCareDetailSchema>;
 export const PetBreedSchema = z.object({
   name: z.string(),
   description: z.string(),
-  imageId: z.string(),
+  imageIds: z.array(z.string()),
   careDetails: z.array(BreedCareDetailSchema),
 });
 export type PetBreed = z.infer<typeof PetBreedSchema>;
@@ -32,7 +32,6 @@ export interface PetCategory {
   species: PetSpecies[];
 }
 
-
 export const initialPetCategories: PetCategory[] = [
   {
     category: 'Mammals',
@@ -41,12 +40,12 @@ export const initialPetCategories: PetCategory[] = [
       { 
         name: 'Dogs', 
         description: 'Known for their loyalty and diverse breeds.', 
-        imageId: 'dog-1',
+        imageId: 'dog-golden-retriever-1',
         breeds: [
           {
             name: 'Golden Retriever',
             description: 'Friendly, reliable, and trustworthy dogs.',
-            imageId: 'dog-1',
+            imageIds: ['dog-golden-retriever-1'],
             careDetails: [
               { title: 'Overview', content: 'The Golden Retriever is one of the most popular dog breeds, known for its friendly and tolerant attitude.' },
               { title: 'Temperament', content: 'Intelligent, kind, and trustworthy.' },
@@ -66,7 +65,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'German Shepherd',
             description: 'Confident, courageous, and smart.',
-            imageId: 'dog-2',
+            imageIds: ['dog-german-shepherd-1'],
             careDetails: [
               { title: 'Overview', content: 'A versatile and highly capable working dog, known for its intelligence and loyalty.' },
               { title: 'Temperament', content: 'Confident, courageous, and smart.' },
@@ -86,7 +85,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'Poodle',
             description: 'Proud, active and very smart.',
-            imageId: 'dog-3',
+            imageIds: ['dog-poodle-1'],
             careDetails: [
               { title: 'Overview', content: 'Highly intelligent and elegant, Poodles come in three sizes but all share the same sharp mind.' },
               { title: 'Temperament', content: 'Proud, active, and very smart.' },
@@ -106,7 +105,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'Labrador Retriever',
             description: 'Friendly, outgoing, and high-spirited companion.',
-            imageId: 'dog-1',
+            imageIds: ['dog-labrador-retriever-1'],
             careDetails: [
               { title: 'Overview', content: 'The Labrador Retriever has long held the top spot as America\'s most popular dog breed.' },
               { title: 'Temperament', content: 'Kind, pleasant, and outgoing.' },
@@ -124,7 +123,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'Beagle',
             description: 'Merry, friendly, and curious small hound.',
-            imageId: 'dog-4',
+            imageIds: ['dog-beagle-1'],
             careDetails: [
               { title: 'Overview', content: 'Beagles are small, hardy, and energetic dogs with an amazing sense of smell.' },
               { title: 'Temperament', content: 'Merry, friendly, and curious.' },
@@ -141,7 +140,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'Bulldog',
             description: 'Kind but courageous, friendly but dignified.',
-            imageId: 'dog-2',
+            imageIds: ['dog-bulldog-1'],
             careDetails: [
               { title: 'Overview', content: 'Thick-set, low-slung, well-muscled bruiser whose "sourmug" face is the universal symbol of courage.' },
               { title: 'Temperament', content: 'Calm, courageous, and friendly.' },
@@ -149,6 +148,19 @@ export const initialPetCategories: PetCategory[] = [
               { title: 'Diet', content: 'Moderate calories to avoid weight gain, which can worsen breathing issues.' },
               { title: 'Exercise Needs', content: 'Low; brisk walks are enough.' },
               { title: 'Health Issues', content: 'Prone to overheating and respiratory issues due to flat face.' }
+            ]
+          },
+          {
+            name: 'Pug',
+            description: 'The Pug is a charming, playful, and affectionate toy dog breed known for its distinctive wrinkled face, short snouts, and curly tails.',
+            imageIds: ['dog-pug-1'],
+            careDetails: [
+                { title: 'Overview', content: 'The Pug is a small, sturdy, and playful breed with a lot of personality packed into a small body. They are known for their loving nature and being great companions.' },
+                { title: 'Temperament', content: 'Charming, mischievous, and loving.' },
+                { title: 'Lifespan', content: '13-15 years.' },
+                { title: 'Size', content: '14-18 lbs.' },
+                { title: 'Grooming', content: 'Regular brushing and cleaning of facial wrinkles is necessary.' },
+                { title: 'Health Issues', content: 'Prone to eye problems and respiratory issues due to their short snout.' }
             ]
           }
         ],
@@ -162,7 +174,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'Siamese',
             description: 'Vocal, social, and intelligent.',
-            imageId: 'cat-1',
+            imageIds: ['cat-1'],
             careDetails: [
               { title: 'Overview', content: 'Distinguished by their striking blue eyes and pointed coats, Siamese are highly social cats.' },
               { title: 'Temperament', content: 'Vocal, social, and intelligent.' },
@@ -176,7 +188,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'Persian',
             description: 'Quiet, sweet, and docile.',
-            imageId: 'cat-2',
+            imageIds: ['cat-2'],
             careDetails: [
               { title: 'Overview', content: 'Known for their long, luxurious coats and flat faces, Persians are the epitome of a lap cat.' },
               { title: 'Temperament', content: 'Quiet, sweet, and docile.' },
@@ -189,7 +201,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'Maine Coon',
             description: 'Large, gentle giants with a friendly nature.',
-            imageId: 'cat-3',
+            imageIds: ['cat-3'],
             careDetails: [
               { title: 'Overview', content: 'One of the largest domestic cat breeds, known for their rugged appearance.' },
               { title: 'Temperament', content: 'Friendly, gentle, and playful.' },
@@ -202,7 +214,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'Bengal',
             description: 'Active, intelligent, and wild-looking.',
-            imageId: 'cat-1',
+            imageIds: ['cat-1'],
             careDetails: [
               { title: 'Overview', content: 'Known for their beautiful spotted or marbled coats, reminiscent of wild leopards.' },
               { title: 'Temperament', content: 'High energy, playful, and very curious.' },
@@ -227,7 +239,7 @@ export const initialPetCategories: PetCategory[] = [
             {
                 name: 'African Grey',
                 description: 'Famous for their incredible talking ability and intelligence.',
-                imageId: 'bird-1',
+                imageIds: ['bird-1'],
                 careDetails: [
                     { title: 'Overview', content: 'Regarded as one of the most intelligent bird species in the world.' },
                     { title: 'Lifespan', content: '40-60 years.' },
@@ -239,7 +251,7 @@ export const initialPetCategories: PetCategory[] = [
             {
                 name: 'Cockatiel',
                 description: 'Affectionate and musical small parrots.',
-                imageId: 'bird-1',
+                imageIds: ['bird-1'],
                 careDetails: [
                     { title: 'Overview', content: 'Small, friendly birds that are easy to tame and often whistle tunes.' },
                     { title: 'Lifespan', content: '15-20 years.' },
@@ -263,7 +275,7 @@ export const initialPetCategories: PetCategory[] = [
             {
                 name: 'Bearded Dragon',
                 description: 'Friendly and docile lizard, great for beginners.',
-                imageId: 'know-lizard',
+                imageIds: ['know-lizard'],
                 careDetails: [
                     { title: 'Overview', content: 'Popular reptile pets known for their calm nature.' },
                     { title: 'Lifespan', content: '10-15 years.' },
@@ -275,7 +287,7 @@ export const initialPetCategories: PetCategory[] = [
             {
                 name: 'Leopard Gecko',
                 description: 'Easy-to-care-for crepuscular lizards.',
-                imageId: 'know-lizard',
+                imageIds: ['know-lizard'],
                 careDetails: [
                     { title: 'Overview', content: 'Known for their beautiful patterns and unique ability to blink.' },
                     { title: 'Lifespan', content: '15-20 years.' },
@@ -299,7 +311,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'Betta Fish',
             description: 'Vibrant and intelligent freshwater fish.',
-            imageId: 'guide-fish',
+            imageIds: ['guide-fish'],
             careDetails: [
               { title: 'Overview', content: 'Known for their long, flowing fins and bright colors.' },
               { title: 'Lifespan', content: '3-5 years.' },
@@ -310,7 +322,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'Goldfish',
             description: 'Classic and hardy aquarium favorite.',
-            imageId: 'guide-fish',
+            imageIds: ['guide-fish'],
             careDetails: [
               { title: 'Overview', content: 'One of the most commonly kept aquarium fish, available in many varieties.' },
               { title: 'Lifespan', content: '10-20 years (can live much longer in ponds).' },

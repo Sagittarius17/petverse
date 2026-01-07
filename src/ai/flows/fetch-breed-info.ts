@@ -25,7 +25,7 @@ const FetchBreedInfoOutputSchema = z.object({
 export type FetchBreedInfoOutput = z.infer<typeof FetchBreedInfoOutputSchema>;
 
 
-export async function fetchBreedInfo(input: FetchBreedInfoInput): Promise<FetchBreedInfoOutput & { imageId: string }> {
+export async function fetchBreedInfo(input: FetchBreedInfoInput): Promise<z.infer<typeof PetBreedWithImagesSchema>> {
   const result = await fetchBreedInfoFlow(input);
   
   // Save to Firestore if database is available
@@ -38,30 +38,38 @@ export async function fetchBreedInfo(input: FetchBreedInfoInput): Promise<FetchB
         ...result,
         speciesName: input.speciesName,
         categoryName: input.categoryName || 'Mammals', // Default to Mammals if not provided
-        imageId: `know-${input.speciesName.toLowerCase().split(' ')[0]}`,
       };
       
       await breedRef.set(breedData, { merge: true });
       return breedData;
     } catch (error) {
       console.error("Error saving breed to Firestore:", error);
+      // Fallback to returning data without saving
+      return {
+        ...result,
+        imageIds: result.imageIds || []
+      };
     }
   }
 
+  // Fallback for when DB is not available
   return {
     ...result,
-    imageId: `know-${input.speciesName.toLowerCase().split(' ')[0]}`,
+    imageIds: result.imageIds || []
   };
 }
 
+const PetBreedWithImagesSchema = PetBreedSchema.extend({
+    imageIds: z.array(z.string()).describe("An array of generated image data URIs."),
+});
 
 const fetchBreedInfoPrompt = ai.definePrompt({
     name: 'fetchBreedInfoPrompt',
     input: { schema: FetchBreedInfoInputSchema },
     output: { schema: FetchBreedInfoOutputSchema },
-    prompt: `You are a pet expert and researcher. The user wants to learn about a specific breed of {{speciesName}}.
+    prompt: `You are a pet expert and researcher. The user wants to learn about a specific pet breed.
 
-    Your task is to provide detailed information for the breed: "{{breedName}}".
+    Your task is to provide detailed information for the breed: '{{breedName}}' of the species '{{speciesName}}'.
 
     Generate a concise, one-sentence 'description' for this breed.
 
@@ -84,14 +92,33 @@ const fetchBreedInfoPrompt = ai.definePrompt({
     For each topic, provide a helpful and informative paragraph. Ensure the output is structured according to the provided JSON schema.`,
 });
 
+const generateImagePrompt = new Array(3).fill(null).map((_, i) =>
+  ai.definePrompt({
+    name: `generateBreedImagePrompt_${i}`,
+    input: { schema: z.object({ breedName: z.string(), speciesName: z.string() }) },
+    output: { format: "media" },
+    prompt: `A high-quality, photorealistic image of a {{speciesName}} of the {{breedName}} breed.`,
+    model: 'googleai/imagen-4.0-fast-generate-001'
+  })
+);
+
 const fetchBreedInfoFlow = ai.defineFlow(
   {
     name: 'fetchBreedInfoFlow',
     inputSchema: FetchBreedInfoInputSchema,
-    outputSchema: FetchBreedInfoOutputSchema,
+    outputSchema: PetBreedWithImagesSchema,
   },
   async (input) => {
-    const { output } = await fetchBreedInfoPrompt(input);
-    return output!;
+    const [info, ...images] = await Promise.all([
+      fetchBreedInfoPrompt(input),
+      ...generateImagePrompt.map(p => p(input))
+    ]);
+
+    const imageUrls = images.map(img => img.output?.url).filter((url): url is string => !!url);
+    
+    return {
+      ...info.output!,
+      imageIds: imageUrls,
+    };
   }
 );

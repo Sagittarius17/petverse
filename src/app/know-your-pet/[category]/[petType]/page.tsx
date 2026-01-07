@@ -65,6 +65,7 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
 
   const handleBreedFound = (newBreed: PetBreed) => {
     setAllBreeds(prevBreeds => {
+        // Prevent adding duplicates if the breed somehow already exists
         if (prevBreeds.some(b => b.name.toLowerCase() === newBreed.name.toLowerCase())) {
             return prevBreeds;
         }
@@ -73,6 +74,7 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
     setSelectedPet(newBreed);
     setLocalSearchTerm('');
   };
+
 
   const filteredBreeds = useMemo(() => {
     if (!localSearchTerm) return allBreeds;
@@ -132,7 +134,8 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
           {filteredBreeds.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {filteredBreeds.map((breed) => {
-                const image = PlaceHolderImages.find((p) => p.id === breed.imageId) || PlaceHolderImages[0];
+                const imageId = breed.imageIds && breed.imageIds.length > 0 ? breed.imageIds[0] : 'dog-1';
+                const image = PlaceHolderImages.find((p) => p.id === imageId) || PlaceHolderImages[0];
                 return (
                   <Card
                     key={breed.name}
