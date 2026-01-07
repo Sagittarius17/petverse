@@ -35,6 +35,16 @@
         "bio": {
           "type": "string",
           "description": "A short biography of the user."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the user account was created."
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the user, e.g., 'User' or 'Admin'.",
+          "enum": ["User", "Admin"]
         }
       },
       "required": [

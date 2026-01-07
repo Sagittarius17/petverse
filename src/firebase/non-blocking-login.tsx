@@ -8,7 +8,7 @@ import {
   onAuthStateChanged,
   Unsubscribe,
 } from 'firebase/auth';
-import { Firestore, doc, setDoc } from 'firebase/firestore';
+import { Firestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 /** Initiate anonymous sign-in (non-blocking). */
 export function initiateAnonymousSignIn(authInstance: Auth): void {
@@ -38,6 +38,8 @@ export async function initiateEmailSignUp(
       email: user.email,
       firstName: fullName.split(' ')[0] || '',
       lastName: fullName.split(' ').slice(1).join(' ') || '',
+      createdAt: serverTimestamp(),
+      role: 'User', // Default role
     });
 
   } catch (error) {
