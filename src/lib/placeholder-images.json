@@ -133,10 +133,76 @@
       "imageHint": "pug dog"
     },
     {
-      "id": "cat-1",
-      "description": "A curious Siamese cat with blue eyes.",
-      "imageUrl": "https://images.unsplash.com/photo-1615901372949-296704779939?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjYXQlMjBhZHVsdHxlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "cat adult"
+      "id": "cat-siamese-1",
+      "description": "A classic Siamese cat with blue eyes.",
+      "imageUrl": "https://images.unsplash.com/photo-1625992965377-2a0723a4b6f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzaWFtZXNlJTIwY2F0fGVufDB8fHx8MTc2NzgwMjM3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "siamese cat"
+    },
+    {
+      "id": "cat-siamese-2",
+      "description": "A Siamese cat resting on a chair.",
+      "imageUrl": "https://images.unsplash.com/photo-1574158622682-e40e69841006?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzaWFtZXNlJTIwY2F0fGVufDB8fHx8MTc2NzgwMjM3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "siamese cat"
+    },
+    {
+      "id": "cat-siamese-3",
+      "description": "A portrait of a beautiful Siamese cat.",
+      "imageUrl": "https://images.unsplash.com/photo-1548802673-380ab8ebc7b7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxzaWFtZXNlJTIwY2F0fGVufDB8fHx8MTc2NzgwMjM3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "siamese cat"
+    },
+    {
+      "id": "cat-persian-1",
+      "description": "A fluffy white Persian cat.",
+      "imageUrl": "https://images.unsplash.com/photo-1596225435971-897d197943d0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwZXJzaWFuJTIwY2F0fGVufDB8fHx8MTc2NzgwMjQwNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "persian cat"
+    },
+    {
+      "id": "cat-persian-2",
+      "description": "A Persian cat with long fur looking at the camera.",
+      "imageUrl": "https://images.unsplash.com/photo-1583795128727-6ec3642408f8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwZXJzaWFuJTIwY2F0fGVufDB8fHx8MTc2NzgwMjQwNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "persian cat"
+    },
+    {
+      "id": "cat-persian-3",
+      "description": "A sleepy Persian kitten.",
+      "imageUrl": "https://images.unsplash.com/photo-1605332349764-5402a7337996?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwZXJzaWFuJTIwY2F0fGVufDB8fHx8MTc2NzgwMjQwNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "persian cat"
+    },
+    {
+      "id": "cat-maine-coon-1",
+      "description": "A large Maine Coon cat with tufted ears.",
+      "imageUrl": "https://images.unsplash.com/photo-1623992499648-5396593f2351?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtYWluZSUyMGNvb24lMjBjYXR8ZW58MHx8fHwxNzY3ODAyNDAyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "maine coon"
+    },
+    {
+      "id": "cat-maine-coon-2",
+      "description": "A fluffy Maine Coon cat outdoors.",
+      "imageUrl": "https://images.unsplash.com/photo-1619194299929-28de082725a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxtYWluZSUyMGNvb24lMjBjYXR8ZW58MHx8fHwxNzY3ODAyNDAyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "maine coon"
+    },
+    {
+      "id": "cat-maine-coon-3",
+      "description": "A profile of a majestic Maine Coon cat.",
+      "imageUrl": "https://images.unsplash.com/photo-1618335919882-3c4bf29a6e43?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxtYWluZSUyMGNvb24lMjBjYXR8ZW58MHx8fHwxNzY3ODAyNDAyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "maine coon"
+    },
+    {
+      "id": "cat-bengal-1",
+      "description": "A Bengal cat with leopard-like spots.",
+      "imageUrl": "https://images.unsplash.com/photo-1597858356921-92d5c64c5841?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxiZW5nYWwlMjBjYXR8ZW58MHx8fHwxNzY3ODAyNDAxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bengal cat"
+    },
+    {
+      "id": "cat-bengal-2",
+      "description": "A sleek Bengal cat playing.",
+      "imageUrl": "https://images.unsplash.com/photo-1603993099460-597576595d25?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxiZW5nYWwlMjBjYXR8ZW58MHx8fHwxNzY3ODAyNDAxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bengal cat"
+    },
+    {
+      "id": "cat-bengal-3",
+      "description": "A Bengal cat looking curiously at the camera.",
+      "imageUrl": "https://images.unsplash.com/photo-1609232889223-375940525542?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxiZW5nYWwlMjBjYXR8ZW58MHx8fHwxNzY3ODAyNDAxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bengal cat"
     },
     {
       "id": "cat-2",

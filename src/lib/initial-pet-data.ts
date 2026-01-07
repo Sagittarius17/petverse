@@ -169,12 +169,12 @@ export const initialPetCategories: PetCategory[] = [
       { 
         name: 'Cats', 
         description: 'Independent yet affectionate companions.', 
-        imageId: 'cat-1',
+        imageId: 'cat-siamese-1',
         breeds: [
           {
             name: 'Siamese',
             description: 'Vocal, social, and intelligent.',
-            imageIds: ['cat-1'],
+            imageIds: ['cat-siamese-1', 'cat-siamese-2', 'cat-siamese-3'],
             careDetails: [
               { title: 'Overview', content: 'Distinguished by their striking blue eyes and pointed coats, Siamese are highly social cats.' },
               { title: 'Temperament', content: 'Vocal, social, and intelligent.' },
@@ -188,7 +188,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'Persian',
             description: 'Quiet, sweet, and docile.',
-            imageIds: ['cat-2'],
+            imageIds: ['cat-persian-1', 'cat-persian-2', 'cat-persian-3'],
             careDetails: [
               { title: 'Overview', content: 'Known for their long, luxurious coats and flat faces, Persians are the epitome of a lap cat.' },
               { title: 'Temperament', content: 'Quiet, sweet, and docile.' },
@@ -201,7 +201,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'Maine Coon',
             description: 'Large, gentle giants with a friendly nature.',
-            imageIds: ['cat-3'],
+            imageIds: ['cat-maine-coon-1', 'cat-maine-coon-2', 'cat-maine-coon-3'],
             careDetails: [
               { title: 'Overview', content: 'One of the largest domestic cat breeds, known for their rugged appearance.' },
               { title: 'Temperament', content: 'Friendly, gentle, and playful.' },
@@ -214,7 +214,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'Bengal',
             description: 'Active, intelligent, and wild-looking.',
-            imageIds: ['cat-1'],
+            imageIds: ['cat-bengal-1', 'cat-bengal-2', 'cat-bengal-3'],
             careDetails: [
               { title: 'Overview', content: 'Known for their beautiful spotted or marbled coats, reminiscent of wild leopards.' },
               { title: 'Temperament', content: 'High energy, playful, and very curious.' },
