@@ -234,12 +234,12 @@ export const initialPetCategories: PetCategory[] = [
       { 
         name: 'Parrots', 
         description: 'Highly intelligent birds.', 
-        imageId: 'bird-1',
+        imageId: 'bird-african-grey-1',
         breeds: [
             {
                 name: 'African Grey',
                 description: 'Famous for their incredible talking ability and intelligence.',
-                imageIds: ['bird-1'],
+                imageIds: ['bird-african-grey-1', 'bird-african-grey-2'],
                 careDetails: [
                     { title: 'Overview', content: 'Regarded as one of the most intelligent bird species in the world.' },
                     { title: 'Lifespan', content: '40-60 years.' },
@@ -251,7 +251,7 @@ export const initialPetCategories: PetCategory[] = [
             {
                 name: 'Cockatiel',
                 description: 'Affectionate and musical small parrots.',
-                imageIds: ['bird-1'],
+                imageIds: ['bird-cockatiel-1', 'bird-cockatiel-2'],
                 careDetails: [
                     { title: 'Overview', content: 'Small, friendly birds that are easy to tame and often whistle tunes.' },
                     { title: 'Lifespan', content: '15-20 years.' },
@@ -270,12 +270,12 @@ export const initialPetCategories: PetCategory[] = [
       { 
         name: 'Lizards', 
         description: 'Fascinating pets with specific habitat needs.', 
-        imageId: 'know-lizard',
+        imageId: 'reptile-bearded-dragon-1',
         breeds: [
             {
                 name: 'Bearded Dragon',
                 description: 'Friendly and docile lizard, great for beginners.',
-                imageIds: ['know-lizard'],
+                imageIds: ['reptile-bearded-dragon-1', 'reptile-bearded-dragon-2'],
                 careDetails: [
                     { title: 'Overview', content: 'Popular reptile pets known for their calm nature.' },
                     { title: 'Lifespan', content: '10-15 years.' },
@@ -287,7 +287,7 @@ export const initialPetCategories: PetCategory[] = [
             {
                 name: 'Leopard Gecko',
                 description: 'Easy-to-care-for crepuscular lizards.',
-                imageIds: ['know-lizard'],
+                imageIds: ['reptile-leopard-gecko-1', 'reptile-leopard-gecko-2'],
                 careDetails: [
                     { title: 'Overview', content: 'Known for their beautiful patterns and unique ability to blink.' },
                     { title: 'Lifespan', content: '15-20 years.' },
@@ -306,12 +306,12 @@ export const initialPetCategories: PetCategory[] = [
       {
         name: 'Freshwater Fish',
         description: 'Diverse species for your home aquarium.',
-        imageId: 'guide-fish',
+        imageId: 'fish-betta-1',
         breeds: [
           {
             name: 'Betta Fish',
             description: 'Vibrant and intelligent freshwater fish.',
-            imageIds: ['guide-fish'],
+            imageIds: ['fish-betta-1', 'fish-betta-2'],
             careDetails: [
               { title: 'Overview', content: 'Known for their long, flowing fins and bright colors.' },
               { title: 'Lifespan', content: '3-5 years.' },
@@ -322,7 +322,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'Goldfish',
             description: 'Classic and hardy aquarium favorite.',
-            imageIds: ['guide-fish'],
+            imageIds: ['fish-goldfish-1', 'fish-goldfish-2'],
             careDetails: [
               { title: 'Overview', content: 'One of the most commonly kept aquarium fish, available in many varieties.' },
               { title: 'Lifespan', content: '10-20 years (can live much longer in ponds).' },
