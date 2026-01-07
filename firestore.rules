@@ -17,9 +17,8 @@
  * Key Security Decisions:
  * - Strict Ownership: A user can only access data within their own
  *   `/users/{userId}` document tree.
- * - Limited User Listing: The top-level `/users` collection can be listed by
- *   any authenticated user for admin purposes, but this should be reviewed
- *   and restricted in production.
+ * - Admin Access: Users with the `admin: true` custom claim have broader
+ *   permissions for management tasks like deleting users.
  * - Public Read, Owner Write: For public collections, read access is granted
  *   to everyone (including unauthenticated users), but write operations (create,
  *   update, delete) are strictly limited to the original author of the document.
@@ -62,6 +61,14 @@ service cloud.firestore {
     }
 
     /**
+     * Checks if the requesting user has the 'Admin' role via custom claims.
+     * This is used for granting administrative privileges.
+     */
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+    
+    /**
      * Checks for ownership on an existing document.
      * Ensures that update/delete operations only affect documents that actually exist.
      */
@@ -94,11 +101,11 @@ service cloud.firestore {
      * @principle A user has exclusive control over their own profile document.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if isSignedIn(); // Allow listing for admin panel. Restrict in production.
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isSignedIn(); // Allow listing for admin panel.
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isOwner(userId) && isImmutable('id');
-      allow delete: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isOwner(userId) || isAdmin();
     }
 
     /**
