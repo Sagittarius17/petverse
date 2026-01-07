@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import {
@@ -46,7 +46,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const firestore = useFirestore();
 
   const userDocRef = useMemoFirebase(() => {
-    if (!user) return null;
+    if (!user || !firestore) return null;
     return doc(firestore, 'users', user.uid);
   }, [firestore, user]);
 
@@ -55,19 +55,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isLoading = isAuthLoading || isProfileLoading;
 
   useEffect(() => {
-    // This effect handles redirection based on auth state, but only after loading is complete.
+    // Wait until all loading is complete before running any checks
     if (isLoading) {
-      return; // Do nothing while loading
+      return; 
     }
 
+    // After loading, if there's no authenticated user, redirect to login.
     if (!user) {
-      // If loading is done and there's no user, redirect to login.
       router.push('/login');
       return;
     }
 
+    // After loading, if the user exists but their profile doesn't or their role is 'User', deny access.
     if (!userProfile || userProfile.role === 'User') {
-      // If loading is done and the user is unauthorized, redirect them.
       toast({
         variant: 'destructive',
         title: 'Access Denied',
@@ -78,9 +78,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [user, userProfile, isLoading, router, toast]);
 
-  // This block handles what to render: the loader, or the admin content.
-  if (isLoading || !user || !userProfile || userProfile.role === 'User') {
-    // Show a loader if we are still loading, or if the redirect effect hasn't run yet.
+  // Only show the loader while we are actively fetching auth state or profile.
+  if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
@@ -88,82 +87,92 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  // If loading is complete and the user is authorized, render the admin layout.
-  return (
-    <SidebarProvider>
-      <div className="flex h-screen">
-          <Sidebar
-            collapsible="icon"
-            className="flex h-full flex-col border-r"
-          >
-            <SidebarHeader className="shrink-0">
-              <Link
-                href="/admin"
-                className="flex items-center gap-2 text-xl font-bold font-headline"
-              >
-                <PawPrint className="h-6 w-6 text-primary" />
-                <span className="group-data-[collapsible=icon]:hidden">
-                  PetVerse
-                </span>
-              </Link>
-            </SidebarHeader>
+  // If we are not loading and the user is an Admin or Superuser (the effect above didn't redirect), render the layout.
+  if (userProfile && (userProfile.role === 'Admin' || userProfile.role === 'Superuser')) {
+    return (
+      <SidebarProvider>
+        <div className="flex h-screen">
+            <Sidebar
+              collapsible="icon"
+              className="flex h-full flex-col border-r"
+            >
+              <SidebarHeader className="shrink-0">
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-2 text-xl font-bold font-headline"
+                >
+                  <PawPrint className="h-6 w-6 text-primary" />
+                  <span className="group-data-[collapsible=icon]:hidden">
+                    PetVerse
+                  </span>
+                </Link>
+              </SidebarHeader>
 
-            <SidebarContent className="flex-1 overflow-y-auto">
-              <SidebarMenu>
-                {menuItems.map((item) => (
-                  <SidebarMenuItem key={item.href}>
+              <SidebarContent className="flex-1 overflow-y-auto">
+                <SidebarMenu>
+                  {menuItems.map((item) => (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={
+                          item.href === "/admin"
+                            ? pathname === item.href
+                            : pathname.startsWith(item.href)
+                        }
+                        tooltip={{ children: item.label }}
+                      >
+                        <Link href={item.href}>
+                          <item.icon />
+                          <span>{item.label}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarContent>
+
+              <SidebarFooter className="shrink-0 border-t">
+                <SidebarMenu>
+                  <SidebarMenuItem>
                     <SidebarMenuButton
                       asChild
-                      isActive={
-                        item.href === "/admin"
-                          ? pathname === item.href
-                          : pathname.startsWith(item.href)
-                      }
-                      tooltip={{ children: item.label }}
+                      tooltip={{ children: "Settings" }}
+                      isActive={pathname.startsWith("/admin/settings")}
                     >
-                      <Link href={item.href}>
-                        <item.icon />
-                        <span>{item.label}</span>
+                      <Link href="/admin/settings">
+                        <Settings />
+                        <span>Settings</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarContent>
 
-            <SidebarFooter className="shrink-0 border-t">
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    tooltip={{ children: "Settings" }}
-                    isActive={pathname.startsWith("/admin/settings")}
-                  >
-                    <Link href="/admin/settings">
-                      <Settings />
-                      <span>Settings</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild tooltip={{ children: "Logout" }}>
+                      <Link href="/">
+                        <LogOut />
+                        <span>Logout</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarFooter>
+            </Sidebar>
 
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip={{ children: "Logout" }}>
-                    <Link href="/">
-                      <LogOut />
-                      <span>Logout</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarFooter>
-          </Sidebar>
+            <main className="flex-1 overflow-y-auto">
+              <div className="p-4 sm:p-6 lg:p-8">
+                {children}
+              </div>
+            </main>
+        </div>
+      </SidebarProvider>
+    );
+  }
 
-          <main className="flex-1 overflow-y-auto">
-            <div className="p-4 sm:p-6 lg:p-8">
-              {children}
-            </div>
-          </main>
-      </div>
-    </SidebarProvider>
+  // Fallback case: if the user isn't authorized and redirection hasn't happened yet,
+  // show a loader to prevent a flash of content.
+  return (
+    <div className="flex h-screen items-center justify-center">
+      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+    </div>
   );
 }
