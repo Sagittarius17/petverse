@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { petCategories } from '@/lib/data';
-import type { PetSpecies, PetBreed } from '@/lib/data';
+import type { PetBreed } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import PetInfoDialog from '@/components/pet-info-dialog';
