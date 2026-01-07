@@ -21,8 +21,7 @@ export default function PetSpeciesPage({ params }: { params: { category: string;
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
-  const categoryName = decodeURIComponent(params.category);
-  const petTypeName = decodeURIComponent(params.petType);
+  const { category: categoryName, petType: petTypeName } = params;
 
   const category = petCategories.find(
     (cat) => cat.category.toLowerCase() === categoryName.toLowerCase()
