@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -54,23 +55,32 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isLoading = isAuthLoading || isProfileLoading;
 
   useEffect(() => {
-    if (!isLoading) {
-      if (!user) {
-        // Not logged in, redirect to login
-        router.push('/login');
-      } else if (!userProfile || userProfile.role === 'User') {
-        // Logged in, but has no profile or is a regular user. Deny access.
-        toast({
-          variant: 'destructive',
-          title: 'Access Denied',
-          description: 'You do not have permission to access the admin panel.',
-        });
-        router.push('/');
-      }
+    // This effect handles redirection based on auth state, but only after loading is complete.
+    if (isLoading) {
+      return; // Do nothing while loading
+    }
+
+    if (!user) {
+      // If loading is done and there's no user, redirect to login.
+      router.push('/login');
+      return;
+    }
+
+    if (!userProfile || userProfile.role === 'User') {
+      // If loading is done and the user is unauthorized, redirect them.
+      toast({
+        variant: 'destructive',
+        title: 'Access Denied',
+        description: 'You do not have permission to access the admin panel.',
+      });
+      router.push('/');
+      return;
     }
   }, [user, userProfile, isLoading, router, toast]);
 
-  if (isLoading || !userProfile || userProfile.role === 'User') {
+  // This block handles what to render: the loader, or the admin content.
+  if (isLoading || !user || !userProfile || userProfile.role === 'User') {
+    // Show a loader if we are still loading, or if the redirect effect hasn't run yet.
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
@@ -78,6 +88,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
+  // If loading is complete and the user is authorized, render the admin layout.
   return (
     <SidebarProvider>
       <div className="flex h-screen">
