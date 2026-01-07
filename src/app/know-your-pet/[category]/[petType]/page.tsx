@@ -9,17 +9,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import PetInfoDialog from '@/components/pet-info-dialog';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Loader2, Wand2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { handleAiBreedSearch } from './actions';
+import BreedSearch from '@/components/ai/breed-search'; // Import the new component
 
 export default function PetSpeciesPage({ params }: { params: { category: string; petType: string } }) {
   const router = useRouter();
-  const { toast } = useToast();
   const [selectedPet, setSelectedPet] = useState<PetBreed | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
 
   const { category: categoryName, petType: petTypeName } = params;
 
@@ -33,50 +28,19 @@ export default function PetSpeciesPage({ params }: { params: { category: string;
   
   const [breeds, setBreeds] = useState<PetBreed[]>(petType?.breeds || []);
 
+  // When a new breed is found by the AI, add it to our state
+  const handleBreedFound = (newBreed: PetBreed) => {
+    setBreeds(prevBreeds => [newBreed, ...prevBreeds]);
+    // Optional: open the dialog for the new breed immediately
+    setSelectedPet(newBreed);
+  };
+
   const filteredBreeds = useMemo(() => {
     if (!searchTerm) return breeds;
     return breeds.filter((breed) =>
       breed.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [breeds, searchTerm]);
-
-
-  const handleAiSearch = async () => {
-    setIsSearching(true);
-    toast({ title: 'AI Search Started', description: `Looking for information on "${searchTerm}"...` });
-
-    const result = await handleAiBreedSearch({
-      breedName: searchTerm,
-      speciesName: petTypeName,
-    });
-
-    setIsSearching(false);
-
-    if (result.error || !result.data) {
-      toast({
-        variant: 'destructive',
-        title: 'AI Search Failed',
-        description: result.error || `Could not find information for "${searchTerm}".`,
-      });
-      return;
-    }
-
-    toast({
-      title: 'AI Search Complete!',
-      description: `Successfully found information for "${result.data.name}".`,
-    });
-
-    const newBreed: PetBreed = {
-      ...result.data,
-      imageId: 'dog-1', // You can assign a default or a new placeholder
-    };
-    
-    // Add to state and open the dialog
-    setBreeds(prev => [newBreed, ...prev]);
-    setSelectedPet(newBreed);
-    setSearchTerm('');
-  };
-
 
   if (!category || !petType) {
     return (
@@ -103,9 +67,15 @@ export default function PetSpeciesPage({ params }: { params: { category: string;
           <p className="mt-2 text-lg text-muted-foreground">Explore different breeds of {petType.name}.</p>
         </div>
 
+        {/* AI-Powered Breed Search */}
+        <div className="mb-8 max-w-2xl mx-auto">
+            <BreedSearch speciesName={petType.name} onBreedFound={handleBreedFound} />
+        </div>
+
+        {/* Local Search Filter */}
         <div className="mb-8 max-w-lg mx-auto">
           <Input 
-            placeholder={`Search for a ${petType.name} breed...`}
+            placeholder={`Search the list of ${breeds.length} breeds...`}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -143,14 +113,8 @@ export default function PetSpeciesPage({ params }: { params: { category: string;
             </div>
           ) : (
             <div className="text-center py-16 text-muted-foreground">
-                <p>No breeds found for &quot;{searchTerm}&quot;.</p>
-                <Button onClick={handleAiSearch} disabled={isSearching} className="mt-4">
-                  {isSearching ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Searching...</>
-                  ) : (
-                    <><Wand2 className="mr-2 h-4 w-4" /> Search for &quot;{searchTerm}&quot; with AI</>
-                  )}
-                </Button>
+                <p>No breeds found matching &quot;{searchTerm}&quot; in our current list.</p>
+                <p className="text-sm mt-2">You can use the AI search above to find and add it to our database.</p>
             </div>
           )}
         </section>
