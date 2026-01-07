@@ -1,17 +1,19 @@
 'use server';
 /**
- * @fileOverview Fetches detailed information about a specific pet breed using an AI model.
+ * @fileOverview Fetches detailed information about a specific pet breed using an AI model and saves it to Firestore.
  *
- * - fetchBreedInfo - A function that handles fetching breed information.
+ * - fetchBreedInfo - A function that handles fetching and saving breed information.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { BreedCareDetailSchema } from '@/lib/data';
+import { db } from '@/firebase/server';
 
 const FetchBreedInfoInputSchema = z.object({
   breedName: z.string().describe('The name of the breed to look up.'),
   speciesName: z.string().describe('The species of the breed (e.g., "Dog", "Cat").'),
+  categoryName: z.string().optional().describe('The category of the breed (e.g., "Mammals").'),
 });
 export type FetchBreedInfoInput = z.infer<typeof FetchBreedInfoInputSchema>;
 
@@ -23,8 +25,33 @@ const FetchBreedInfoOutputSchema = z.object({
 export type FetchBreedInfoOutput = z.infer<typeof FetchBreedInfoOutputSchema>;
 
 
-export async function fetchBreedInfo(input: FetchBreedInfoInput): Promise<FetchBreedInfoOutput> {
-  return fetchBreedInfoFlow(input);
+export async function fetchBreedInfo(input: FetchBreedInfoInput): Promise<FetchBreedInfoOutput & { imageId: string }> {
+  const result = await fetchBreedInfoFlow(input);
+  
+  // Save to Firestore if database is available
+  if (db) {
+    try {
+      const breedId = `${input.speciesName.toLowerCase()}-${result.name.replace(/ /g, '-').toLowerCase()}`;
+      const breedRef = db.collection('aiBreeds').doc(breedId);
+      
+      const breedData = {
+        ...result,
+        speciesName: input.speciesName,
+        categoryName: input.categoryName || 'Mammals', // Default to Mammals if not provided
+        imageId: `know-${input.speciesName.toLowerCase().split(' ')[0]}`,
+      };
+      
+      await breedRef.set(breedData, { merge: true });
+      return breedData;
+    } catch (error) {
+      console.error("Error saving breed to Firestore:", error);
+    }
+  }
+
+  return {
+    ...result,
+    imageId: `know-${input.speciesName.toLowerCase().split(' ')[0]}`,
+  };
 }
 
 

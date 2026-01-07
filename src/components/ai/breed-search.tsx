@@ -5,18 +5,19 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2, Wand2, Search } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { fetchBreedInfo, FetchBreedInfoOutput, FetchBreedInfoInput } from '@/ai/flows/fetch-breed-info';
+import { fetchBreedInfo, FetchBreedInfoInput } from '@/ai/flows/fetch-breed-info';
 import type { PetBreed } from '@/lib/data';
 
 interface BreedSearchProps {
   speciesName: string;
+  categoryName?: string;
   onBreedFound: (newBreed: PetBreed) => void;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   placeholder: string;
 }
 
-export default function BreedSearch({ speciesName, onBreedFound, searchTerm, setSearchTerm, placeholder }: BreedSearchProps) {
+export default function BreedSearch({ speciesName, categoryName, onBreedFound, searchTerm, setSearchTerm, placeholder }: BreedSearchProps) {
   const [isSearching, setIsSearching] = useState(false);
   const { toast } = useToast();
 
@@ -36,22 +37,17 @@ export default function BreedSearch({ speciesName, onBreedFound, searchTerm, set
       const input: FetchBreedInfoInput = {
         breedName: searchTerm,
         speciesName: speciesName,
+        categoryName: categoryName,
       };
 
       // Call the Server Action
-      const newBreedInfo: FetchBreedInfoOutput = await fetchBreedInfo(input);
+      const newBreedInfo = await fetchBreedInfo(input);
 
-      const newBreedForUi: PetBreed = {
-          ...newBreedInfo,
-          // The imageId is a placeholder. In a real app, you might generate an image or have a default.
-          imageId: `know-${speciesName.toLowerCase().split(' ')[0]}`,
-      };
-
-      onBreedFound(newBreedForUi);
+      onBreedFound(newBreedInfo);
       
       toast({
         title: 'Breed Found!',
-        description: `Successfully fetched information for ${newBreedInfo.name}.`,
+        description: `Successfully fetched and saved information for ${newBreedInfo.name}.`,
       });
 
     } catch (error: any) {
@@ -67,8 +63,8 @@ export default function BreedSearch({ speciesName, onBreedFound, searchTerm, set
   };
 
   return (
-    <div className="space-y-4">
-        <div className="relative">
+    <div className="flex w-full items-center space-x-2">
+        <div className="relative flex-grow">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
                 type="search"
@@ -78,21 +74,19 @@ export default function BreedSearch({ speciesName, onBreedFound, searchTerm, set
                 className="w-full pl-10"
             />
         </div>
-        <div className="flex justify-center">
-            <Button onClick={handleAiSearch} disabled={isSearching}>
-            {isSearching ? (
-                <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Searching with AI...
-                </>
-            ) : (
-                <>
-                    <Wand2 className="mr-2 h-4 w-4" />
-                    Find Breed with AI
-                </>
-            )}
-            </Button>
-      </div>
+        <Button onClick={handleAiSearch} disabled={isSearching}>
+        {isSearching ? (
+            <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Searching...
+            </>
+        ) : (
+            <>
+                <Wand2 className="mr-2 h-4 w-4" />
+                AI Search
+            </>
+        )}
+        </Button>
     </div>
   );
 }

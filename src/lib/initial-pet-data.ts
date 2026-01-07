@@ -137,6 +137,19 @@ export const initialPetCategories: PetCategory[] = [
               { title: 'Suitability for Families', content: 'Very Good; they are great companions for active families.' },
               { title: 'Fun Facts', content: 'A Beagle named Snoopy is the most famous Beagle in the world!' }
             ]
+          },
+          {
+            name: 'Bulldog',
+            description: 'Kind but courageous, friendly but dignified.',
+            imageId: 'dog-2',
+            careDetails: [
+              { title: 'Overview', content: 'Thick-set, low-slung, well-muscled bruiser whose "sourmug" face is the universal symbol of courage.' },
+              { title: 'Temperament', content: 'Calm, courageous, and friendly.' },
+              { title: 'Lifespan', content: '8-10 years.' },
+              { title: 'Diet', content: 'Moderate calories to avoid weight gain, which can worsen breathing issues.' },
+              { title: 'Exercise Needs', content: 'Low; brisk walks are enough.' },
+              { title: 'Health Issues', content: 'Prone to overheating and respiratory issues due to flat face.' }
+            ]
           }
         ],
         careDetails: [] 
@@ -185,6 +198,17 @@ export const initialPetCategories: PetCategory[] = [
               { title: 'Grooming', content: 'High; long, thick coat requires regular brushing.' },
               { title: 'Fun Facts', content: 'They are often called the "dogs of the cat world" because of their loyalty.' }
             ]
+          },
+          {
+            name: 'Bengal',
+            description: 'Active, intelligent, and wild-looking.',
+            imageId: 'cat-1',
+            careDetails: [
+              { title: 'Overview', content: 'Known for their beautiful spotted or marbled coats, reminiscent of wild leopards.' },
+              { title: 'Temperament', content: 'High energy, playful, and very curious.' },
+              { title: 'Lifespan', content: '12-16 years.' },
+              { title: 'Social Needs', content: 'High; they enjoy interactive play and climbing.' }
+            ]
           }
         ],
         careDetails: []
@@ -210,6 +234,16 @@ export const initialPetCategories: PetCategory[] = [
                     { title: 'Diet', content: 'Pellets, fresh fruits, vegetables, and seeds.' },
                     { title: 'Social Needs', content: 'Requires several hours of daily interaction.' },
                     { title: 'Fun Facts', content: 'They can understand and use human language in context.' }
+                ]
+            },
+            {
+                name: 'Cockatiel',
+                description: 'Affectionate and musical small parrots.',
+                imageId: 'bird-1',
+                careDetails: [
+                    { title: 'Overview', content: 'Small, friendly birds that are easy to tame and often whistle tunes.' },
+                    { title: 'Lifespan', content: '15-20 years.' },
+                    { title: 'Diet', content: 'Seed mixes, pellets, and fresh veggies.' }
                 ]
             }
         ],
@@ -237,6 +271,16 @@ export const initialPetCategories: PetCategory[] = [
                     { title: 'Habitat', content: 'Requires a heat lamp and UVB lighting.' },
                     { title: 'Fun Facts', content: 'They "wave" to show submission or recognition.' }
                 ]
+            },
+            {
+                name: 'Leopard Gecko',
+                description: 'Easy-to-care-for crepuscular lizards.',
+                imageId: 'know-lizard',
+                careDetails: [
+                    { title: 'Overview', content: 'Known for their beautiful patterns and unique ability to blink.' },
+                    { title: 'Lifespan', content: '15-20 years.' },
+                    { title: 'Diet', content: 'Strictly insectivores.' }
+                ]
             }
         ],
         careDetails: [] 
@@ -261,6 +305,16 @@ export const initialPetCategories: PetCategory[] = [
               { title: 'Lifespan', content: '3-5 years.' },
               { title: 'Habitat', content: 'Need a filtered and heated tank of at least 5 gallons.' },
               { title: 'Fun Facts', content: 'They can breathe air from the surface!' }
+            ]
+          },
+          {
+            name: 'Goldfish',
+            description: 'Classic and hardy aquarium favorite.',
+            imageId: 'guide-fish',
+            careDetails: [
+              { title: 'Overview', content: 'One of the most commonly kept aquarium fish, available in many varieties.' },
+              { title: 'Lifespan', content: '10-20 years (can live much longer in ponds).' },
+              { title: 'Diet', content: 'Goldfish pellets and flakes.' }
             ]
           }
         ],

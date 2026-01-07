@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, use } from 'react';
 import Image from 'next/image';
 import { getPetCategories } from './actions';
 import { PetBreed, PetCategory, PetSpecies } from '@/lib/data';
@@ -11,14 +11,15 @@ import { useRouter } from 'next/navigation';
 import BreedSearch from '@/components/ai/breed-search';
 
 interface PetSpeciesPageProps {
-  params: {
+  params: Promise<{
     category: string;
     petType: string;
-  };
+  }>;
 }
 
 export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
   const router = useRouter();
+  const resolvedParams = use(params);
   const [selectedPet, setSelectedPet] = useState<PetBreed | null>(null);
   const [localSearchTerm, setLocalSearchTerm] = useState('');
   const [allBreeds, setAllBreeds] = useState<PetBreed[]>([]);
@@ -26,40 +27,49 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
   const [currentCategory, setCurrentCategory] = useState<PetCategory | null>(null);
   const [currentPetType, setCurrentPetType] = useState<PetSpecies | null>(null);
 
-  const categoryName = useMemo(() => decodeURIComponent(params.category), [params.category]);
-  const petTypeName = useMemo(() => decodeURIComponent(params.petType), [params.petType]);
+  const categoryName = useMemo(() => decodeURIComponent(resolvedParams.category), [resolvedParams.category]);
+  const petTypeName = useMemo(() => decodeURIComponent(resolvedParams.petType), [resolvedParams.petType]);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const allPetData: PetCategory[] = await getPetCategories();
-      
-      const category = allPetData.find(
-        (cat) => cat.category.toLowerCase() === categoryName.toLowerCase()
-      );
-      
-      const petType = category?.species.find(
-        (s) => s.name.toLowerCase() === petTypeName.toLowerCase()
-      );
+      try {
+        const allPetData: PetCategory[] = await getPetCategories();
+        
+        const category = allPetData.find(
+          (cat) => cat.category.toLowerCase() === categoryName.toLowerCase()
+        );
+        
+        const petType = category?.species.find(
+          (s) => s.name.toLowerCase() === petTypeName.toLowerCase()
+        );
 
-      if (category && petType) {
-        setCurrentCategory(category);
-        setCurrentPetType(petType);
-        setAllBreeds(petType.breeds || []);
-      } else {
-        setCurrentCategory(null);
-        setCurrentPetType(null);
-        setAllBreeds([]);
+        if (category && petType) {
+          setCurrentCategory(category);
+          setCurrentPetType(petType);
+          setAllBreeds(petType.breeds || []);
+        } else {
+          setCurrentCategory(null);
+          setCurrentPetType(null);
+          setAllBreeds([]);
+        }
+      } catch (error) {
+        console.error("Error fetching pet data:", error);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
 
     fetchData();
   }, [categoryName, petTypeName]);
 
   const handleBreedFound = (newBreed: PetBreed) => {
-    setAllBreeds(prevBreeds => [newBreed, ...prevBreeds]);
+    setAllBreeds(prevBreeds => {
+        if (prevBreeds.some(b => b.name.toLowerCase() === newBreed.name.toLowerCase())) {
+            return prevBreeds;
+        }
+        return [newBreed, ...prevBreeds];
+    });
     setSelectedPet(newBreed);
     setLocalSearchTerm('');
   };
@@ -110,6 +120,7 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
         <div className="mb-8 max-w-2xl mx-auto">
           <BreedSearch 
             speciesName={currentPetType.name} 
+            categoryName={currentCategory.category}
             onBreedFound={handleBreedFound} 
             searchTerm={localSearchTerm}
             setSearchTerm={setLocalSearchTerm}
@@ -121,7 +132,7 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
           {filteredBreeds.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {filteredBreeds.map((breed) => {
-                const image = PlaceHolderImages.find((p) => p.id === breed.imageId);
+                const image = PlaceHolderImages.find((p) => p.id === breed.imageId) || PlaceHolderImages[0];
                 return (
                   <Card
                     key={breed.name}
@@ -129,19 +140,17 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
                     onClick={() => setSelectedPet(breed)}
                   >
                     <CardHeader className="relative h-40 w-full p-0">
-                      {image && (
-                        <Image
-                          src={image.imageUrl}
-                          alt={image.description}
-                          fill
-                          style={{ objectFit: 'cover' }}
-                          data-ai-hint={image.imageHint}
-                        />
-                      )}
+                      <Image
+                        src={image.imageUrl}
+                        alt={image.description}
+                        fill
+                        style={{ objectFit: 'cover' }}
+                        data-ai-hint={image.imageHint}
+                      />
                     </CardHeader>
                     <CardContent className="p-4 flex-grow">
                       <CardTitle className="text-xl font-headline mb-2">{breed.name}</CardTitle>
-                      <CardDescription className="text-sm">{breed.description}</CardDescription>
+                      <CardDescription className="text-sm line-clamp-3">{breed.description}</CardDescription>
                     </CardContent>
                   </Card>
                 );
