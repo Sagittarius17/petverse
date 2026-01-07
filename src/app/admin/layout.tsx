@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { useUser } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 import {
   SidebarProvider,
   Sidebar,
@@ -23,6 +24,7 @@ import {
   LogOut,
   PawPrint,
 } from "lucide-react";
+import { useToast } from '@/hooks/use-toast';
 
 const menuItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -31,19 +33,44 @@ const menuItems = [
   { href: "/admin/blogs", label: "Blogs", icon: FileText },
 ];
 
+interface UserProfile {
+  role?: 'Admin' | 'Superuser' | 'User';
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isUserLoading } = useUser();
+  const { toast } = useToast();
+  const { user, isUserLoading: isAuthLoading } = useUser();
+  const firestore = useFirestore();
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!user) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [firestore, user]);
+
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
+
+  const isLoading = isAuthLoading || isProfileLoading;
 
   useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push('/login');
+    if (!isLoading) {
+      if (!user) {
+        // Not logged in, redirect to login
+        router.push('/login');
+      } else if (userProfile?.role === 'User' || !userProfile?.role) {
+        // Logged in, but is a regular user or role is not set
+        toast({
+          variant: 'destructive',
+          title: 'Access Denied',
+          description: 'You do not have permission to access the admin panel.',
+        });
+        router.push('/');
+      }
     }
-    // In a real app, you would also check for an admin role here
-  }, [user, isUserLoading, router]);
+  }, [user, userProfile, isLoading, router, toast]);
 
-  if (isUserLoading || !user) {
+  if (isLoading || !userProfile || userProfile.role === 'User') {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
