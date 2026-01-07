@@ -34,8 +34,20 @@ export default function PetInfoDialog({ pet, isOpen, onClose }: PetInfoDialogPro
     return null;
   }
 
-  const images = pet.imageIds
-    .map(id => PlaceHolderImages.find(p => p.id === id))
+  const images = (pet.imageIds || [])
+    .map(idOrUrl => {
+      // Check if it's a full URL (like a data: or https: URL from AI)
+      if (idOrUrl.startsWith('data:') || idOrUrl.startsWith('http')) {
+        return {
+          id: idOrUrl,
+          imageUrl: idOrUrl,
+          description: `Image for ${pet.name}`,
+          imageHint: pet.name.toLowerCase(),
+        };
+      }
+      // Otherwise, assume it's an ID and look it up
+      return PlaceHolderImages.find(p => p.id === idOrUrl);
+    })
     .filter(img => !!img);
 
   return (
