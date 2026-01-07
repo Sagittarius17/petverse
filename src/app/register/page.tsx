@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { FirebaseError } from 'firebase/app';
+import { useFirestore } from '@/firebase';
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -23,6 +24,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function RegisterPage() {
   const auth = useAuth();
+  const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
@@ -31,7 +33,7 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: FormValues) => {
     try {
-      await initiateEmailSignUp(auth, data.email, data.password);
+      await initiateEmailSignUp(auth, firestore, data.email, data.password, data.fullName);
       toast({
         title: 'Account Created!',
         description: "You have been successfully registered.",

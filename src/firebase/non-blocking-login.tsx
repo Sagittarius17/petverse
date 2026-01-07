@@ -4,26 +4,54 @@ import {
   signInAnonymously,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  // Assume getAuth and app are initialized elsewhere
+  updateProfile,
+  onAuthStateChanged,
+  Unsubscribe,
 } from 'firebase/auth';
+import { Firestore, doc, setDoc } from 'firebase/firestore';
 
 /** Initiate anonymous sign-in (non-blocking). */
 export function initiateAnonymousSignIn(authInstance: Auth): void {
-  // CRITICAL: Call signInAnonymously directly. Do NOT use 'await signInAnonymously(...)'.
   signInAnonymously(authInstance);
-  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
 }
 
-/** Initiate email/password sign-up (non-blocking). */
-export function initiateEmailSignUp(authInstance: Auth, email: string, password: string): void {
-  // CRITICAL: Call createUserWithEmailAndPassword directly. Do NOT use 'await createUserWithEmailAndPassword(...)'.
-  createUserWithEmailAndPassword(authInstance, email, password);
-  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
+/** Initiate email/password sign-up and create user document (non-blocking). */
+export async function initiateEmailSignUp(
+  authInstance: Auth,
+  firestore: Firestore,
+  email: string,
+  password: string,
+  fullName: string
+): Promise<void> {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(authInstance, email, password);
+    const user = userCredential.user;
+
+    // Update the user's profile with their full name
+    await updateProfile(user, { displayName: fullName });
+
+    // Create a corresponding user document in Firestore
+    const userDocRef = doc(firestore, 'users', user.uid);
+    await setDoc(userDocRef, {
+      id: user.uid,
+      username: fullName, // Or derive from email if needed
+      email: user.email,
+      firstName: fullName.split(' ')[0] || '',
+      lastName: fullName.split(' ').slice(1).join(' ') || '',
+    });
+
+  } catch (error) {
+    console.error("Error during sign-up process:", error);
+    // Re-throw the error so the calling component can handle it
+    throw error;
+  }
 }
 
 /** Initiate email/password sign-in (non-blocking). */
-export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): void {
-  // CRITICAL: Call signInWithEmailAndPassword directly. Do NOT use 'await signInWithEmailAndPassword(...)'.
-  signInWithEmailAndPassword(authInstance, email, password);
-  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
+export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    signInWithEmailAndPassword(authInstance, email, password)
+      .then(() => resolve())
+      .catch((error) => reject(error));
+  });
 }
