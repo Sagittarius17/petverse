@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, use } from 'react';
 import Image from 'next/image';
 import { getPetCategories } from './actions';
 import { PetBreed, PetCategory, PetSpecies } from '@/lib/data';
@@ -15,14 +15,15 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PetSpeciesPageProps {
-  params: {
+  params: Promise<{
     category: string;
     petType: string;
-  };
+  }>;
 }
 
 export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
   const router = useRouter();
+  const resolvedParams = use(params);
   const [selectedPet, setSelectedPet] = useState<PetBreed | null>(null);
   const [localSearchTerm, setLocalSearchTerm] = useState('');
   const [allBreeds, setAllBreeds] = useState<PetBreed[]>([]);
@@ -30,8 +31,8 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
   const [currentCategory, setCurrentCategory] = useState<PetCategory | null>(null);
   const [currentPetType, setCurrentPetType] = useState<PetSpecies | null>(null);
 
-  const categoryName = useMemo(() => decodeURIComponent(params.category), [params]);
-  const petTypeName = useMemo(() => decodeURIComponent(params.petType), [params]);
+  const categoryName = useMemo(() => decodeURIComponent(resolvedParams.category), [resolvedParams.category]);
+  const petTypeName = useMemo(() => decodeURIComponent(resolvedParams.petType), [resolvedParams.petType]);
 
   useEffect(() => {
     const fetchData = async () => {
