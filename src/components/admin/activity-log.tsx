@@ -103,14 +103,14 @@ export default function ActivityLog() {
             <AvatarFallback>{activity.user.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="text-sm">
-            <p>
+            <div>
               <span className="font-semibold">{activity.user.name}</span>
               <span className="text-muted-foreground"> performed action </span>
               <Badge variant={activity.badgeVariant || 'secondary'} className="mx-1">
                 <activity.icon className="h-3 w-3 mr-1" />
                 {activity.action}
               </Badge>
-            </p>
+            </div>
             <div className="flex items-center gap-2 mt-1 text-muted-foreground">
                 {typeIcons[activity.targetType as keyof typeof typeIcons]}
                 <span className="font-medium truncate">{activity.target}</span>
