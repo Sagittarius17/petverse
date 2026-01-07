@@ -17,8 +17,9 @@
  * Key Security Decisions:
  * - Strict Ownership: A user can only access data within their own
  *   `/users/{userId}` document tree.
- * - No User Listing: The top-level `/users` collection cannot be listed to
- *   protect user privacy and prevent data scraping.
+ * - Limited User Listing: The top-level `/users` collection can be listed by
+ *   any authenticated user for admin purposes, but this should be reviewed
+ *   and restricted in production.
  * - Public Read, Owner Write: For public collections, read access is granted
  *   to everyone (including unauthenticated users), but write operations (create,
  *   update, delete) are strictly limited to the original author of the document.
@@ -94,7 +95,7 @@ service cloud.firestore {
      */
     match /users/{userId} {
       allow get: if isOwner(userId);
-      allow list: if false; // Disallow listing all users for privacy.
+      allow list: if isSignedIn(); // Allow listing for admin panel. Restrict in production.
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if isOwner(userId) && isImmutable('id');
       allow delete: if isOwner(userId);
