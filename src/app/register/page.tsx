@@ -40,11 +40,19 @@ export default function RegisterPage() {
       });
       router.push('/profile');
     } catch (error) {
-      console.error(error);
+      console.error("Registration failed:", error);
        let description = "An unexpected error occurred. Please try again.";
       if (error instanceof FirebaseError) {
-        if (error.code === 'auth/email-already-in-use') {
-          description = "This email is already in use. Please try another one.";
+        switch (error.code) {
+          case 'auth/email-already-in-use':
+            description = "This email is already in use. Please try another one or log in.";
+            break;
+          case 'auth/weak-password':
+            description = "The password is too weak. Please choose a stronger password.";
+            break;
+          default:
+            description = "A registration error occurred. Please try again.";
+            break;
         }
       }
       toast({

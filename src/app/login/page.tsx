@@ -37,14 +37,20 @@ export default function LoginPage() {
       });
       router.push('/profile');
     } catch (error) {
-      console.error(error);
+      console.error("Login failed:", error);
       let description = "An unexpected error occurred. Please try again.";
       if (error instanceof FirebaseError) {
         switch (error.code) {
           case 'auth/user-not-found':
           case 'auth/wrong-password':
           case 'auth/invalid-credential':
-            description = "Invalid email or password. Please try again.";
+            description = "Invalid email or password. Please double-check your credentials.";
+            break;
+          case 'auth/too-many-requests':
+            description = "Access to this account has been temporarily disabled due to many failed login attempts. You can immediately restore it by resetting your password or you can try again later.";
+            break;
+          default:
+            description = "A login error occurred. Please try again.";
             break;
         }
       }
