@@ -5,6 +5,7 @@ import StatsCard from '@/components/stats-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import ActivityLog from '@/components/admin/activity-log';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const data = [
     { name: 'Jan', adoptions: 4, signups: 24 },
@@ -62,7 +63,9 @@ export default function AdminDashboardPage() {
                 <CardDescription>A log of all administrative actions taken in the application.</CardDescription>
             </CardHeader>
             <CardContent>
-                <ActivityLog />
+                <ScrollArea className="h-[300px]">
+                    <ActivityLog />
+                </ScrollArea>
             </CardContent>
         </Card>
       </div>

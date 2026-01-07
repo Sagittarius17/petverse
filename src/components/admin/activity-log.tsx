@@ -85,6 +85,34 @@ const activities = [
     icon: Trash2,
     badgeVariant: 'destructive',
   },
+  {
+    id: 'act_6',
+    user: {
+      name: 'Admin',
+      avatar: PlaceHolderImages.find(p => p.id === 'user-avatar-1')?.imageUrl,
+    },
+    action: 'Changed Role',
+    target: 'superuser@example.com',
+    targetType: 'User',
+    date: '3 days ago',
+    details: 'Promoted user to Superuser.',
+    icon: ShieldCheck,
+    badgeVariant: 'default',
+  },
+  {
+    id: 'act_7',
+    user: {
+      name: 'Superuser',
+      avatar: 'https://github.com/shadcn.png',
+    },
+    action: 'Added New Pet',
+    target: 'Simba (Cat)',
+    targetType: 'Pet',
+    date: '4 days ago',
+    details: 'Added a new Siamese cat available for adoption.',
+    icon: PlusCircle,
+    badgeVariant: 'default',
+  },
 ];
 
 const typeIcons = {
@@ -95,7 +123,7 @@ const typeIcons = {
 
 export default function ActivityLog() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pr-4">
       {activities.map(activity => (
         <div key={activity.id} className="grid items-start grid-cols-[auto_1fr_auto] gap-x-4">
           <Avatar className="h-10 w-10">
