@@ -1,6 +1,19 @@
 import { type AnalyzePetImageForMatchingOutput } from "@/ai/flows/analyze-pet-image-for-matching";
 import { PetCategory, PetSpecies, PetBreed, BreedCareDetail, initialPetCategories } from './initial-pet-data';
-import { db } from '@/firebase/server'; // Import Firestore db for server-side access
+import { z } from 'zod';
+
+export const BreedCareDetailSchema = z.object({
+  title: z.string().describe('The title of the care detail (e.g., "Temperament", "Lifespan").'),
+  content: z.string().describe('The detailed content for this care topic.'),
+});
+
+export const PetBreedSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  imageId: z.string(),
+  careDetails: z.array(BreedCareDetailSchema),
+});
+
 
 export interface Pet {
   id: string;
@@ -23,7 +36,7 @@ export interface CareGuide {
 }
 
 export interface LostPetReport {
-  id: string;
+  id:string;
   ownerName: string;
   contactEmail: string;
   petName: string;
@@ -35,6 +48,8 @@ export interface LostPetReport {
 
 // Re-export interfaces from initial-pet-data to maintain external access
 export type { PetCategory, PetSpecies, PetBreed, BreedCareDetail };
+export const petCategories = initialPetCategories;
+
 
 export const allPets: Pet[] = [
   { id: 'p1', name: 'Buddy', species: 'Dog', breed: 'Golden Retriever', age: '2 years', gender: 'Male', imageId: 'dog-1', description: 'A very good boy who loves to play fetch.' },
@@ -70,43 +85,8 @@ A balanced diet is crucial for your dog\'s health. Choose a high-quality dog foo
 Regular grooming keeps your dog\'s coat and skin healthy. The frequency of grooming depends on the breed and coat type.
 
 #### Training and Socialization
-Training is essential for a well-behaved dog. Start with basic commands like \"sit\", \"stay\", and \"come.\"`
+Training is essential for a well-behaved dog. Start with basic commands like "sit", "stay", and "come.\"`
     },
 ];
 
 export const featuredCareGuides = allCareGuides.slice(0, 3);
-
-export async function getPetCategories(): Promise<PetCategory[]> {
-  const allCategories = JSON.parse(JSON.stringify(initialPetCategories)) as PetCategory[];
-
-  try {
-    const aiBreedsSnapshot = await db.collection('aiBreeds').get();
-    const aiBreeds: PetBreed[] = aiBreedsSnapshot.docs.map(doc => ({
-      id: doc.id, // Store the Firestore document ID
-      ...doc.data()
-    })) as PetBreed[];
-
-    aiBreeds.forEach(aiBreed => {
-      const { speciesName, categoryName, ...restOfBreed } = aiBreed as any; // Destructure extra fields
-      const category = allCategories.find(cat => cat.category.toLowerCase() === categoryName.toLowerCase());
-      if (category) {
-        const species = category.species.find(sp => sp.name.toLowerCase() === speciesName.toLowerCase());
-        if (species) {
-          if (!species.breeds) {
-            species.breeds = [];
-          }
-          // Check if the breed already exists to avoid duplicates
-          if (!species.breeds.some(b => b.name.toLowerCase() === restOfBreed.name.toLowerCase())) {
-            species.breeds.push(restOfBreed);
-          }
-        }
-      }
-    });
-
-  } catch (error) {
-    console.error("Error fetching AI breeds from Firestore:", error);
-    // Optionally, handle error more gracefully, e.g., return initial categories only
-  }
-
-  return allCategories;
-}

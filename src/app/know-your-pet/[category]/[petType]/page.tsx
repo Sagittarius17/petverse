@@ -1,19 +1,15 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
-// Importing getPetCategories which now integrates static and Firestore data
-import { getPetCategories, PetBreed, PetCategory, PetSpecies } from '@/lib/data';
+import { getPetCategories } from './actions';
+import { PetBreed, PetCategory, petCategories } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import PetInfoDialog from '@/components/pet-info-dialog';
 import { useRouter } from 'next/navigation';
-// Removed direct import of Input, as it will be integrated into BreedSearch
-// import { Input } from '@/components/ui/input';
-import BreedSearch from '@/components/ai/breed-search'; // Import the new component
-import { useEffect } from 'react';
+import BreedSearch from '@/components/ai/breed-search';
 
-// Define props for the page component
 interface PetSpeciesPageProps {
   params: {
     category: string;
@@ -24,52 +20,47 @@ interface PetSpeciesPageProps {
 export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
   const router = useRouter();
   const [selectedPet, setSelectedPet] = useState<PetBreed | null>(null);
-  const [localSearchTerm, setLocalSearchTerm] = useState(''); // New state for local filtering search term
-  const [allBreeds, setAllBreeds] = useState<PetBreed[]>([]); // State to hold all breeds (static + AI-added)
-  const [loadingBreeds, setLoadingBreeds] = useState(true); // Loading state for initial breed fetch
+  const [localSearchTerm, setLocalSearchTerm] = useState('');
+  const [allBreeds, setAllBreeds] = useState<PetBreed[]>([]);
+  const [loadingBreeds, setLoadingBreeds] = useState(true);
 
   const { category: categoryName, petType: petTypeName } = params;
 
-  // Function to fetch all breeds (static + Firestore)
-  const fetchBreeds = async () => {
-    setLoadingBreeds(true);
-    const allPetData: PetCategory[] = await getPetCategories();
-
-    const currentCategory = allPetData.find(
-      (cat) => cat.category.toLowerCase() === categoryName.toLowerCase()
-    );
-
-    const currentPetType = currentCategory?.species.find(
-      (s) => s.name.toLowerCase() === petTypeName.toLowerCase()
-    );
-
-    if (currentPetType?.breeds) {
-      setAllBreeds(currentPetType.breeds);
-    } else {
-      setAllBreeds([]);
-    }
-    setLoadingBreeds(false);
-  };
-
   useEffect(() => {
-    fetchBreeds();
-  }, [categoryName, petTypeName]); // Re-fetch if category or petType changes
+    const fetchBreeds = async () => {
+      setLoadingBreeds(true);
+      const allPetData: PetCategory[] = await getPetCategories();
 
-  // Resolve category and petType directly from the fetched allBreeds (or a consolidated structure)
-  // This is a simplified approach, a more robust solution might consolidate `petCategories` on the server
-  // and pass it down as a prop, or fetch the specific petType directly.
-  const currentCategoryResolved = petCategories.find( // Use initialPetCategories structure for resolution
+      const currentCategory = allPetData.find(
+        (cat) => cat.category.toLowerCase() === categoryName.toLowerCase()
+      );
+
+      const currentPetType = currentCategory?.species.find(
+        (s) => s.name.toLowerCase() === petTypeName.toLowerCase()
+      );
+
+      if (currentPetType?.breeds) {
+        setAllBreeds(currentPetType.breeds);
+      } else {
+        setAllBreeds([]);
+      }
+      setLoadingBreeds(false);
+    };
+
+    fetchBreeds();
+  }, [categoryName, petTypeName]);
+
+  const currentCategoryResolved = petCategories.find(
     (cat) => cat.category.toLowerCase() === categoryName.toLowerCase()
   );
   const currentPetTypeResolved = currentCategoryResolved?.species.find(
     (s) => s.name.toLowerCase() === petTypeName.toLowerCase()
   );
 
-  // When a new breed is found by the AI, add it to our state and clear the local search term
   const handleBreedFound = (newBreed: PetBreed) => {
     setAllBreeds(prevBreeds => [newBreed, ...prevBreeds]);
-    setSelectedPet(newBreed); // Open the dialog for the new breed
-    setLocalSearchTerm(''); // Clear local filter after AI search adds a new breed
+    setSelectedPet(newBreed);
+    setLocalSearchTerm('');
   };
 
   const filteredBreeds = useMemo(() => {
@@ -113,12 +104,10 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
           <p className="mt-2 text-lg text-muted-foreground">Explore different breeds of {currentPetTypeResolved.name}.</p>
         </div>
 
-        {/* Combined AI-Powered Search and Local Filter */}
         <div className="mb-8 max-w-2xl mx-auto">
           <BreedSearch 
             speciesName={currentPetTypeResolved.name} 
             onBreedFound={handleBreedFound} 
-            // Pass the localSearchTerm and its setter to BreedSearch so it can control the input
             searchTerm={localSearchTerm}
             setSearchTerm={setLocalSearchTerm}
             placeholder={`Search for a ${currentPetTypeResolved.name} breed (e.g., "Siberian Husky")`}
