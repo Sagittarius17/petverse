@@ -40,6 +40,7 @@ export async function initiateEmailSignUp(
       lastName: fullName.split(' ').slice(1).join(' ') || '',
       createdAt: serverTimestamp(),
       role: 'User', // Default role
+      status: 'Active', // Default status
     });
 
   } catch (error) {
@@ -57,3 +58,5 @@ export function initiateEmailSignIn(authInstance: Auth, email: string, password:
       .catch((error) => reject(error));
   });
 }
+
+    

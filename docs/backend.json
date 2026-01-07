@@ -45,6 +45,11 @@
           "type": "string",
           "description": "The role of the user, determining their access level.",
           "enum": ["User", "Superuser", "Admin"]
+        },
+        "status": {
+            "type": "string",
+            "description": "The status of the user account.",
+            "enum": ["Active", "Inactive"]
         }
       },
       "required": [
@@ -376,4 +381,5 @@
     "reasoning": "The Firestore data structure is designed to ensure security, scalability, and debuggability, adhering to the principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters). Authorization Independence is achieved through denormalization, copying relevant authorization data (like user IDs or membership maps) into subcollections to avoid costly and insecure `get()` calls in security rules. Structural Segregation separates data with different access requirements into distinct collections. Access Modeling employs consistent patterns like path-based ownership (`/users/{userId}/...`) and membership maps for collaborative data.\n\nSpecifically:\n\n*   `/users/{userId}`: Stores user profiles. User data is private and accessible only to the authenticated user.\n*   `/users/{userId}/pets/{petId}`: Pets owned/managed by a user. The `userId` field in the Pet document duplicates the parent path, ensuring authorization independence.\n*   `/blogs/{blogId}`: Stores blog posts. While a `authorId` field exists, access to blogs will be public, though editing/creation is restricted to admins.\n*   `/categories/{categoryId}`: Stores categories for blogs and pet care guides. Access is public.\n*   `/vet_services/{vetServiceId}`: Stores veterinary services. A `userId` field is present indicating the owner, enabling path-based access control for owners and public read access.\n*   `/lost_found_reports/{lostFoundReportId}`: Stores lost/found reports. The `userId` is duplicated within the document, providing authorization independence. The `petId` allows retrieval of reports by pet.\n\nThis structure facilitates simple, robust, and easily debuggable security rules by making authorization context explicit and eliminating hierarchical dependencies. QAPs are supported through structural segregation and well-defined ownership, allowing secure listing operations."
   }
 }
+
     

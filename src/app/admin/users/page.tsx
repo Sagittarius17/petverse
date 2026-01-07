@@ -1,6 +1,6 @@
 'use client';
 
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, ShieldCheck, ShieldOff } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useCollection, useFirestore, useMemoFirebase, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
 import { collection, doc, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useState } from 'react';
@@ -43,6 +43,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface User {
   id: string;
@@ -52,6 +53,7 @@ interface User {
   lastName?: string;
   createdAt?: Timestamp;
   role?: 'Admin' | 'Superuser' | 'User';
+  status?: 'Active' | 'Inactive';
 }
 
 export default function AdminUsersPage() {
@@ -60,8 +62,8 @@ export default function AdminUsersPage() {
   const usersCollection = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
   const { data: users, isLoading } = useCollection<User>(usersCollection);
 
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
+  const [userToToggleStatus, setUserToToggleStatus] = useState<User | null>(null);
   const [newRole, setNewRole] = useState<'Admin' | 'Superuser' | 'User'>('User');
 
   const getDisplayName = (user: User) => {
@@ -76,15 +78,16 @@ export default function AdminUsersPage() {
     return timestamp.toDate().toLocaleDateString();
   };
 
-  const handleDeleteUser = () => {
-    if (userToDelete && firestore) {
-      const userDocRef = doc(firestore, 'users', userToDelete.id);
-      deleteDocumentNonBlocking(userDocRef);
+  const handleToggleStatus = () => {
+    if (userToToggleStatus && firestore) {
+      const newStatus = userToToggleStatus.status === 'Active' ? 'Inactive' : 'Active';
+      const userDocRef = doc(firestore, 'users', userToToggleStatus.id);
+      updateDocumentNonBlocking(userDocRef, { status: newStatus });
       toast({
-        title: 'User Deleted',
-        description: `${getDisplayName(userToDelete)} has been removed.`,
+        title: 'User Status Updated',
+        description: `${getDisplayName(userToToggleStatus)} has been set to ${newStatus}.`,
       });
-      setUserToDelete(null);
+      setUserToToggleStatus(null);
     }
   };
 
@@ -142,13 +145,13 @@ export default function AdminUsersPage() {
                 ))
               ) : users && users.length > 0 ? (
                 users.map((user) => (
-                  <TableRow key={user.id}>
+                  <TableRow key={user.id} className={cn(user.status === 'Inactive' && 'bg-muted/50 text-muted-foreground')}>
                     <TableCell className="font-medium">{getDisplayName(user)}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.role || 'User'}</TableCell>
                     <TableCell>
-                      <Badge variant={'default'}>
-                        Active
+                      <Badge variant={user.status === 'Active' ? 'default' : 'destructive'}>
+                        {user.status || 'Active'}
                       </Badge>
                     </TableCell>
                     <TableCell>{formatDate(user.createdAt)}</TableCell>
@@ -162,8 +165,16 @@ export default function AdminUsersPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onSelect={() => openEditDialog(user)}>Edit</DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => setUserToDelete(user)} className="text-destructive">Delete</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => openEditDialog(user)}>Edit Role</DropdownMenuItem>
+                          {user.status !== 'Active' ? (
+                            <DropdownMenuItem onSelect={() => setUserToToggleStatus(user)} className="text-green-600 focus:text-green-600">
+                              <ShieldCheck className="mr-2 h-4 w-4" /> Enable
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem onSelect={() => setUserToToggleStatus(user)} className="text-destructive focus:text-destructive">
+                              <ShieldOff className="mr-2 h-4 w-4" /> Disable
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -181,19 +192,25 @@ export default function AdminUsersPage() {
         </CardContent>
       </Card>
       
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!userToDelete} onOpenChange={(open) => !open && setUserToDelete(null)}>
+      {/* Disable/Enable Confirmation Dialog */}
+      <AlertDialog open={!!userToToggleStatus} onOpenChange={(open) => !open && setUserToToggleStatus(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the user account
-              for <span className="font-bold">{userToDelete && getDisplayName(userToDelete)}</span> from the database.
+              This will {userToToggleStatus?.status === 'Active' ? 'disable' : 'enable'} the account
+              for <span className="font-bold">{userToToggleStatus && getDisplayName(userToToggleStatus)}</span>.
+              A disabled user cannot access any part of the application.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteUser} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+            <AlertDialogAction 
+              onClick={handleToggleStatus} 
+              className={cn(userToToggleStatus?.status === 'Active' && 'bg-destructive hover:bg-destructive/90')}
+            >
+              {userToToggleStatus?.status === 'Active' ? 'Disable' : 'Enable'}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
