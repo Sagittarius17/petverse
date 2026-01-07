@@ -40,7 +40,6 @@ export default function RegisterPage() {
       });
       router.push('/profile');
     } catch (error) {
-      console.error("Registration failed:", error);
        let description = "An unexpected error occurred. Please try again.";
       if (error instanceof FirebaseError) {
         switch (error.code) {
