@@ -61,11 +61,11 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && isActive(request.auth.uid) && getUserRole(request.auth.uid) == 'Admin';
+      return isSignedIn() && getUserRole(request.auth.uid) == 'Admin';
     }
     
     function isSuperuser() {
-      return isSignedIn() && isActive(request.auth.uid) && (getUserRole(request.auth.uid) == 'Superuser' || isAdmin());
+      return isSignedIn() && (getUserRole(request.auth.uid) == 'Superuser' || isAdmin());
     }
 
     function createdByAuthenticatedUser(fieldName) {
@@ -97,11 +97,11 @@ service cloud.firestore {
       // Admins and Superusers can see the list of users.
       allow list: if isSuperuser() || isAdmin();
       // Users can only read their own profile. Admins/Superusers can read any.
-      allow get: if (isOwner(userId) || isSuperuser() || isAdmin()) && isActive(request.auth.uid);
+      allow get: if (isOwner(userId) || isSuperuser() || isAdmin());
       // Anyone can create their own user document.
       allow create: if isOwner(userId);
       // Admin can update any user. Superuser can update 'User' roles. Users can update their own profile.
-      allow update: if canUpdateUser(userId) && isActive(request.auth.uid);
+      allow update: if canUpdateUser(userId);
       // Only Admins can delete users.
       allow delete: if false; // Disallow hard deletes. Status should be set to 'Inactive' via update.
     }
@@ -142,10 +142,8 @@ service cloud.firestore {
       allow get: if true;
       allow list: if true;
       allow create: if createdByAuthenticatedUser('userId');
-      allow update: if isOwner(resource.data.userId) && isImmutable('userId') && isActive(request.auth.uid);
-      allow delete: if isOwner(resource.data.userId) && isActive(request.auth.uid);
+      update: if isOwner(resource.data.userId) && isImmutable('userId') && isActive(request.auth.uid);
+      delete: if isOwner(resource.data.userId) && isActive(request.auth.uid);
     }
   }
 }
-
-    
