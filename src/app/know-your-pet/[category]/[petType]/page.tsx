@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import PetInfoDialog from '@/components/pet-info-dialog';
 import { useRouter } from 'next/navigation';
 import BreedSearch from '@/components/ai/breed-search';
+import { initialPetCategories } from '@/lib/initial-pet-data';
 
 interface PetSpeciesPageProps {
   params: {
@@ -51,7 +52,7 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
     fetchBreeds();
   }, [categoryName, petTypeName]);
 
-  const currentCategoryResolved = petCategories.find(
+  const currentCategoryResolved = initialPetCategories.find(
     (cat) => cat.category.toLowerCase() === categoryName.toLowerCase()
   );
   const currentPetTypeResolved = currentCategoryResolved?.species.find(
