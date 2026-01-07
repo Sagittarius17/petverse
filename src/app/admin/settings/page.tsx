@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { useTheme } from 'next-themes';
+import { useUser } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -15,13 +17,55 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { Sun, Moon, Trees, Flower, Monitor } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminSettingsPage() {
   const { theme, setTheme } = useTheme();
+  const { user, isUserLoading } = useUser();
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
+
+  if (isUserLoading || !user) {
+    return (
+        <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+            <div className="grid gap-6">
+                <Card><CardHeader><Skeleton className="h-5 w-24" /></CardHeader><CardContent><Skeleton className="h-8 w-full" /></CardContent></Card>
+                <Card><CardHeader><Skeleton className="h-5 w-32" /></CardHeader><CardContent><Skeleton className="h-8 w-full" /></CardContent></Card>
+            </div>
+            <div className="grid gap-6">
+                <Card><CardHeader><Skeleton className="h-5 w-28" /></CardHeader><CardContent><Skeleton className="h-24 w-full" /></CardContent></Card>
+            </div>
+        </div>
+    )
+  }
+
 
   return (
     <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
       <div className="grid gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Admin Profile</CardTitle>
+            <CardDescription>
+              Manage your personal admin information.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="full-name">Full Name</Label>
+                  <Input id="full-name" defaultValue={user.displayName || ''} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="admin-email">Email</Label>
+                  <Input id="admin-email" type="email" defaultValue={user.email || ''} readOnly />
+                </div>
+            </div>
+          </CardContent>
+          <CardFooter className="border-t px-6 py-4">
+            <Button>Save Profile</Button>
+          </CardFooter>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Site Settings</CardTitle>
@@ -30,18 +74,12 @@ export default function AdminSettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="site-name">Site Name</Label>
-                  <Input id="site-name" defaultValue="PetVerse" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="admin-email">Admin Email</Label>
-                  <Input id="admin-email" type="email" defaultValue="admin@petverse.com" />
-                </div>
-            </div>
             <div className="flex items-center space-x-2">
-                <Switch id="maintenance-mode" />
+                <Switch 
+                    id="maintenance-mode" 
+                    checked={isMaintenanceMode}
+                    onCheckedChange={setIsMaintenanceMode}
+                />
                 <Label htmlFor="maintenance-mode" className="text-sm">
                   Enable Maintenance Mode
                 </Label>
