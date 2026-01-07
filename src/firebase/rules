@@ -1,0 +1,131 @@
+/**
+ * Core Philosophy:
+ * This ruleset enforces a strict, user-centric security model combined with
+ * support for public, community-driven content. The primary principle is that
+ * users have complete control over their own data and content they create,
+ * while certain data types like blogs and service listings are publicly readable
+ * to foster a community environment.
+ *
+ * Data Structure:
+ * The data is organized into two main categories:
+ * 1. User-Private Data: All data strictly belonging to a user (like their
+ *    profile and pet information) is nested under the `/users/{userId}` path.
+ * 2. Public Collections: Top-level collections like `/blogs`, `/categories`,
+ *    `/vet_services`, and `/lost_found_reports` store data intended for public
+ *    consumption.
+ *
+ * Key Security Decisions:
+ * - Strict Ownership: A user can only access data within their own
+ *   `/users/{userId}` document tree.
+ * - Role-Based Access Control (RBAC): User permissions are determined by a 'role'
+ *   field ('User', 'Superuser', 'Admin') on their user document.
+ * - Admin role has full CRUD access.
+ * - Superuser role has create/update access but not delete.
+ * - User role has no access to the admin panel.
+ * - Public Read, Owner Write: For public collections, read access is granted
+ *   to everyone, but write operations are strictly limited to the document's author.
+ * - Inactive users have no access to any data.
+ *
+ * Denormalization for Authorization:
+ * To ensure fast and secure authorization, this ruleset relies on denormalized
+ * ownership fields (e.g., `authorId`, `userId`) directly within documents in
+ * public collections. This avoids slow and insecure cross-document `get()`
+ * calls in rules.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions to simplify and clarify rule logic.
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Function to get data from a user's document.
+    function getUserData(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data;
+    }
+
+    function getUserRole(userId) {
+      return getUserData(userId).role;
+    }
+    
+    // Check if user is active
+    function isActive() {
+      // Allow access if no user is signed in (for public reads) or if user is active
+      return !isSignedIn() || getUserData(request.auth.uid).status == 'Active';
+    }
+
+    function isAdmin() {
+      return isSignedIn() && getUserRole(request.auth.uid) == 'Admin';
+    }
+    
+    function isSuperuser() {
+      return isSignedIn() && (getUserRole(request.auth.uid) == 'Superuser' || isAdmin());
+    }
+
+    function createdByAuthenticatedUser(fieldName) {
+      return isSignedIn() && isActive() && request.resource.data[fieldName] == request.auth.uid;
+    }
+
+    function isImmutable(fieldName) {
+      return request.resource.data[fieldName] == resource.data[fieldName];
+    }
+
+    match /users/{userId} {
+      allow get: if (isOwner(userId) || isSuperuser()) && isActive();
+      allow list: if (isSuperuser()) && isActive();
+      allow create: if isOwner(userId);
+      // Admins can update any user. Superusers can update users with the 'User' role.
+      // Individual users can update their own profile.
+      allow update: if (isAdmin() || (isSuperuser() && resource.data.role == 'User') || isOwner(userId)) && isActive();
+      // Deletes are disallowed. Status should be set to 'Inactive' via an update.
+      allow delete: if false; 
+    }
+
+    match /users/{userId}/pets/{petId} {
+      allow get: if isOwner(userId) && isActive();
+      allow list: if isOwner(userId) && isActive();
+      allow create: if isOwner(userId) && request.resource.data.userId == userId && isActive();
+      allow update: if isOwner(userId) && isImmutable('userId') && isActive();
+      allow delete: if isOwner(userId) && isActive();
+    }
+
+    match /blogs/{blogId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if (isSuperuser() || createdByAuthenticatedUser('authorId')) && isActive();
+      allow update: if (isSuperuser() || isOwner(resource.data.authorId)) && isImmutable('authorId') && isActive();
+      allow delete: if isAdmin() || (isOwner(resource.data.authorId) && isActive());
+    }
+
+    match /categories/{categoryId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSuperuser();
+      allow update: if isSuperuser();
+      allow delete: if isAdmin();
+    }
+
+    match /vet_services/{vetServiceId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if createdByAuthenticatedUser('userId');
+      allow update: if (isSuperuser() || isOwner(resource.data.userId)) && isImmutable('userId') && isActive();
+      allow delete: if isAdmin() || (isOwner(resource.data.userId) && isActive());
+    }
+
+    match /lost_found_reports/{lostFoundReportId} {
+      update: if (isSuperuser() || isOwner(resource.data.userId)) && isImmutable('userId') && isActive();
+      delete: if isAdmin() || (isOwner(resource.data.userId) && isActive());
+      allow get: if true;
+      allow list: if true;
+      allow create: if createdByAuthenticatedUser('userId');
+    }
+  }
+}

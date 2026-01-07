@@ -25,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useCollection, useFirestore, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, updateDocumentNonBlocking, useUser, useDoc } from '@/firebase';
 import { collection, doc, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useState } from 'react';
@@ -45,7 +45,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
-interface User {
+interface UserProfile {
   id: string;
   username: string;
   email: string;
@@ -59,14 +59,23 @@ interface User {
 export default function AdminUsersPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
+  const { user: currentUser } = useUser();
   const usersCollection = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
-  const { data: users, isLoading } = useCollection<User>(usersCollection);
+  const { data: users, isLoading } = useCollection<UserProfile>(usersCollection);
 
-  const [userToEdit, setUserToEdit] = useState<User | null>(null);
-  const [userToToggleStatus, setUserToToggleStatus] = useState<User | null>(null);
+  const currentUserDocRef = useMemoFirebase(() => {
+    if (!currentUser || !firestore) return null;
+    return doc(firestore, 'users', currentUser.uid);
+  }, [currentUser, firestore]);
+  const { data: currentUserProfile } = useDoc<UserProfile>(currentUserDocRef);
+  const isAdmin = currentUserProfile?.role === 'Admin';
+
+
+  const [userToEdit, setUserToEdit] = useState<UserProfile | null>(null);
+  const [userToToggleStatus, setUserToToggleStatus] = useState<UserProfile | null>(null);
   const [newRole, setNewRole] = useState<'Admin' | 'Superuser' | 'User'>('User');
 
-  const getDisplayName = (user: User) => {
+  const getDisplayName = (user: UserProfile) => {
     if (user.firstName && user.lastName) {
       return `${user.firstName} ${user.lastName}`;
     }
@@ -103,7 +112,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  const openEditDialog = (user: User) => {
+  const openEditDialog = (user: UserProfile) => {
     setUserToEdit(user);
     setNewRole(user.role || 'User');
   };
@@ -166,14 +175,18 @@ export default function AdminUsersPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuItem onSelect={() => openEditDialog(user)}>Edit Role</DropdownMenuItem>
-                          {user.status !== 'Active' ? (
-                            <DropdownMenuItem onSelect={() => setUserToToggleStatus(user)} className="text-green-600 focus:text-green-600">
-                              <ShieldCheck className="mr-2 h-4 w-4" /> Enable
-                            </DropdownMenuItem>
-                          ) : (
-                            <DropdownMenuItem onSelect={() => setUserToToggleStatus(user)} className="text-destructive focus:text-destructive">
-                              <ShieldOff className="mr-2 h-4 w-4" /> Disable
-                            </DropdownMenuItem>
+                          {isAdmin && (
+                            <>
+                              {user.status !== 'Active' ? (
+                                <DropdownMenuItem onSelect={() => setUserToToggleStatus(user)} className="text-green-600 focus:text-green-600">
+                                  <ShieldCheck className="mr-2 h-4 w-4" /> Enable
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem onSelect={() => setUserToToggleStatus(user)} className="text-destructive focus:text-destructive">
+                                  <ShieldOff className="mr-2 h-4 w-4" /> Disable
+                                </DropdownMenuItem>
+                              )}
+                            </>
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -248,5 +261,3 @@ export default function AdminUsersPage() {
     </>
   );
 }
-
-    
