@@ -58,8 +58,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       if (!user) {
         // Not logged in, redirect to login
         router.push('/login');
-      } else if (userProfile?.role === 'User') {
-        // Logged in, but is a regular user. Deny access.
+      } else if (!userProfile || userProfile.role === 'User') {
+        // Logged in, but has no profile or is a regular user. Deny access.
         toast({
           variant: 'destructive',
           title: 'Access Denied',
