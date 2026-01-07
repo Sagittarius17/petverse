@@ -77,8 +77,8 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow get: if (isOwner(userId) || isSuperuser() || isAdmin()) && isActive();
-      allow list: if (isSuperuser() || isAdmin()) && isActive();
+      allow get: if (isOwner(userId) || isSuperuser()) && isActive();
+      allow list: if (isSuperuser()) && isActive();
       allow create: if isOwner(userId);
       // Admins can update any user. Superusers can update users with the 'User' role.
       // Individual users can update their own profile.
