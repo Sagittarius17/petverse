@@ -23,9 +23,9 @@ import {
   Settings,
   LogOut,
   PawPrint,
-  ShieldAlert
+  ShieldAlert,
+  ListCollapse
 } from "lucide-react";
-import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 
 const menuItems = [
@@ -33,6 +33,7 @@ const menuItems = [
   { href: "/admin/pets", label: "Pets", icon: Dog },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/blogs", label: "Blogs", icon: FileText },
+  { href: "/admin/activity", label: "Activity", icon: ListCollapse },
 ];
 
 interface UserProfile {
@@ -57,7 +58,6 @@ function AccessDeniedScreen() {
     );
 }
 
-
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -72,16 +72,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
 
   const isLoading = isAuthLoading || isProfileLoading;
-  const isAuthorized = userProfile && (userProfile.role === 'Admin' || userProfile.role === 'Superuser');
+  
+  const isAuthorized = !isLoading && userProfile && (userProfile.role === 'Admin' || userProfile.role === 'Superuser');
 
   useEffect(() => {
-    // This effect only handles the case where the user is not authenticated at all.
-    if (!isLoading && !user) {
+    if (!isLoading) {
+      if (!user) {
         router.push('/login');
+      } else if (!userProfile || userProfile.role === 'User') {
+        // This condition is now implicitly handled by the main render logic
+      }
     }
-  }, [isLoading, user, router]);
+  }, [isLoading, user, userProfile, router]);
 
-  // Render based on the final state after loading.
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -94,7 +98,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return <AccessDeniedScreen />;
   }
 
-  // If we reach here, the user is authorized.
   return (
     <SidebarProvider>
       <div className="flex h-screen">
