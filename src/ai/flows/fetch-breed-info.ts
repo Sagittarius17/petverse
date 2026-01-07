@@ -43,9 +43,9 @@ const fetchBreedInfoPrompt = ai.definePrompt({
 
     Your task is to provide detailed information for the breed: "{{breedName}}".
 
-    Generate a concise, one-sentence `description` for this breed.
+    Generate a concise, one-sentence 'description' for this breed.
 
-    Then, provide a comprehensive set of care details in the `careDetails` array. Include the following topics if they are relevant to the species:
+    Then, provide a comprehensive set of care details in the 'careDetails' array. Include the following topics if they are relevant to the species:
     - Overview
     - Temperament
     - Lifespan
