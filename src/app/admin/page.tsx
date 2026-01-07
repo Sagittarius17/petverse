@@ -4,6 +4,7 @@ import { Dog, Users, FileText, Heart } from 'lucide-react';
 import StatsCard from '@/components/stats-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import ActivityLog from '@/components/admin/activity-log';
 
 const data = [
     { name: 'Jan', adoptions: 4, signups: 24 },
@@ -57,27 +58,11 @@ export default function AdminDashboardPage() {
         </Card>
         <Card>
             <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>A log of recent events on the platform.</CardDescription>
+                <CardTitle>Activity Log</CardTitle>
+                <CardDescription>A log of all administrative actions taken in the application.</CardDescription>
             </CardHeader>
             <CardContent>
-                <ul className="space-y-4 text-sm">
-                    <li className="flex items-center gap-3">
-                        <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full"><Users className="h-4 w-4 text-green-600 dark:text-green-400" /></div>
-                        <div><strong>New user registered:</strong> user@example.com</div>
-                        <div className="ml-auto text-muted-foreground">5m ago</div>
-                    </li>
-                    <li className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-full"><Heart className="h-4 w-4 text-blue-600 dark:text-blue-400" /></div>
-                        <div><strong>Pet adopted:</strong> Buddy (Golden Retriever)</div>
-                        <div className="ml-auto text-muted-foreground">1h ago</div>
-                    </li>
-                     <li className="flex items-center gap-3">
-                        <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-full"><FileText className="h-4 w-4 text-purple-600 dark:text-purple-400" /></div>
-                        <div><strong>New blog post:</strong> "5 Tips for a Happy Cat"</div>
-                        <div className="ml-auto text-muted-foreground">3h ago</div>
-                    </li>
-                </ul>
+                <ActivityLog />
             </CardContent>
         </Card>
       </div>

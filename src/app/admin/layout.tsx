@@ -14,6 +14,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  SidebarSeparator,
 } from "@/components/ui/sidebar";
 import {
   LayoutDashboard,
@@ -27,6 +28,8 @@ import {
   ListCollapse
 } from "lucide-react";
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const menuItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -38,6 +41,7 @@ const menuItems = [
 
 interface UserProfile {
   role?: 'Admin' | 'Superuser' | 'User';
+  username?: string;
 }
 
 function AccessDeniedScreen() {
@@ -73,17 +77,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const isLoading = isAuthLoading || isProfileLoading;
   
-  const isAuthorized = !isLoading && userProfile && (userProfile.role === 'Admin' || userProfile.role === 'Superuser');
+  const isAuthorized = !isLoading && user && userProfile && (userProfile.role === 'Admin' || userProfile.role === 'Superuser');
 
   useEffect(() => {
     if (!isLoading) {
       if (!user) {
         router.push('/login');
-      } else if (!userProfile || userProfile.role === 'User') {
-        // This condition is now implicitly handled by the main render logic
+      } else if (!isAuthorized) {
+        // Handled by the main render logic
       }
     }
-  }, [isLoading, user, userProfile, router]);
+  }, [isLoading, user, isAuthorized, router]);
 
 
   if (isLoading) {
@@ -119,7 +123,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             <SidebarContent className="flex-1 overflow-y-auto">
               <SidebarMenu>
-                {menuItems.map((item) => (
+                {menuItems.filter(item => item.label !== 'Activity').map((item) => (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
                       asChild
@@ -141,6 +145,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </SidebarContent>
 
             <SidebarFooter className="shrink-0 border-t">
+              <div className="p-2 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:aspect-square">
+                  <div className="flex items-center gap-2 p-2 group-data-[collapsible=icon]:justify-center">
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={user?.photoURL || undefined} alt={userProfile?.username} />
+                        <AvatarFallback>{user?.email?.[0].toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col text-sm group-data-[collapsible=icon]:hidden">
+                        <span className="font-semibold text-foreground truncate">{userProfile?.username || user?.displayName || 'Admin'}</span>
+                        <span className="text-muted-foreground text-xs truncate">{user?.email}</span>
+                    </div>
+                  </div>
+              </div>
+              <SidebarSeparator />
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton
