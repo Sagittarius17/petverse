@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect, use } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { getPetCategories } from './actions';
 import { PetBreed, PetCategory, PetSpecies } from '@/lib/data';
@@ -12,17 +12,46 @@ import { useRouter } from 'next/navigation';
 import BreedSearch from '@/components/ai/breed-search';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 interface PetSpeciesPageProps {
-  params: Promise<{
+  params: {
     category: string;
     petType: string;
-  }>;
+  };
 }
+
+const LoadingSkeleton = () => (
+    <div className="container mx-auto px-4 py-8">
+        <Skeleton className="h-9 w-24 mb-4" />
+        <div className="text-center mb-8">
+            <Skeleton className="h-10 w-64 mx-auto" />
+            <Skeleton className="h-6 w-96 mx-auto mt-2" />
+        </div>
+        <div className="mb-8 max-w-2xl mx-auto">
+            <Skeleton className="h-12 w-full" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+                <Card key={i}>
+                    <CardHeader className="p-0">
+                        <Skeleton className="h-40 w-full" />
+                    </CardHeader>
+                    <CardContent className="p-4">
+                        <Skeleton className="h-7 w-3/4 mb-2" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-5/6 mt-1" />
+                    </CardContent>
+                </Card>
+            ))}
+        </div>
+    </div>
+);
+
 
 export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
   const router = useRouter();
-  const resolvedParams = use(params);
   const [selectedPet, setSelectedPet] = useState<PetBreed | null>(null);
   const [localSearchTerm, setLocalSearchTerm] = useState('');
   const [allBreeds, setAllBreeds] = useState<PetBreed[]>([]);
@@ -30,8 +59,8 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
   const [currentCategory, setCurrentCategory] = useState<PetCategory | null>(null);
   const [currentPetType, setCurrentPetType] = useState<PetSpecies | null>(null);
 
-  const categoryName = useMemo(() => decodeURIComponent(resolvedParams.category), [resolvedParams.category]);
-  const petTypeName = useMemo(() => decodeURIComponent(resolvedParams.petType), [resolvedParams.petType]);
+  const categoryName = useMemo(() => decodeURIComponent(params.category), [params.category]);
+  const petTypeName = useMemo(() => decodeURIComponent(params.petType), [params.petType]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,7 +97,6 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
 
   const handleBreedFound = (newBreed: PetBreed) => {
     setAllBreeds(prevBreeds => {
-        // Prevent adding duplicates if the breed somehow already exists
         if (prevBreeds.some(b => b.name.toLowerCase() === newBreed.name.toLowerCase())) {
             return prevBreeds;
         }
@@ -87,14 +115,7 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
   }, [allBreeds, localSearchTerm]);
 
   if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8 text-center">
-        <h1 className="text-4xl font-bold font-headline tracking-tight">Loading...</h1>
-        <p className="mt-2 text-lg text-muted-foreground">
-          Please wait while we fetch the details for {petTypeName} in {categoryName}.
-        </p>
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
   if (!currentCategory || !currentPetType) {
@@ -116,7 +137,7 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
 
   return (
     <>
-      <div className="container mx-auto px-4 py-8">
+      <div className={cn("container mx-auto px-4 py-8 transition-all duration-500", loading ? "blur-sm opacity-50" : "blur-0 opacity-100")}>
         <Button variant="ghost" onClick={() => router.back()} className="mb-4 pl-0">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Go Back
@@ -153,7 +174,7 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
                       {image ? (
                         <Image
                           src={image.imageUrl}
-                          alt={image.description}
+                          alt={breed.name}
                           fill
                           style={{ objectFit: 'cover' }}
                           data-ai-hint={image.imageHint}
