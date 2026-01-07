@@ -11,8 +11,7 @@ import PetInfoDialog from '@/components/pet-info-dialog';
 import { useRouter } from 'next/navigation';
 import BreedSearch from '@/components/ai/breed-search';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PetSpeciesPageProps {
@@ -21,34 +20,6 @@ interface PetSpeciesPageProps {
     petType: string;
   };
 }
-
-const LoadingSkeleton = () => (
-    <div className="container mx-auto px-4 py-8">
-        <Skeleton className="h-9 w-24 mb-4" />
-        <div className="text-center mb-8">
-            <Skeleton className="h-10 w-64 mx-auto" />
-            <Skeleton className="h-6 w-96 mx-auto mt-2" />
-        </div>
-        <div className="mb-8 max-w-2xl mx-auto">
-            <Skeleton className="h-12 w-full" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, i) => (
-                <Card key={i}>
-                    <CardHeader className="p-0">
-                        <Skeleton className="h-40 w-full" />
-                    </CardHeader>
-                    <CardContent className="p-4">
-                        <Skeleton className="h-7 w-3/4 mb-2" />
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-5/6 mt-1" />
-                    </CardContent>
-                </Card>
-            ))}
-        </div>
-    </div>
-);
-
 
 export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
   const router = useRouter();
@@ -114,11 +85,7 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
     );
   }, [allBreeds, localSearchTerm]);
 
-  if (loading) {
-    return <LoadingSkeleton />;
-  }
-
-  if (!currentCategory || !currentPetType) {
+  if (!loading && (!currentCategory || !currentPetType)) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <h1 className="text-4xl font-bold font-headline tracking-tight">Not Found</h1>
@@ -137,24 +104,29 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
 
   return (
     <>
-      <div className={cn("container mx-auto px-4 py-8 transition-all duration-500", loading ? "blur-sm opacity-50" : "blur-0 opacity-100")}>
+      <div className="container mx-auto px-4 py-8 relative">
+        {loading && (
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-20">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            </div>
+        )}
         <Button variant="ghost" onClick={() => router.back()} className="mb-4 pl-0">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Go Back
         </Button>
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold font-headline tracking-tight">{currentPetType.name} Breeds</h1>
-          <p className="mt-2 text-lg text-muted-foreground">Explore different breeds of {currentPetType.name}.</p>
+          <h1 className="text-4xl font-bold font-headline tracking-tight">{currentPetType?.name} Breeds</h1>
+          <p className="mt-2 text-lg text-muted-foreground">Explore different breeds of {currentPetType?.name}.</p>
         </div>
 
         <div className="mb-8 max-w-2xl mx-auto">
           <BreedSearch 
-            speciesName={currentPetType.name} 
-            categoryName={currentCategory.category}
+            speciesName={currentPetType?.name || ''} 
+            categoryName={currentCategory?.category}
             onBreedFound={handleBreedFound} 
             searchTerm={localSearchTerm}
             setSearchTerm={setLocalSearchTerm}
-            placeholder={`Search for a ${currentPetType.name} breed (e.g., "Siberian Husky")`}
+            placeholder={`Search for a ${currentPetType?.name} breed (e.g., "Siberian Husky")`}
           />
         </div>
 
@@ -163,7 +135,7 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {filteredBreeds.map((breed) => {
                 const imageId = breed.imageIds && breed.imageIds.length > 0 ? breed.imageIds[0] : 'dog-1';
-                const image = PlaceHolderImages.find((p) => p.id === imageId);
+                const image = PlaceHolderImages.find((p) => p.id === imageId) || { imageUrl: imageId.startsWith('data:') ? imageId : '', imageHint: breed.name };
                 return (
                   <Card
                     key={breed.name}
@@ -171,7 +143,7 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
                     onClick={() => setSelectedPet(breed)}
                   >
                     <CardHeader className="relative h-40 w-full p-0">
-                      {image ? (
+                      {image.imageUrl ? (
                         <Image
                           src={image.imageUrl}
                           alt={breed.name}
@@ -194,7 +166,7 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
               })}
             </div>
           ) : (
-            <div className="text-center py-16 text-muted-foreground">
+            !loading && <div className="text-center py-16 text-muted-foreground">
                 <p>No breeds found matching &quot;{localSearchTerm}&quot;.</p>
                 <p className="text-sm mt-2">Try a different search term or use the AI search above to find and add it to our database.</p>
             </div>
