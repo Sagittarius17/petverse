@@ -24,7 +24,8 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
   const [allBreeds, setAllBreeds] = useState<PetBreed[]>([]);
   const [loadingBreeds, setLoadingBreeds] = useState(true);
 
-  const { category: categoryName, petType: petTypeName } = params;
+  const categoryName = decodeURIComponent(params.category);
+  const petTypeName = decodeURIComponent(params.petType);
 
   useEffect(() => {
     const fetchBreeds = async () => {
