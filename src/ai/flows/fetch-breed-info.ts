@@ -92,16 +92,28 @@ const fetchBreedInfoFlow = ai.defineFlow(
     outputSchema: PetBreedWithImagesSchema,
   },
   async (input) => {
-    const [info, ...images] = await Promise.all([
-      fetchBreedInfoPrompt(input),
-      ...generateImagePrompt.map(p => p(input))
-    ]);
+    let imageUrls: string[] = [];
+    try {
+      const [info, ...images] = await Promise.all([
+        fetchBreedInfoPrompt(input),
+        ...generateImagePrompt.map(p => p(input))
+      ]);
+  
+      imageUrls = images.map(img => img.output?.url).filter((url): url is string => !!url);
+      
+      return {
+        ...info.output!,
+        imageIds: imageUrls,
+      };
 
-    const imageUrls = images.map(img => img.output?.url).filter((url): url is string => !!url);
-    
-    return {
-      ...info.output!,
-      imageIds: imageUrls,
-    };
+    } catch (error) {
+      console.warn("Image generation failed. Continuing without images. Error:", error);
+      // If image generation fails (e.g., billing issue), fetch only the text info.
+      const info = await fetchBreedInfoPrompt(input);
+      return {
+        ...info.output!,
+        imageIds: [], // Return empty array for images
+      };
+    }
   }
 );
