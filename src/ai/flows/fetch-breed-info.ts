@@ -3,26 +3,19 @@
  * @fileOverview Fetches detailed information about a specific pet breed using an AI model.
  *
  * - fetchBreedInfo - A function that handles fetching breed information.
- * - FetchBreedInfoInput - The input type for the fetchBreedInfo function.
- * - FetchBreedInfoOutput - The return type for the fetchBreedInfo function.
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
+import { BreedCareDetailSchema } from '@/lib/data';
 
-export const BreedCareDetailSchema = z.object({
-  title: z.string().describe('The title of the care detail (e.g., "Temperament", "Lifespan").'),
-  content: z.string().describe('The detailed content for this care topic.'),
-});
-export type BreedCareDetail = z.infer<typeof BreedCareDetailSchema>;
-
-export const FetchBreedInfoInputSchema = z.object({
+const FetchBreedInfoInputSchema = z.object({
   breedName: z.string().describe('The name of the breed to look up.'),
   speciesName: z.string().describe('The species of the breed (e.g., "Dog", "Cat").'),
 });
 export type FetchBreedInfoInput = z.infer<typeof FetchBreedInfoInputSchema>;
 
-export const FetchBreedInfoOutputSchema = z.object({
+const FetchBreedInfoOutputSchema = z.object({
   name: z.string().describe('The official name of the breed.'),
   description: z.string().describe('A brief, one-sentence description of the breed.'),
   careDetails: z.array(BreedCareDetailSchema).describe('An array of detailed care topics for the breed.'),

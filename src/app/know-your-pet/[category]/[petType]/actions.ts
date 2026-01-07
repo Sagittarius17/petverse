@@ -1,7 +1,8 @@
 'use server';
 
-import { fetchBreedInfo, FetchBreedInfoInput, FetchBreedInfoOutput } from '@/ai/flows/fetch-breed-info';
+import { fetchBreedInfo } from '@/ai/flows/fetch-breed-info';
 import { z } from 'zod';
+import type { FetchBreedInfoInput, FetchBreedInfoOutput } from '@/ai/flows/fetch-breed-info';
 
 const actionInputSchema = z.object({
   breedName: z.string(),

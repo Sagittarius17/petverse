@@ -1,4 +1,5 @@
-import { AnalyzePetImageForMatchingOutput } from "@/ai/flows/analyze-pet-image-for-matching";
+import { z } from 'zod';
+import { type AnalyzePetImageForMatchingOutput } from "@/ai/flows/analyze-pet-image-for-matching";
 
 export interface Pet {
   id: string;
@@ -31,15 +32,20 @@ export interface LostPetReport {
   analysis: AnalyzePetImageForMatchingOutput;
 }
 
-export interface PetBreed {
-  name: string;
-  description: string;
-  imageId: string;
-  careDetails: {
-    title: string;
-    content: string;
-  }[];
-}
+export const BreedCareDetailSchema = z.object({
+  title: z.string().describe('The title of the care detail (e.g., "Temperament", "Lifespan").'),
+  content: z.string().describe('The detailed content for this care topic.'),
+});
+export type BreedCareDetail = z.infer<typeof BreedCareDetailSchema>;
+
+export const PetBreedSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  imageId: z.string(),
+  careDetails: z.array(BreedCareDetailSchema),
+});
+export type PetBreed = z.infer<typeof PetBreedSchema>;
+
 
 export interface PetSpecies {
   name: string;
