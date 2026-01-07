@@ -17,27 +17,19 @@
  * Key Security Decisions:
  * - Strict Ownership: A user can only access data within their own
  *   `/users/{userId}` document tree.
- * - Admin Access: Users with the `admin: true` custom claim have broader
- *   permissions for management tasks like deleting users.
+ * - Role-Based Access Control (RBAC): User permissions are determined by a 'role'
+ *   field ('User', 'Superuser', 'Admin') on their user document.
+ * - Admin role has full CRUD access.
+ * - Superuser role has create/update access but not delete.
+ * - User role has no access to the admin panel.
  * - Public Read, Owner Write: For public collections, read access is granted
- *   to everyone (including unauthenticated users), but write operations (create,
- *   update, delete) are strictly limited to the original author of the document.
- * - Read-Only Public Data: Collections like `/categories` are treated as
- *   read-only for clients, assuming they are managed by an admin process.
+ *   to everyone, but write operations are strictly limited to the document's author.
  *
  * Denormalization for Authorization:
  * To ensure fast and secure authorization, this ruleset relies on denormalized
  * ownership fields (e.g., `authorId`, `userId`) directly within documents in
  * public collections. This avoids slow and insecure cross-document `get()`
- * calls in rules. For example, a rule for `/blogs/{blogId}` can directly check
- * `resource.data.authorId` instead of trying to look up ownership information
- * elsewhere.
- *
- * Structural Segregation:
- * Private user data is structurally segregated into the `/users/{userId}`
- * path, while public data resides in top-level collections. This clear
- * separation simplifies security rules, improves query performance, and
- * prevents accidental exposure of private information in public list queries.
+ * calls in rules.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -45,76 +37,65 @@ service cloud.firestore {
 
     // Helper functions to simplify and clarify rule logic.
 
-    /**
-     * Checks if the user is authenticated.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Checks if the currently authenticated user's UID matches the provided userId.
-     * This is the primary function for enforcing data ownership.
-     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /**
-     * Checks if the requesting user has the 'Admin' role via custom claims.
-     * This is used for granting administrative privileges.
-     */
-    function isAdmin() {
-      return isSignedIn() && request.auth.token.admin == true;
-    }
-    
-    /**
-     * Checks for ownership on an existing document.
-     * Ensures that update/delete operations only affect documents that actually exist.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
+    // Function to get the requesting user's role from their user document.
+    function getUserRole(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data.role;
     }
 
-    /**
-     * Validates that a required ownership field in a new document matches the
-     * creator's UID.
-     */
+    function isAdmin() {
+      return isSignedIn() && getUserRole(request.auth.uid) == 'Admin';
+    }
+    
+    function isSuperuser() {
+      return isSignedIn() && (getUserRole(request.auth.uid) == 'Superuser' || isAdmin());
+    }
+
     function createdByAuthenticatedUser(fieldName) {
       return isSignedIn() && request.resource.data[fieldName] == request.auth.uid;
     }
 
-    /**
-     * Ensures a specific field remains unchanged during an update operation.
-     * Critical for preventing ownership hijacking.
-     */
     function isImmutable(fieldName) {
       return request.resource.data[fieldName] == resource.data[fieldName];
     }
+    
+    function canUpdateUser(userId) {
+        let requestingUserRole = getUserRole(request.auth.uid);
+        let targetUserRole = resource.data.role;
 
-
-    /**
-     * @description Rules for the user profile document.
-     * @path /users/{userId}
-     * @allow (create) An authenticated user creating their own user document.
-     * @deny (get) An authenticated user trying to read another user's document.
-     * @principle A user has exclusive control over their own profile document.
-     */
-    match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
-      allow list: if isSignedIn(); // Allow listing for admin panel.
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isOwner(userId) || isAdmin();
-      allow delete: if isOwner(userId) || isAdmin();
+        // Admins can edit anyone.
+        if (requestingUserRole == 'Admin') {
+            return true;
+        }
+        // Superusers can edit Users, but not other Superusers or Admins.
+        if (requestingUserRole == 'Superuser' && targetUserRole == 'User') {
+            return true;
+        }
+        // Users can only edit their own profiles.
+        return isOwner(userId);
     }
 
-    /**
-     * @description Rules for a user's collection of pets.
-     * @path /users/{userId}/pets/{petId}
-     * @allow (create) An authenticated user adding a pet to their own collection.
-     * @deny (list) An authenticated user trying to list pets belonging to another user.
-     * @principle Restricts access to a user's own data tree.
-     */
+
+    match /users/{userId} {
+      // Admins and Superusers can see the list of users.
+      allow list: if isSuperuser() || isAdmin();
+      // Users can only read their own profile. Admins/Superusers can read any.
+      allow get: if isOwner(userId) || isSuperuser() || isAdmin();
+      // Anyone can create their own user document.
+      allow create: if isOwner(userId);
+      // Admin can update any user. Superuser can update 'User' roles. Users can update their own profile.
+      allow update: if canUpdateUser(userId);
+      // Only Admins can delete users.
+      allow delete: if isAdmin();
+    }
+
     match /users/{userId}/pets/{petId} {
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
@@ -123,28 +104,14 @@ service cloud.firestore {
       allow delete: if isOwner(userId);
     }
 
-    /**
-     * @description Rules for the public blog collection.
-     * @path /blogs/{blogId}
-     * @allow (get) Any user, authenticated or not, reading a blog post.
-     * @deny (update) An authenticated user trying to edit a blog post they did not author.
-     * @principle Enforces public read access with owner-only writes.
-     */
     match /blogs/{blogId} {
       allow get: if true;
       allow list: if true;
       allow create: if createdByAuthenticatedUser('authorId');
-      allow update: if isExistingOwner(resource.data.authorId) && isImmutable('authorId');
-      allow delete: if isExistingOwner(resource.data.authorId);
+      allow update: if isOwner(resource.data.authorId) && isImmutable('authorId');
+      allow delete: if isOwner(resource.data.authorId);
     }
 
-    /**
-     * @description Rules for the public categories collection.
-     * @path /categories/{categoryId}
-     * @allow (list) Any user, authenticated or not, listing all categories.
-     * @deny (create) Any user trying to create a new category.
-     * @principle Data is public but managed externally (e.g., via Admin SDK), not by clients.
-     */
     match /categories/{categoryId} {
       allow get: if true;
       allow list: if true;
@@ -153,34 +120,22 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    /**
-     * @description Rules for the public veterinary services collection.
-     * @path /vet_services/{vetServiceId}
-     * @allow (get) Any user, authenticated or not, reading a vet service listing.
-     * @deny (update) An authenticated user trying to edit a vet service they do not own.
-     * @principle Enforces public read access with owner-only writes.
-     */
     match /vet_services/{vetServiceId} {
       allow get: if true;
       allow list: if true;
       allow create: if createdByAuthenticatedUser('userId');
-      allow update: if isExistingOwner(resource.data.userId) && isImmutable('userId');
-      allow delete: if isExistingOwner(resource.data.userId);
+      allow update: if isOwner(resource.data.userId) && isImmutable('userId');
+      allow delete: if isOwner(resource.data.userId);
     }
 
-    /**
-     * @description Rules for the public lost and found reports collection.
-     * @path /lost_found_reports/{lostFoundReportId}
-     * @allow (list) Any user, authenticated or not, listing all reports.
-     * @deny (delete) An authenticated user trying to delete a report they did not file.
-     * @principle Enforces public read access with owner-only writes.
-     */
     match /lost_found_reports/{lostFoundReportId} {
       allow get: if true;
       allow list: if true;
       allow create: if createdByAuthenticatedUser('userId');
-      allow update: if isExistingOwner(resource.data.userId) && isImmutable('userId');
-      allow delete: if isExistingOwner(resource.data.userId);
+      allow update: if isOwner(resource.data.userId) && isImmutable('userId');
+      allow delete: if isOwner(resource.data.userId);
     }
   }
 }
+
+    

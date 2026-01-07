@@ -57,3 +57,5 @@ export function initiateEmailSignIn(authInstance: Auth, email: string, password:
       .catch((error) => reject(error));
   });
 }
+
+    

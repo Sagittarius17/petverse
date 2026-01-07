@@ -51,7 +51,7 @@ interface User {
   firstName?: string;
   lastName?: string;
   createdAt?: Timestamp;
-  role?: 'Admin' | 'User';
+  role?: 'Admin' | 'Superuser' | 'User';
 }
 
 export default function AdminUsersPage() {
@@ -62,7 +62,7 @@ export default function AdminUsersPage() {
 
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
-  const [newRole, setNewRole] = useState<'Admin' | 'User'>('User');
+  const [newRole, setNewRole] = useState<'Admin' | 'Superuser' | 'User'>('User');
 
   const getDisplayName = (user: User) => {
     if (user.firstName && user.lastName) {
@@ -210,12 +210,13 @@ export default function AdminUsersPage() {
                 </p>
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="role" className="text-right">Role</Label>
-                    <Select value={newRole} onValueChange={(value: 'Admin' | 'User') => setNewRole(value)}>
+                    <Select value={newRole} onValueChange={(value: 'Admin' | 'Superuser' | 'User') => setNewRole(value)}>
                         <SelectTrigger className="col-span-3">
                             <SelectValue placeholder="Select a role" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="User">User</SelectItem>
+                            <SelectItem value="Superuser">Superuser</SelectItem>
                             <SelectItem value="Admin">Admin</SelectItem>
                         </SelectContent>
                     </Select>
@@ -230,3 +231,5 @@ export default function AdminUsersPage() {
     </>
   );
 }
+
+    
