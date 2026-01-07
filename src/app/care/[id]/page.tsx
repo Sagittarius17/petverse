@@ -8,12 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { use } from 'react';
 
 // Using a client component to use the useRouter hook
-export default function CareGuidePage({ params }: { params: { id: string } }) {
+export default function CareGuidePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const { id } = params;
-  const guide = allCareGuides.find(g => g.id === id);
+  const resolvedParams = use(params);
+  const guide = allCareGuides.find(g => g.id === resolvedParams.id);
 
   if (!guide) {
     notFound();
