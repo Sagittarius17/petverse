@@ -18,62 +18,68 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { Sun, Moon, Trees, Flower, Monitor } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AdminSettingsPage() {
   const { theme, setTheme } = useTheme();
   const { user, isUserLoading } = useUser();
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
+  const { toast } = useToast();
+
+  const handleSave = (message: string) => {
+    toast({
+      title: 'Settings Saved!',
+      description: message,
+    });
+  };
 
   if (isUserLoading || !user) {
     return (
-        <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-            <div className="grid gap-6">
-                <Card><CardHeader><Skeleton className="h-5 w-24" /></CardHeader><CardContent><Skeleton className="h-8 w-full" /></CardContent></Card>
-                <Card><CardHeader><Skeleton className="h-5 w-32" /></CardHeader><CardContent><Skeleton className="h-8 w-full" /></CardContent></Card>
-            </div>
-            <div className="grid gap-6">
-                <Card><CardHeader><Skeleton className="h-5 w-28" /></CardHeader><CardContent><Skeleton className="h-24 w-full" /></CardContent></Card>
-            </div>
+        <div className="grid gap-6 md:grid-cols-2">
+            <Card><CardHeader><Skeleton className="h-5 w-24" /></CardHeader><CardContent className="space-y-4"><div className="space-y-2"><Skeleton className="h-4 w-16" /><Skeleton className="h-10 w-full" /></div><div className="space-y-2"><Skeleton className="h-4 w-16" /><Skeleton className="h-10 w-full" /></div></CardContent><CardFooter><Skeleton className="h-10 w-24" /></CardFooter></Card>
+            <Card><CardHeader><Skeleton className="h-5 w-28" /></CardHeader><CardContent><Skeleton className="h-24 w-full" /></CardContent></Card>
+            <Card><CardHeader><Skeleton className="h-5 w-32" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-8 w-full" /><Skeleton className="h-8 w-full" /></CardContent><CardFooter><Skeleton className="h-10 w-24" /></CardFooter></Card>
+            <Card><CardHeader><Skeleton className="h-5 w-28" /></CardHeader><CardContent><Skeleton className="h-8 w-full" /></CardContent><CardFooter><Skeleton className="h-10 w-24" /></CardFooter></Card>
         </div>
     )
   }
 
-
   return (
-    <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-      <div className="grid gap-6">
-        <Card>
+    <div className="grid gap-6 md:grid-cols-2">
+      {/* Column 1 */}
+      <div className="space-y-6">
+        <Card className="flex flex-col">
           <CardHeader>
             <CardTitle>Admin Profile</CardTitle>
             <CardDescription>
               Manage your personal admin information.
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-6">
+          <CardContent className="flex-grow grid gap-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="full-name">Full Name</Label>
-                  <Input id="full-name" defaultValue={user.displayName || ''} />
+                  <Input id="full-name" defaultValue={user.displayName || 'admin'} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="admin-email">Email</Label>
-                  <Input id="admin-email" type="email" defaultValue={user.email || ''} readOnly />
+                  <Input id="admin-email" type="email" defaultValue={user.email || 'admin@gmail.com'} readOnly />
                 </div>
             </div>
           </CardContent>
           <CardFooter className="border-t px-6 py-4">
-            <Button>Save Profile</Button>
+            <Button onClick={() => handleSave("Your profile has been updated.")}>Save Profile</Button>
           </CardFooter>
         </Card>
 
-        <Card>
+        <Card className="flex flex-col">
           <CardHeader>
             <CardTitle>Site Settings</CardTitle>
             <CardDescription>
               Manage general settings for the application.
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-6">
+          <CardContent className="flex-grow grid gap-6">
             <div className="flex items-center space-x-2">
                 <Switch 
                     id="maintenance-mode" 
@@ -86,50 +92,25 @@ export default function AdminSettingsPage() {
               </div>
           </CardContent>
           <CardFooter className="border-t px-6 py-4">
-            <Button>Save Settings</Button>
-          </CardFooter>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Notifications</CardTitle>
-            <CardDescription>
-              Configure when and how you receive notifications.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-6">
-            <div className="flex items-center space-x-2">
-                <Switch id="new-user-noti" defaultChecked />
-                <Label htmlFor="new-user-noti" className="text-sm">
-                  Email on new user registration
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch id="adoption-noti" defaultChecked />
-                <Label htmlFor="adoption-noti" className="text-sm">
-                  Email on successful adoption
-                </Label>
-              </div>
-          </CardContent>
-          <CardFooter className="border-t px-6 py-4">
-            <Button>Save Notifications</Button>
+            <Button onClick={() => handleSave("Site settings have been saved.")}>Save Settings</Button>
           </CardFooter>
         </Card>
       </div>
 
-      <div className="grid gap-6">
-        <Card>
+      {/* Column 2 */}
+      <div className="space-y-6">
+        <Card className="flex flex-col">
           <CardHeader>
             <CardTitle>Appearance</CardTitle>
             <CardDescription>
               Customize the look and feel of the application.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-grow">
             <RadioGroup
               value={theme}
               onValueChange={setTheme}
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-3 gap-4"
+              className="grid grid-cols-2 sm:grid-cols-3 gap-4"
             >
               {[
                 { value: 'light', label: 'Light', icon: Sun },
@@ -146,7 +127,7 @@ export default function AdminSettingsPage() {
                   />
                   <Label
                     htmlFor={value}
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                    className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer h-24"
                   >
                     <Icon className="mb-2 h-6 w-6" />
                     {label}
@@ -155,6 +136,32 @@ export default function AdminSettingsPage() {
               ))}
             </RadioGroup>
           </CardContent>
+        </Card>
+
+        <Card className="flex flex-col">
+          <CardHeader>
+            <CardTitle>Notifications</CardTitle>
+            <CardDescription>
+              Configure when and how you receive notifications.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex-grow grid gap-6">
+            <div className="flex items-center space-x-2">
+                <Switch id="new-user-noti" defaultChecked />
+                <Label htmlFor="new-user-noti" className="text-sm">
+                  Email on new user registration
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch id="adoption-noti" defaultChecked />
+                <Label htmlFor="adoption-noti" className="text-sm">
+                  Email on successful adoption
+                </Label>
+              </div>
+          </CardContent>
+          <CardFooter className="border-t px-6 py-4">
+            <Button onClick={() => handleSave("Notification settings have been updated.")}>Save Notifications</Button>
+          </CardFooter>
         </Card>
       </div>
     </div>
