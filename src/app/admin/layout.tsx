@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import {
@@ -53,32 +53,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
 
   const isLoading = isAuthLoading || isProfileLoading;
+  const isAuthorized = userProfile && (userProfile.role === 'Admin' || userProfile.role === 'Superuser');
 
   useEffect(() => {
-    // Wait until all loading is complete before running any checks
-    if (isLoading) {
-      return; 
+    // Only run checks after all data has finished loading.
+    if (!isLoading) {
+      if (!user) {
+        // If no user is authenticated, redirect to login.
+        router.push('/login');
+      } else if (!isAuthorized) {
+        // If there is a user but they are not authorized, show error and redirect.
+        toast({
+          variant: 'destructive',
+          title: 'Access Denied',
+          description: 'You do not have permission to access the admin panel.',
+        });
+        router.push('/');
+      }
     }
+  }, [isLoading, user, isAuthorized, router, toast]);
 
-    // After loading, if there's no authenticated user, redirect to login.
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-
-    // After loading, if the user exists but their profile doesn't or their role is 'User', deny access.
-    if (!userProfile || userProfile.role === 'User') {
-      toast({
-        variant: 'destructive',
-        title: 'Access Denied',
-        description: 'You do not have permission to access the admin panel.',
-      });
-      router.push('/');
-      return;
-    }
-  }, [user, userProfile, isLoading, router, toast]);
-
-  // Only show the loader while we are actively fetching auth state or profile.
+  // While loading, show a full-screen spinner.
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -87,8 +82,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  // If we are not loading and the user is an Admin or Superuser (the effect above didn't redirect), render the layout.
-  if (userProfile && (userProfile.role === 'Admin' || userProfile.role === 'Superuser')) {
+  // After loading, if the user is authorized, render the admin layout.
+  // The useEffect above will handle redirection for all other cases.
+  if (isAuthorized) {
     return (
       <SidebarProvider>
         <div className="flex h-screen">
@@ -168,11 +164,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  // Fallback case: if the user isn't authorized and redirection hasn't happened yet,
-  // show a loader to prevent a flash of content.
+  // If not loading and not yet authorized/redirected, show a spinner to prevent content flash.
   return (
     <div className="flex h-screen items-center justify-center">
-      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
     </div>
   );
 }
