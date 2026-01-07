@@ -135,7 +135,7 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {filteredBreeds.map((breed) => {
                 const imageId = breed.imageIds && breed.imageIds.length > 0 ? breed.imageIds[0] : 'dog-1';
-                const image = PlaceHolderImages.find((p) => p.id === imageId) || PlaceHolderImages[0];
+                const image = PlaceHolderImages.find((p) => p.id === imageId);
                 return (
                   <Card
                     key={breed.name}
@@ -143,13 +143,19 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
                     onClick={() => setSelectedPet(breed)}
                   >
                     <CardHeader className="relative h-40 w-full p-0">
-                      <Image
-                        src={image.imageUrl}
-                        alt={image.description}
-                        fill
-                        style={{ objectFit: 'cover' }}
-                        data-ai-hint={image.imageHint}
-                      />
+                      {image ? (
+                        <Image
+                          src={image.imageUrl}
+                          alt={image.description}
+                          fill
+                          style={{ objectFit: 'cover' }}
+                          data-ai-hint={image.imageHint}
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-secondary">
+                            <p className="text-xs text-muted-foreground">No Image</p>
+                        </div>
+                      )}
                     </CardHeader>
                     <CardContent className="p-4 flex-grow">
                       <CardTitle className="text-xl font-headline mb-2">{breed.name}</CardTitle>

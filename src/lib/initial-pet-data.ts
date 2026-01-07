@@ -45,7 +45,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'Golden Retriever',
             description: 'Friendly, reliable, and trustworthy dogs.',
-            imageIds: ['dog-golden-retriever-1'],
+            imageIds: ['dog-golden-retriever-1', 'dog-golden-retriever-2', 'dog-golden-retriever-3'],
             careDetails: [
               { title: 'Overview', content: 'The Golden Retriever is one of the most popular dog breeds, known for its friendly and tolerant attitude.' },
               { title: 'Temperament', content: 'Intelligent, kind, and trustworthy.' },
@@ -65,7 +65,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'German Shepherd',
             description: 'Confident, courageous, and smart.',
-            imageIds: ['dog-german-shepherd-1'],
+            imageIds: ['dog-german-shepherd-1', 'dog-german-shepherd-2', 'dog-german-shepherd-3'],
             careDetails: [
               { title: 'Overview', content: 'A versatile and highly capable working dog, known for its intelligence and loyalty.' },
               { title: 'Temperament', content: 'Confident, courageous, and smart.' },
@@ -85,7 +85,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'Poodle',
             description: 'Proud, active and very smart.',
-            imageIds: ['dog-poodle-1'],
+            imageIds: ['dog-poodle-1', 'dog-poodle-2', 'dog-poodle-3'],
             careDetails: [
               { title: 'Overview', content: 'Highly intelligent and elegant, Poodles come in three sizes but all share the same sharp mind.' },
               { title: 'Temperament', content: 'Proud, active, and very smart.' },
@@ -105,7 +105,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'Labrador Retriever',
             description: 'Friendly, outgoing, and high-spirited companion.',
-            imageIds: ['dog-labrador-retriever-1'],
+            imageIds: ['dog-labrador-retriever-1', 'dog-labrador-retriever-2', 'dog-labrador-retriever-3'],
             careDetails: [
               { title: 'Overview', content: 'The Labrador Retriever has long held the top spot as America\'s most popular dog breed.' },
               { title: 'Temperament', content: 'Kind, pleasant, and outgoing.' },
@@ -123,7 +123,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'Beagle',
             description: 'Merry, friendly, and curious small hound.',
-            imageIds: ['dog-beagle-1'],
+            imageIds: ['dog-beagle-1', 'dog-beagle-2', 'dog-beagle-3'],
             careDetails: [
               { title: 'Overview', content: 'Beagles are small, hardy, and energetic dogs with an amazing sense of smell.' },
               { title: 'Temperament', content: 'Merry, friendly, and curious.' },
@@ -140,7 +140,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'Bulldog',
             description: 'Kind but courageous, friendly but dignified.',
-            imageIds: ['dog-bulldog-1'],
+            imageIds: ['dog-bulldog-1', 'dog-bulldog-2', 'dog-bulldog-3'],
             careDetails: [
               { title: 'Overview', content: 'Thick-set, low-slung, well-muscled bruiser whose "sourmug" face is the universal symbol of courage.' },
               { title: 'Temperament', content: 'Calm, courageous, and friendly.' },
@@ -153,7 +153,7 @@ export const initialPetCategories: PetCategory[] = [
           {
             name: 'Pug',
             description: 'The Pug is a charming, playful, and affectionate toy dog breed known for its distinctive wrinkled face, short snouts, and curly tails.',
-            imageIds: ['dog-pug-1'],
+            imageIds: ['dog-pug-1', 'dog-pug-2', 'dog-pug-3'],
             careDetails: [
                 { title: 'Overview', content: 'The Pug is a small, sturdy, and playful breed with a lot of personality packed into a small body. They are known for their loving nature and being great companions.' },
                 { title: 'Temperament', content: 'Charming, mischievous, and loving.' },
