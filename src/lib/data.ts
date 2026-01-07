@@ -23,6 +23,8 @@ export const FetchBreedInfoOutputSchema = z.object({
 
 export const PetBreedWithImagesSchema = FetchBreedInfoOutputSchema.extend({
     imageIds: z.array(z.string()).describe("An array of generated image data URIs."),
+    speciesName: z.string().optional(),
+    categoryName: z.string().optional(),
 });
 
 export interface Pet {

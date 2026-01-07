@@ -38,12 +38,20 @@ export async function fetchBreedInfo(input: FetchBreedInfoInput): Promise<z.infe
     } catch (error) {
       console.error("Error saving breed to Firestore:", error);
       // Fallback to returning data without saving
-      return result;
+      return {
+        ...result,
+        speciesName: input.speciesName,
+        categoryName: input.categoryName || 'Mammals',
+      };
     }
   }
 
   // Fallback for when DB is not available
-  return result;
+  return {
+      ...result,
+      speciesName: input.speciesName,
+      categoryName: input.categoryName || 'Mammals',
+  };
 }
 
 const fetchBreedInfoPrompt = ai.definePrompt({
@@ -75,15 +83,28 @@ const fetchBreedInfoPrompt = ai.definePrompt({
     For each topic, provide a helpful and informative paragraph. Ensure the output is structured according to the provided JSON schema.`,
 });
 
-const generateImagePrompt = new Array(3).fill(null).map((_, i) =>
-  ai.definePrompt({
-    name: `generateBreedImagePrompt_${i}`,
-    input: { schema: z.object({ breedName: z.string(), speciesName: z.string() }) },
-    output: { format: "media" },
-    prompt: `A high-quality, photorealistic image of a {{speciesName}} of the {{breedName}} breed.`,
-    model: 'googleai/imagen-4.0-fast-generate-001'
-  })
+const generateImageForBreed = ai.defineTool(
+    {
+        name: 'generateImageForBreed',
+        description: 'Generates a photorealistic image for a given pet breed and species.',
+        inputSchema: z.object({
+            breedName: z.string(),
+            speciesName: z.string(),
+        }),
+        outputSchema: z.string().describe('The data URI of the generated image.'),
+    },
+    async (input) => {
+        const { media } = await ai.generate({
+            model: 'googleai/gemini-2.5-flash-image-preview',
+            prompt: `generate a high-quality, photorealistic image of a ${input.speciesName} of the ${input.breedName} breed.`,
+            config: {
+                responseModalities: ['IMAGE'],
+            },
+        });
+        return media.url;
+    }
 );
+
 
 const fetchBreedInfoFlow = ai.defineFlow(
   {
@@ -92,14 +113,13 @@ const fetchBreedInfoFlow = ai.defineFlow(
     outputSchema: PetBreedWithImagesSchema,
   },
   async (input) => {
-    let imageUrls: string[] = [];
     try {
-      const [info, ...images] = await Promise.all([
+      const [info, imageUrl] = await Promise.all([
         fetchBreedInfoPrompt(input),
-        ...generateImagePrompt.map(p => p(input))
+        generateImageForBreed(input),
       ]);
   
-      imageUrls = images.map(img => img.output?.url).filter((url): url is string => !!url);
+      const imageUrls = imageUrl ? [imageUrl] : [];
       
       return {
         ...info.output!,
@@ -108,7 +128,7 @@ const fetchBreedInfoFlow = ai.defineFlow(
 
     } catch (error) {
       console.warn("Image generation failed. Continuing without images. Error:", error);
-      // If image generation fails (e.g., billing issue), fetch only the text info.
+      // If image generation fails, fetch only the text info.
       const info = await fetchBreedInfoPrompt(input);
       return {
         ...info.output!,
