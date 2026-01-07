@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { getPetCategories } from './actions';
-import { PetBreed, PetCategory, petCategories } from '@/lib/data';
+import { PetBreed, PetCategory } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import PetInfoDialog from '@/components/pet-info-dialog';
@@ -25,8 +25,8 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
   const [allBreeds, setAllBreeds] = useState<PetBreed[]>([]);
   const [loadingBreeds, setLoadingBreeds] = useState(true);
 
-  const categoryName = decodeURIComponent(params.category);
-  const petTypeName = decodeURIComponent(params.petType);
+  const categoryName = useMemo(() => decodeURIComponent(params.category), [params.category]);
+  const petTypeName = useMemo(() => decodeURIComponent(params.petType), [params.petType]);
 
   useEffect(() => {
     const fetchBreeds = async () => {
