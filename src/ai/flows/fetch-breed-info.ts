@@ -7,7 +7,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { BreedCareDetailSchema } from '@/lib/data';
+import { FetchBreedInfoOutputSchema, PetBreedWithImagesSchema } from '@/lib/data';
 import { db } from '@/firebase/server';
 
 const FetchBreedInfoInputSchema = z.object({
@@ -16,13 +16,6 @@ const FetchBreedInfoInputSchema = z.object({
   categoryName: z.string().optional().describe('The category of the breed (e.g., "Mammals").'),
 });
 export type FetchBreedInfoInput = z.infer<typeof FetchBreedInfoInputSchema>;
-
-const FetchBreedInfoOutputSchema = z.object({
-  name: z.string().describe('The official name of the breed.'),
-  description: z.string().describe('A brief, one-sentence description of the breed.'),
-  careDetails: z.array(BreedCareDetailSchema).describe('An array of detailed care topics for the breed.'),
-});
-export type FetchBreedInfoOutput = z.infer<typeof FetchBreedInfoOutputSchema>;
 
 
 export async function fetchBreedInfo(input: FetchBreedInfoInput): Promise<z.infer<typeof PetBreedWithImagesSchema>> {
@@ -45,23 +38,13 @@ export async function fetchBreedInfo(input: FetchBreedInfoInput): Promise<z.infe
     } catch (error) {
       console.error("Error saving breed to Firestore:", error);
       // Fallback to returning data without saving
-      return {
-        ...result,
-        imageIds: result.imageIds || []
-      };
+      return result;
     }
   }
 
   // Fallback for when DB is not available
-  return {
-    ...result,
-    imageIds: result.imageIds || []
-  };
+  return result;
 }
-
-const PetBreedWithImagesSchema = PetBreedSchema.extend({
-    imageIds: z.array(z.string()).describe("An array of generated image data URIs."),
-});
 
 const fetchBreedInfoPrompt = ai.definePrompt({
     name: 'fetchBreedInfoPrompt',

@@ -15,6 +15,16 @@ export const PetBreedSchema = z.object({
 });
 export type PetBreed = z.infer<typeof PetBreedSchema>;
 
+export const FetchBreedInfoOutputSchema = z.object({
+  name: z.string().describe('The official name of the breed.'),
+  description: z.string().describe('A brief, one-sentence description of the breed.'),
+  careDetails: z.array(BreedCareDetailSchema).describe('An array of detailed care topics for the breed.'),
+});
+
+export const PetBreedWithImagesSchema = FetchBreedInfoOutputSchema.extend({
+    imageIds: z.array(z.string()).describe("An array of generated image data URIs."),
+});
+
 export interface Pet {
   id: string;
   name: string;
