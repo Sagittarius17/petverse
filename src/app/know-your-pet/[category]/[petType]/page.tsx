@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, use } from 'react';
@@ -9,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import PetInfoDialog from '@/components/pet-info-dialog';
 import { useRouter } from 'next/navigation';
 import BreedSearch from '@/components/ai/breed-search';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 interface PetSpeciesPageProps {
   params: Promise<{
@@ -114,6 +117,10 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
   return (
     <>
       <div className="container mx-auto px-4 py-8">
+        <Button variant="ghost" onClick={() => router.back()} className="mb-4 pl-0">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Go Back
+        </Button>
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold font-headline tracking-tight">{currentPetType.name} Breeds</h1>
           <p className="mt-2 text-lg text-muted-foreground">Explore different breeds of {currentPetType.name}.</p>

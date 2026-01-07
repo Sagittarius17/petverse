@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -26,7 +27,7 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
       <div className="container mx-auto max-w-6xl px-4 py-8">
         <Button variant="ghost" onClick={() => router.back()} className="mb-6 pl-0">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Adoption List
+          Go Back
         </Button>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-12">
           {/* Image Section */}
