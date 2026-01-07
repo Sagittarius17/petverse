@@ -3,13 +3,12 @@
 import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { getPetCategories } from './actions';
-import { PetBreed, PetCategory } from '@/lib/data';
+import { PetBreed, PetCategory, PetSpecies } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import PetInfoDialog from '@/components/pet-info-dialog';
 import { useRouter } from 'next/navigation';
 import BreedSearch from '@/components/ai/breed-search';
-import { initialPetCategories } from '@/lib/initial-pet-data';
 
 interface PetSpeciesPageProps {
   params: {
@@ -23,41 +22,41 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
   const [selectedPet, setSelectedPet] = useState<PetBreed | null>(null);
   const [localSearchTerm, setLocalSearchTerm] = useState('');
   const [allBreeds, setAllBreeds] = useState<PetBreed[]>([]);
-  const [loadingBreeds, setLoadingBreeds] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [currentCategory, setCurrentCategory] = useState<PetCategory | null>(null);
+  const [currentPetType, setCurrentPetType] = useState<PetSpecies | null>(null);
 
   const categoryName = useMemo(() => decodeURIComponent(params.category), [params.category]);
   const petTypeName = useMemo(() => decodeURIComponent(params.petType), [params.petType]);
 
   useEffect(() => {
-    const fetchBreeds = async () => {
-      setLoadingBreeds(true);
+    const fetchData = async () => {
+      setLoading(true);
       const allPetData: PetCategory[] = await getPetCategories();
-
-      const currentCategory = allPetData.find(
+      
+      const category = allPetData.find(
         (cat) => cat.category.toLowerCase() === categoryName.toLowerCase()
       );
-
-      const currentPetType = currentCategory?.species.find(
+      
+      const petType = category?.species.find(
         (s) => s.name.toLowerCase() === petTypeName.toLowerCase()
       );
 
-      if (currentPetType?.breeds) {
-        setAllBreeds(currentPetType.breeds);
+      if (category && petType) {
+        setCurrentCategory(category);
+        setCurrentPetType(petType);
+        setAllBreeds(petType.breeds || []);
       } else {
+        setCurrentCategory(null);
+        setCurrentPetType(null);
         setAllBreeds([]);
       }
-      setLoadingBreeds(false);
+      
+      setLoading(false);
     };
 
-    fetchBreeds();
+    fetchData();
   }, [categoryName, petTypeName]);
-
-  const currentCategoryResolved = initialPetCategories.find(
-    (cat) => cat.category.toLowerCase() === categoryName.toLowerCase()
-  );
-  const currentPetTypeResolved = currentCategoryResolved?.species.find(
-    (s) => s.name.toLowerCase() === petTypeName.toLowerCase()
-  );
 
   const handleBreedFound = (newBreed: PetBreed) => {
     setAllBreeds(prevBreeds => [newBreed, ...prevBreeds]);
@@ -72,16 +71,18 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
     );
   }, [allBreeds, localSearchTerm]);
 
-  if (loadingBreeds) {
+  if (loading) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
-        <h1 className="text-4xl font-bold font-headline tracking-tight">Loading Breeds...</h1>
-        <p className="mt-2 text-lg text-muted-foreground">Please wait while we fetch the amazing {petTypeName} breeds.</p>
+        <h1 className="text-4xl font-bold font-headline tracking-tight">Loading...</h1>
+        <p className="mt-2 text-lg text-muted-foreground">
+          Please wait while we fetch the details for {petTypeName} in {categoryName}.
+        </p>
       </div>
     );
   }
 
-  if (!currentCategoryResolved || !currentPetTypeResolved) {
+  if (!currentCategory || !currentPetType) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <h1 className="text-4xl font-bold font-headline tracking-tight">Not Found</h1>
@@ -102,17 +103,17 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
     <>
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold font-headline tracking-tight">{currentPetTypeResolved.name} Breeds</h1>
-          <p className="mt-2 text-lg text-muted-foreground">Explore different breeds of {currentPetTypeResolved.name}.</p>
+          <h1 className="text-4xl font-bold font-headline tracking-tight">{currentPetType.name} Breeds</h1>
+          <p className="mt-2 text-lg text-muted-foreground">Explore different breeds of {currentPetType.name}.</p>
         </div>
 
         <div className="mb-8 max-w-2xl mx-auto">
           <BreedSearch 
-            speciesName={currentPetTypeResolved.name} 
+            speciesName={currentPetType.name} 
             onBreedFound={handleBreedFound} 
             searchTerm={localSearchTerm}
             setSearchTerm={setLocalSearchTerm}
-            placeholder={`Search for a ${currentPetTypeResolved.name} breed (e.g., "Siberian Husky")`}
+            placeholder={`Search for a ${currentPetType.name} breed (e.g., "Siberian Husky")`}
           />
         </div>
 
