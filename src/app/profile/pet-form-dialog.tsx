@@ -88,14 +88,14 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
     }
 
     try {
+      const { petImage, ...restOfData } = data;
       if (isEditMode) {
         // Update existing pet
         const petDocRef = doc(firestore, 'pets', pet.id);
-        await updateDoc(petDocRef, data);
+        await updateDoc(petDocRef, restOfData);
         onSuccess('updated');
       } else {
         // Create new pet
-        const { petImage, ...restOfData } = data;
         const petsCollection = collection(firestore, 'pets');
         await addDoc(petsCollection, {
           ...restOfData,
