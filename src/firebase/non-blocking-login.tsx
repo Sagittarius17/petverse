@@ -7,8 +7,10 @@ import {
   updateProfile,
   onAuthStateChanged,
   Unsubscribe,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from 'firebase/auth';
-import { Firestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { Firestore, doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 
 /** Initiate anonymous sign-in (non-blocking). */
 export function initiateAnonymousSignIn(authInstance: Auth): void {
@@ -38,6 +40,7 @@ export async function initiateEmailSignUp(
       email: user.email,
       firstName: fullName.split(' ')[0] || '',
       lastName: fullName.split(' ').slice(1).join(' ') || '',
+      profilePicture: user.photoURL || '',
       createdAt: serverTimestamp(),
       role: 'User', // Default role
       status: 'Active', // Default status
@@ -57,6 +60,42 @@ export function initiateEmailSignIn(authInstance: Auth, email: string, password:
       .then(() => resolve())
       .catch((error) => reject(error));
   });
+}
+
+/** Initiate Google sign-in and create user document if new (non-blocking). */
+export async function initiateGoogleSignIn(auth: Auth, firestore: Firestore): Promise<void> {
+  const provider = new GoogleAuthProvider();
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+
+    // Check if the user document already exists
+    const userDocRef = doc(firestore, 'users', user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    // If the user document does not exist, create it.
+    if (!userDoc.exists()) {
+      const { displayName, email, photoURL, uid } = user;
+      const firstName = displayName ? displayName.split(' ')[0] : '';
+      const lastName = displayName ? displayName.split(' ').slice(1).join(' ') : '';
+      
+      await setDoc(userDocRef, {
+        id: uid,
+        username: displayName || email,
+        email: email,
+        firstName: firstName,
+        lastName: lastName,
+        profilePicture: photoURL || '',
+        createdAt: serverTimestamp(),
+        role: 'User',
+        status: 'Active',
+      });
+    }
+  } catch (error) {
+    console.error("Error during Google sign-in:", error);
+    // Re-throw to be handled by the UI
+    throw error;
+  }
 }
 
     
