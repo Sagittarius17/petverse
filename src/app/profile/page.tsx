@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Edit, LogOut, Trash2, Eye } from 'lucide-react';
+import { Edit, LogOut, Trash2, Eye, PlusCircle } from 'lucide-react';
 import PetCard from '@/components/pet-card';
 import { type Pet } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -132,6 +132,14 @@ export default function ProfilePage() {
           <TabsTrigger value="favorites">My Favorite Pets</TabsTrigger>
         </TabsList>
         <TabsContent value="submitted" className="mt-6">
+            <div className="flex justify-end mb-4">
+                <Button asChild>
+                    <Link href="/submit-pet">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Submit a New Pet
+                    </Link>
+                </Button>
+            </div>
            {submittedPets && submittedPets.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {submittedPets.map(pet => (
