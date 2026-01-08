@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -11,13 +11,21 @@ import { Edit, LogOut, Trash2, Eye, PlusCircle } from 'lucide-react';
 import PetCard from '@/components/pet-card';
 import { type Pet } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
-import { collection, query, where, doc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, doc, deleteDoc, DocumentData } from 'firebase/firestore';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PetDetailDialog from '@/components/pet-detail-dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { PetFormDialog } from './pet-form-dialog';
+import { ProfileFormDialog } from './profile-form-dialog';
+
+
+interface UserProfile extends DocumentData {
+    username: string;
+    email: string;
+    bio?: string;
+}
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
@@ -30,6 +38,14 @@ export default function ProfilePage() {
   const [petToDelete, setPetToDelete] = useState<Pet | null>(null);
   const [petToEdit, setPetToEdit] = useState<Pet | null>(null);
   const [isPetFormOpen, setIsPetFormOpen] = useState(false);
+  const [isProfileFormOpen, setIsProfileFormOpen] = useState(false);
+  
+  const userDocRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [firestore, user]);
+  
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
 
 
   const userPetsQuery = useMemoFirebase(() => {
@@ -86,7 +102,7 @@ export default function ProfilePage() {
     setIsPetFormOpen(true);
   };
 
-  const handleFormSuccess = (mode: 'created' | 'updated') => {
+  const handlePetFormSuccess = (mode: 'created' | 'updated') => {
     toast({
         title: mode === 'created' ? 'Pet Submitted!' : 'Pet Updated!',
         description: mode === 'created' 
@@ -97,7 +113,16 @@ export default function ProfilePage() {
     setPetToEdit(null);
   }
 
-  const isLoading = isUserLoading || isPetsLoading;
+  const handleProfileFormSuccess = () => {
+    toast({
+        title: 'Profile Updated!',
+        description: 'Your profile information has been successfully saved.',
+    });
+    setIsProfileFormOpen(false);
+  }
+
+
+  const isLoading = isUserLoading || isPetsLoading || isProfileLoading;
 
   if (isLoading || !user) {
     return (
@@ -127,11 +152,11 @@ export default function ProfilePage() {
           <h1 className="text-4xl font-bold font-headline">{user.displayName || 'Anonymous User'}</h1>
           <p className="text-muted-foreground mt-1">{user.email}</p>
           <p className="mt-4 max-w-prose">
-            A passionate animal lover and advocate for pet adoption. In my free time, I volunteer at the local shelter and enjoy long walks with my two rescue dogs.
+            {userProfile?.bio || 'A passionate animal lover and advocate for pet adoption. In my free time, I volunteer at the local shelter and enjoy long walks with my two rescue dogs.'}
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => setIsProfileFormOpen(true)}>
             <Edit className="mr-2 h-4 w-4" /> Edit Profile
           </Button>
           <Button variant="destructive" onClick={handleLogout}>
@@ -215,7 +240,15 @@ export default function ProfilePage() {
         isOpen={isPetFormOpen}
         onClose={() => setIsPetFormOpen(false)}
         pet={petToEdit}
-        onSuccess={handleFormSuccess}
+        onSuccess={handlePetFormSuccess}
+    />
+    
+    <ProfileFormDialog
+        isOpen={isProfileFormOpen}
+        onClose={() => setIsProfileFormOpen(false)}
+        onSuccess={handleProfileFormSuccess}
+        user={user}
+        userProfile={userProfile}
     />
 
     {petToDelete && (
