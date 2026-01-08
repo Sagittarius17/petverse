@@ -151,8 +151,8 @@ service cloud.firestore {
       allow get: if true;
       allow list: if true;
       allow create: if createdByAuthenticatedUser('userId');
-      update: if isOwner(resource.data.userId) && isImmutable('userId') && isActive(request.auth.uid);
-      delete: if isOwner(resource.data.userId) && isActive(request.auth.uid);
+      allow update: if isOwner(resource.data.userId) && isImmutable('userId') && isActive(request.auth.uid);
+      allow delete: if isOwner(resource.data.userId) && isActive(request.auth.uid);
     }
 
     match /activities/{activityId} {
