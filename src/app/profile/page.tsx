@@ -1,25 +1,34 @@
 'use client';
 
 import Image from 'next/image';
-import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Edit, LogOut } from 'lucide-react';
+import { Edit, LogOut, Trash2, Eye } from 'lucide-react';
 import PetCard from '@/components/pet-card';
 import { type Pet } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, doc, deleteDoc } from 'firebase/firestore';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import PetDetailDialog from '@/components/pet-detail-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
   const router = useRouter();
+  const { toast } = useToast();
+
+  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
+  const [petToDelete, setPetToDelete] = useState<Pet | null>(null);
+  const [petToEdit, setPetToEdit] = useState<Pet | null>(null);
+
 
   const userPetsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -44,6 +53,27 @@ export default function ProfilePage() {
     }
   };
 
+  const handleDeletePet = async () => {
+    if (!petToDelete || !firestore) return;
+    const petDocRef = doc(firestore, 'pets', petToDelete.id);
+    try {
+      await deleteDoc(petDocRef);
+      toast({
+        title: 'Pet Deleted',
+        description: `${petToDelete.name} has been removed from the adoption listings.`,
+      });
+    } catch (error) {
+       toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: `Failed to delete ${petToDelete.name}. Please try again.`,
+      });
+      console.error("Error deleting pet:", error);
+    } finally {
+      setPetToDelete(null);
+    }
+  };
+
   const isLoading = isUserLoading || isPetsLoading;
 
   if (isLoading || !user) {
@@ -63,6 +93,7 @@ export default function ProfilePage() {
   }
 
   return (
+    <>
     <div className="container mx-auto max-w-5xl px-4 py-8">
       <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-12">
         <Avatar className="h-32 w-32 border-4 border-primary">
@@ -95,7 +126,24 @@ export default function ProfilePage() {
            {submittedPets && submittedPets.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {submittedPets.map(pet => (
-                <PetCard key={pet.id} pet={pet} />
+                <PetCard 
+                  key={pet.id} 
+                  pet={pet} 
+                  onPetSelect={() => setSelectedPet(pet)}
+                  actions={
+                    <div className="flex justify-between items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => setSelectedPet(pet)}>
+                        <Eye className="mr-2 h-4 w-4" /> View
+                      </Button>
+                      <Button variant="secondary" size="sm" onClick={() => setPetToEdit(pet)}>
+                        <Edit className="mr-2 h-4 w-4" /> Edit
+                      </Button>
+                      <Button variant="destructive" size="sm" onClick={() => setPetToDelete(pet)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  }
+                />
               ))}
             </div>
           ) : (
@@ -129,5 +177,27 @@ export default function ProfilePage() {
         </TabsContent>
       </Tabs>
     </div>
+    
+    {selectedPet && (
+        <PetDetailDialog pet={selectedPet} isOpen={!!selectedPet} onClose={() => setSelectedPet(null)} />
+    )}
+
+    {petToDelete && (
+      <AlertDialog open={!!petToDelete} onOpenChange={(open) => !open && setPetToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the adoption listing for <span className="font-bold">{petToDelete.name}</span>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeletePet} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    )}
+    </>
   );
 }
