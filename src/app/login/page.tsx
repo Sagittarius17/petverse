@@ -104,6 +104,9 @@ export default function LoginPage() {
           case 'auth/popup-closed-by-user':
             description = 'Sign-in process was cancelled.';
             break;
+          case 'auth/account-exists-with-different-credential':
+            description = "An account already exists with this email address. Please sign in with the original method you used (e.g., email and password).";
+            break;
           default:
             description = `A login error occurred: ${error.message}`;
             break;

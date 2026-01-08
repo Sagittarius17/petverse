@@ -102,6 +102,9 @@ export default function RegisterPage() {
         case 'auth/popup-closed-by-user':
           description = 'Sign-up process was cancelled.';
           break;
+        case 'auth/account-exists-with-different-credential':
+            description = "An account already exists with this email address. Please sign in with the original method you used (e.g., email and password).";
+            break;
         default:
           description = `A registration error occurred: ${error.message}`;
           break;
