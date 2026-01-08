@@ -140,6 +140,10 @@
           "type": "string",
           "description": "Reference to the User who authored the blog post. (Relationship: User 1:N Blog)"
         },
+        "authorName": {
+          "type": "string",
+          "description": "Denormalized name of the author for display purposes."
+        },
         "createdAt": {
           "type": "string",
           "description": "The date and time the blog post was created.",
@@ -150,19 +154,22 @@
           "description": "The date and time the blog post was last updated.",
           "format": "date-time"
         },
-        "categoryIds": {
-          "type": "array",
-          "description": "References to Categories. (Relationship: Category N:N Blog)",
-          "items": {
-            "type": "string"
-          }
+        "categoryName": {
+            "type": "string",
+            "description": "Denormalized name of the category for display purposes."
+        },
+        "status": {
+            "type": "string",
+            "enum": ["Draft", "Published"],
+            "description": "The publication status of the blog post."
         }
       },
       "required": [
         "id",
         "title",
         "content",
-        "authorId"
+        "authorId",
+        "authorName"
       ]
     },
     "Category": {

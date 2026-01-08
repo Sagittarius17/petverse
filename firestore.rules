@@ -124,11 +124,10 @@ service cloud.firestore {
     }
 
     match /blogs/{blogId} {
-      allow get: if true;
-      allow list: if true;
+      allow read: if true;
       allow create: if createdByAuthenticatedUser('authorId');
-      allow update: if isOwner(resource.data.authorId) && isImmutable('authorId') && isActive(request.auth.uid);
-      allow delete: if isOwner(resource.data.authorId) && isActive(request.auth.uid);
+      allow update: if (isOwner(resource.data.authorId) || isAdmin(request.auth.uid)) && isImmutable('authorId') && isImmutable('createdAt') && isActive(request.auth.uid);
+      allow delete: if isOwner(resource.data.authorId) || isAdmin(request.auth.uid) && isActive(request.auth.uid);
     }
 
     match /categories/{categoryId} {
