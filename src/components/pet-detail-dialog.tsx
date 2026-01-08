@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useFirestore, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
 import { doc, increment } from 'firebase/firestore';
@@ -20,20 +20,32 @@ interface PetDetailDialogProps {
 
 export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialogProps) {
   const firestore = useFirestore();
+  const [hasBeenViewed, setHasBeenViewed] = useState(false);
 
   const petDocRef = useMemoFirebase(
     () => (firestore && pet ? doc(firestore, 'pets', pet.id) : null),
     [firestore, pet]
   );
+  
+  useEffect(() => {
+    // Reset view flag when the pet changes or dialog closes
+    if (!isOpen) {
+      setHasBeenViewed(false);
+    }
+  }, [isOpen]);
+
 
   useEffect(() => {
-    if (isOpen && petDocRef) {
-      // Increment view count, non-blocking
+    // Only increment if the dialog is open, we have a document reference,
+    // and this specific dialog session hasn't already incremented the count.
+    if (isOpen && petDocRef && !hasBeenViewed) {
       updateDocumentNonBlocking(petDocRef, {
         viewCount: increment(1)
       });
+      // Set the flag to true to prevent further increments in this session
+      setHasBeenViewed(true);
     }
-  }, [isOpen, petDocRef]);
+  }, [isOpen, petDocRef, hasBeenViewed]);
 
   if (!pet) {
     return null;
