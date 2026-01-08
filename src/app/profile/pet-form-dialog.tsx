@@ -4,8 +4,8 @@ import { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useFirestore } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
+import { doc, updateDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,6 +23,7 @@ const petSchema = z.object({
   age: z.string().min(1, 'Age is required.'),
   gender: z.enum(['Male', 'Female']),
   description: z.string().min(10, 'Description must be at least 10 characters.'),
+  petImage: z.any().optional(),
 });
 
 type PetFormData = z.infer<typeof petSchema>;
@@ -31,49 +32,86 @@ interface PetFormDialogProps {
   pet: Pet | null;
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (mode: 'created' | 'updated') => void;
 }
 
 export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialogProps) {
   const firestore = useFirestore();
+  const { user } = useUser();
   const { toast } = useToast();
   const { control, register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<PetFormData>({
     resolver: zodResolver(petSchema),
+    defaultValues: {
+      name: '',
+      species: 'Dog',
+      breed: '',
+      age: '',
+      gender: 'Male',
+      description: '',
+    },
   });
 
+  const isEditMode = !!pet;
+
   useEffect(() => {
-    if (pet) {
-      reset({
-        name: pet.name,
-        species: pet.species,
-        breed: pet.breed,
-        age: pet.age,
-        gender: pet.gender,
-        description: pet.description,
-      });
+    if (isOpen) {
+      if (isEditMode) {
+        reset({
+          name: pet.name,
+          species: pet.species,
+          breed: pet.breed,
+          age: pet.age,
+          gender: pet.gender,
+          description: pet.description,
+        });
+      } else {
+        reset({
+          name: '',
+          species: 'Dog',
+          breed: '',
+          age: '',
+          gender: 'Male',
+          description: '',
+        });
+      }
     }
-  }, [pet, reset]);
+  }, [pet, isOpen, isEditMode, reset]);
 
   const onSubmit = async (data: PetFormData) => {
-    if (!pet || !firestore) {
+    if (!firestore || !user) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'An unexpected error occurred. Please try again.',
+        description: 'You must be logged in to perform this action.',
       });
       return;
     }
 
-    const petDocRef = doc(firestore, 'pets', pet.id);
     try {
-      await updateDoc(petDocRef, data);
-      onSuccess();
+      if (isEditMode) {
+        // Update existing pet
+        const petDocRef = doc(firestore, 'pets', pet.id);
+        await updateDoc(petDocRef, data);
+        onSuccess('updated');
+      } else {
+        // Create new pet
+        const { petImage, ...restOfData } = data;
+        const petsCollection = collection(firestore, 'pets');
+        await addDoc(petsCollection, {
+          ...restOfData,
+          userId: user.uid,
+          imageId: `${data.species.toLowerCase()}-1`, // Generic placeholder
+          viewCount: 0,
+          createdAt: serverTimestamp(),
+        });
+        onSuccess('created');
+      }
     } catch (error) {
-      console.error("Error updating pet:", error);
+      console.error("Error saving pet:", error);
       toast({
         variant: 'destructive',
-        title: 'Update Failed',
-        description: 'There was an error updating the pet information.',
+        title: 'Save Failed',
+        description: 'There was an error saving the pet information.',
       });
     }
   };
@@ -83,9 +121,12 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
       <DialogContent className="sm:max-w-[625px]">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
-            <DialogTitle>Edit Pet Information</DialogTitle>
+            <DialogTitle>{isEditMode ? 'Edit Pet Information' : 'Submit a Pet for Adoption'}</DialogTitle>
             <DialogDescription>
-              Make changes to the profile for {pet?.name}. Click save when you're done.
+              {isEditMode
+                ? `Make changes to the profile for ${pet?.name}. Click save when you're done.`
+                : 'Fill out the form below to list a pet for adoption.'
+              }
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-6 py-6">
@@ -97,7 +138,7 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="breed">Breed</Label>
-                    <Input id="breed" {...register('breed')} />
+                    <Input id="breed" {...register('breed')} placeholder="e.g., Golden Retriever" />
                     {errors.breed && <p className="text-sm text-destructive">{errors.breed.message}</p>}
                 </div>
             </div>
@@ -122,7 +163,7 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="age">Age</Label>
-                    <Input id="age" {...register('age')} />
+                    <Input id="age" {...register('age')} placeholder="e.g., 2 years" />
                     {errors.age && <p className="text-sm text-destructive">{errors.age.message}</p>}
                 </div>
                 <div className="space-y-2">
@@ -147,6 +188,11 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
               <Textarea id="description" {...register('description')} className="min-h-[120px]" />
               {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
             </div>
+             <div className="space-y-2">
+                <Label htmlFor="petImage">Pet's Photo</Label>
+                <Input id="petImage" type="file" {...register('petImage')} accept="image/*" />
+                <p className="text-xs text-muted-foreground">For now, a placeholder image will be used. Photo uploads coming soon!</p>
+              </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
@@ -154,7 +200,7 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
             </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Changes
+              {isEditMode ? 'Save Changes' : 'Submit Pet'}
             </Button>
           </DialogFooter>
         </form>

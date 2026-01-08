@@ -29,6 +29,7 @@ export default function ProfilePage() {
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const [petToDelete, setPetToDelete] = useState<Pet | null>(null);
   const [petToEdit, setPetToEdit] = useState<Pet | null>(null);
+  const [isPetFormOpen, setIsPetFormOpen] = useState(false);
 
 
   const userPetsQuery = useMemoFirebase(() => {
@@ -75,11 +76,24 @@ export default function ProfilePage() {
     }
   };
   
-  const handleEditSuccess = () => {
+  const handleEditPet = (pet: Pet) => {
+    setPetToEdit(pet);
+    setIsPetFormOpen(true);
+  };
+  
+  const handleNewPet = () => {
+    setPetToEdit(null); // Ensure we're in "create" mode
+    setIsPetFormOpen(true);
+  };
+
+  const handleFormSuccess = (mode: 'created' | 'updated') => {
     toast({
-        title: 'Pet Updated',
-        description: 'The pet\'s information has been successfully updated.',
+        title: mode === 'created' ? 'Pet Submitted!' : 'Pet Updated!',
+        description: mode === 'created' 
+            ? 'Your pet is now listed for adoption.'
+            : 'The pet\'s information has been successfully updated.',
     });
+    setIsPetFormOpen(false);
     setPetToEdit(null);
   }
 
@@ -133,11 +147,9 @@ export default function ProfilePage() {
         </TabsList>
         <TabsContent value="submitted" className="mt-6">
             <div className="flex justify-end mb-4">
-                <Button asChild>
-                    <Link href="/submit-pet">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Submit a New Pet
-                    </Link>
+                <Button onClick={handleNewPet}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Submit a New Pet
                 </Button>
             </div>
            {submittedPets && submittedPets.length > 0 ? (
@@ -152,7 +164,7 @@ export default function ProfilePage() {
                       <Button variant="outline" size="sm" onClick={() => setSelectedPet(pet)}>
                         <Eye className="mr-2 h-4 w-4" /> View
                       </Button>
-                      <Button variant="secondary" size="sm" onClick={() => setPetToEdit(pet)}>
+                      <Button variant="secondary" size="sm" onClick={() => handleEditPet(pet)}>
                         <Edit className="mr-2 h-4 w-4" /> Edit
                       </Button>
                       <Button variant="destructive" size="sm" onClick={() => setPetToDelete(pet)}>
@@ -167,8 +179,8 @@ export default function ProfilePage() {
             <Card>
               <CardContent className="pt-6 text-center">
                 <p className="text-muted-foreground">You haven't submitted any pets for adoption yet.</p>
-                <Button asChild variant="link">
-                    <Link href="/submit-pet">Submit a Pet for Adoption</Link>
+                <Button variant="link" onClick={handleNewPet}>
+                  Submit a Pet for Adoption
                 </Button>
               </CardContent>
             </Card>
@@ -199,14 +211,12 @@ export default function ProfilePage() {
         <PetDetailDialog pet={selectedPet} isOpen={!!selectedPet} onClose={() => setSelectedPet(null)} />
     )}
 
-    {petToEdit && (
-        <PetFormDialog
-            isOpen={!!petToEdit}
-            onClose={() => setPetToEdit(null)}
-            pet={petToEdit}
-            onSuccess={handleEditSuccess}
-        />
-    )}
+    <PetFormDialog
+        isOpen={isPetFormOpen}
+        onClose={() => setIsPetFormOpen(false)}
+        pet={petToEdit}
+        onSuccess={handleFormSuccess}
+    />
 
     {petToDelete && (
       <AlertDialog open={!!petToDelete} onOpenChange={(open) => !open && setPetToDelete(null)}>
