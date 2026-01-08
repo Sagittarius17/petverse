@@ -1,22 +1,63 @@
 
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Image from 'next/image';
 import { notFound, useRouter } from 'next/navigation';
-import { allPets } from '@/lib/data';
+import { useDoc, useFirestore, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { doc, increment } from 'firebase/firestore';
+import type { Pet } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Mail, Phone, Heart } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function PetDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const firestore = useFirestore();
 
-  const pet = allPets.find(p => p.id === params.id);
+  const petDocRef = useMemoFirebase(
+      () => firestore ? doc(firestore, 'pets', params.id) : null,
+      [firestore, params.id]
+  );
+
+  const { data: pet, isLoading, error } = useDoc<Pet>(petDocRef);
+
+  useEffect(() => {
+    if (petDocRef) {
+      // Increment view count, non-blocking
+      updateDocumentNonBlocking(petDocRef, {
+        viewCount: increment(1)
+      });
+    }
+  }, [petDocRef]);
+
+  if (isLoading) {
+    return (
+        <div className="container mx-auto max-w-6xl px-4 py-8">
+            <Skeleton className="h-8 w-24 mb-6" />
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-12">
+                <Skeleton className="h-96 w-full rounded-xl" />
+                <div className="space-y-6">
+                    <Skeleton className="h-12 w-1/2" />
+                    <div className="flex gap-2">
+                        <Skeleton className="h-8 w-24" />
+                        <Skeleton className="h-8 w-16" />
+                        <Skeleton className="h-8 w-16" />
+                    </div>
+                    <Skeleton className="h-24 w-full" />
+                    <Skeleton className="h-48 w-full" />
+                </div>
+            </div>
+        </div>
+    );
+  }
 
   if (!pet) {
+    // This will be triggered if the doc doesn't exist or there was an error
     notFound();
   }
 
@@ -96,3 +137,5 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
     </div>
   );
 }
+
+    

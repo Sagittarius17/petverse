@@ -79,7 +79,6 @@ service cloud.firestore {
     
     function canManageRole(requestingUserId, targetUserId, newRole) {
       let requesterRole = getRole(requestingUserId);
-      let targetCurrentRole = getRole(targetUserId);
 
       // Superadmins can manage anyone, including assigning 'Superadmin'
       if (requesterRole == 'Superadmin') {
@@ -88,7 +87,7 @@ service cloud.firestore {
       // Admins cannot manage Superadmins or other Admins.
       // Admins can only assign 'User' or 'Superuser' roles.
       if (requesterRole == 'Admin') {
-        return targetCurrentRole != 'Admin' && targetCurrentRole != 'Superadmin' && (newRole == 'User' || newRole == 'Superuser');
+        return getRole(targetUserId) != 'Admin' && getRole(targetUserId) != 'Superadmin';
       }
       return false;
     }
@@ -118,6 +117,13 @@ service cloud.firestore {
       allow create: if isOwner(userId) && request.resource.data.userId == userId && isActive(request.auth.uid);
       allow update: if isOwner(userId) && isImmutable('userId') && isActive(request.auth.uid);
       allow delete: if isOwner(userId) && isActive(request.auth.uid);
+    }
+
+    match /pets/{petId} {
+      allow read: if true;
+      allow create: if isSuperuser(request.auth.uid); // Only admins/superusers can create public pet listings
+      allow update: if isSuperuser(request.auth.uid) || isOwner(resource.data.userId); // Allow owner or admin to update
+      allow delete: if isSuperuser(request.auth.uid) || isOwner(resource.data.userId); // Allow owner or admin to delete
     }
 
     match /blogs/{blogId} {
@@ -158,3 +164,5 @@ service cloud.firestore {
     }
   }
 }
+
+    

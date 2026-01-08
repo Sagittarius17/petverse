@@ -37,6 +37,7 @@ export interface Pet {
   gender: 'Male' | 'Female';
   imageId: string;
   description: string;
+  viewCount?: number;
 }
 
 export interface CareGuide {
@@ -103,3 +104,5 @@ Training is essential for a well-behaved dog. Start with basic commands like "si
 ];
 
 export const featuredCareGuides = allCareGuides.slice(0, 3);
+
+    

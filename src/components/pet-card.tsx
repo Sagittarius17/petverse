@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Pet } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Eye } from 'lucide-react';
 
 interface PetCardProps {
   pet: Pet;
@@ -20,7 +21,7 @@ export default function PetCard({ pet }: PetCardProps) {
           {image && (
             <Image
               src={image.imageUrl}
-              alt={image.description}
+              alt={pet.name}
               fill
               style={{ objectFit: 'cover' }}
               data-ai-hint={image.imageHint}
@@ -28,6 +29,10 @@ export default function PetCard({ pet }: PetCardProps) {
             />
           )}
         </Link>
+        <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
+          <Eye className="h-3 w-3" />
+          <span>{pet.viewCount || 0}</span>
+        </div>
       </CardHeader>
       <CardContent className="flex-grow p-4">
         <CardTitle className="mb-2 text-xl font-headline">
@@ -48,3 +53,5 @@ export default function PetCard({ pet }: PetCardProps) {
     </Card>
   );
 }
+
+    
