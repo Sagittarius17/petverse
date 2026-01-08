@@ -44,7 +44,7 @@
         "role": {
           "type": "string",
           "description": "The role of the user, determining their access level.",
-          "enum": ["User", "Superuser", "Admin"]
+          "enum": ["User", "Superuser", "Admin", "Superadmin"]
         },
         "status": {
             "type": "string",
@@ -267,6 +267,75 @@
         "petId",
         "reportType"
       ]
+    },
+    "Activity": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Activity",
+      "description": "Represents a logged administrative action.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who performed the action."
+        },
+        "userName": {
+          "type": "string",
+          "description": "The name of the user who performed the action."
+        },
+        "userAvatar": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the user's avatar."
+        },
+        "action": {
+          "type": "string",
+          "description": "A short description of the action taken (e.g., 'Changed Role', 'Disabled User')."
+        },
+        "target": {
+          "type": "string",
+          "description": "The identifier of the object that was acted upon (e.g., user email, blog title)."
+        },
+        "targetType": {
+          "type": "string",
+          "enum": [
+            "User",
+            "Blog",
+            "Pet"
+          ]
+        },
+        "details": {
+          "type": "string",
+          "description": "More detailed information about the action."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the activity occurred."
+        },
+        "badgeVariant": {
+          "type": "string",
+          "enum": [
+            "default",
+            "secondary",
+            "destructive"
+          ]
+        },
+        "iconName": {
+          "type": "string",
+          "description": "The name of the lucide-react icon to display."
+        }
+      },
+      "required": [
+        "userId",
+        "userName",
+        "action",
+        "target",
+        "targetType",
+        "timestamp"
+      ]
     }
   },
   "auth": {
@@ -373,6 +442,22 @@
             {
               "name": "lostFoundReportId",
               "description": "The unique identifier of the lost/found report."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/activities/{activityId}",
+        "definition": {
+          "entityName": "Activity",
+          "schema": {
+            "$ref": "#/backend/entities/Activity"
+          },
+          "description": "Stores a log of administrative activities. Read access is restricted to admins and superusers.",
+          "params": [
+            {
+              "name": "activityId",
+              "description": "The unique identifier for the activity log entry."
             }
           ]
         }

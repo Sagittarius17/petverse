@@ -44,6 +44,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { logActivity } from '@/lib/activity-log';
+import { User } from 'firebase/auth';
+
+type Role = 'Admin' | 'Superadmin' | 'Superuser' | 'User';
 
 interface UserProfile {
   id: string;
@@ -52,7 +56,7 @@ interface UserProfile {
   firstName?: string;
   lastName?: string;
   createdAt?: Timestamp;
-  role?: 'Admin' | 'Superuser' | 'User';
+  role?: Role;
   status?: 'Active' | 'Inactive';
 }
 
@@ -68,12 +72,10 @@ export default function AdminUsersPage() {
     return doc(firestore, 'users', currentUser.uid);
   }, [currentUser, firestore]);
   const { data: currentUserProfile } = useDoc<UserProfile>(currentUserDocRef);
-  const isAdmin = currentUserProfile?.role === 'Admin';
-
-
+  
   const [userToEdit, setUserToEdit] = useState<UserProfile | null>(null);
   const [userToToggleStatus, setUserToToggleStatus] = useState<UserProfile | null>(null);
-  const [newRole, setNewRole] = useState<'Admin' | 'Superuser' | 'User'>('User');
+  const [newRole, setNewRole] = useState<Role>('User');
 
   const getDisplayName = (user: UserProfile) => {
     if (user.firstName && user.lastName) {
@@ -88,10 +90,20 @@ export default function AdminUsersPage() {
   };
 
   const handleToggleStatus = () => {
-    if (userToToggleStatus && firestore) {
+    if (userToToggleStatus && firestore && currentUser) {
       const newStatus = userToToggleStatus.status === 'Active' ? 'Inactive' : 'Active';
       const userDocRef = doc(firestore, 'users', userToToggleStatus.id);
       updateDocumentNonBlocking(userDocRef, { status: newStatus });
+
+      logActivity(firestore, currentUser, {
+        action: newStatus === 'Active' ? 'Enabled User' : 'Disabled User',
+        target: getDisplayName(userToToggleStatus),
+        targetType: 'User',
+        details: `User status set to ${newStatus}.`,
+        badgeVariant: newStatus === 'Active' ? 'default' : 'destructive',
+        iconName: newStatus === 'Active' ? 'ShieldCheck' : 'ShieldOff'
+      });
+
       toast({
         title: 'User Status Updated',
         description: `${getDisplayName(userToToggleStatus)} has been set to ${newStatus}.`,
@@ -101,9 +113,20 @@ export default function AdminUsersPage() {
   };
 
   const handleSaveChanges = () => {
-    if (userToEdit && firestore) {
+    if (userToEdit && firestore && currentUser) {
         const userDocRef = doc(firestore, 'users', userToEdit.id);
+        const oldRole = userToEdit.role || 'User';
         updateDocumentNonBlocking(userDocRef, { role: newRole });
+
+        logActivity(firestore, currentUser, {
+          action: 'Changed Role',
+          target: getDisplayName(userToEdit),
+          targetType: 'User',
+          details: `Changed role from ${oldRole} to ${newRole}.`,
+          badgeVariant: 'default',
+          iconName: 'ShieldCheck'
+        });
+
         toast({
             title: 'User Updated',
             description: `${getDisplayName(userToEdit)}'s role has been changed to ${newRole}.`,
@@ -115,6 +138,23 @@ export default function AdminUsersPage() {
   const openEditDialog = (user: UserProfile) => {
     setUserToEdit(user);
     setNewRole(user.role || 'User');
+  };
+
+  const canManageUser = (targetUser: UserProfile): boolean => {
+    if (!currentUserProfile) return false;
+    const requesterRole = currentUserProfile.role;
+    const targetRole = targetUser.role;
+
+    if (requesterRole === 'Superadmin') return true;
+    if (requesterRole === 'Admin') return targetRole !== 'Admin' && targetRole !== 'Superadmin';
+    if (requesterRole === 'Superuser') return targetRole === 'User';
+    
+    return false;
+  };
+
+  const canBeManaged = (user: UserProfile): boolean => {
+    if (!currentUserProfile) return false;
+    return user.id !== currentUserProfile.id;
   };
 
   return (
@@ -165,31 +205,29 @@ export default function AdminUsersPage() {
                     </TableCell>
                     <TableCell>{formatDate(user.createdAt)}</TableCell>
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onSelect={() => openEditDialog(user)}>Edit Role</DropdownMenuItem>
-                          {isAdmin && (
-                            <>
-                              {user.status !== 'Active' ? (
-                                <DropdownMenuItem onSelect={() => setUserToToggleStatus(user)} className="text-green-600 focus:text-green-600">
-                                  <ShieldCheck className="mr-2 h-4 w-4" /> Enable
-                                </DropdownMenuItem>
-                              ) : (
-                                <DropdownMenuItem onSelect={() => setUserToToggleStatus(user)} className="text-destructive focus:text-destructive">
-                                  <ShieldOff className="mr-2 h-4 w-4" /> Disable
-                                </DropdownMenuItem>
-                              )}
-                            </>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      {canBeManaged(user) && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost" disabled={!canManageUser(user)}>
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onSelect={() => openEditDialog(user)}>Edit Role</DropdownMenuItem>
+                            {user.status !== 'Active' ? (
+                              <DropdownMenuItem onSelect={() => setUserToToggleStatus(user)} className="text-green-600 focus:text-green-600">
+                                <ShieldCheck className="mr-2 h-4 w-4" /> Enable
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem onSelect={() => setUserToToggleStatus(user)} className="text-destructive focus:text-destructive">
+                                <ShieldOff className="mr-2 h-4 w-4" /> Disable
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
@@ -240,7 +278,7 @@ export default function AdminUsersPage() {
                 </p>
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="role" className="text-right">Role</Label>
-                    <Select value={newRole} onValueChange={(value: 'Admin' | 'Superuser' | 'User') => setNewRole(value)}>
+                    <Select value={newRole} onValueChange={(value: Role) => setNewRole(value)}>
                         <SelectTrigger className="col-span-3">
                             <SelectValue placeholder="Select a role" />
                         </SelectTrigger>
@@ -248,6 +286,9 @@ export default function AdminUsersPage() {
                             <SelectItem value="User">User</SelectItem>
                             <SelectItem value="Superuser">Superuser</SelectItem>
                             <SelectItem value="Admin">Admin</SelectItem>
+                             {currentUserProfile?.role === 'Superadmin' && (
+                                <SelectItem value="Superadmin">Superadmin</SelectItem>
+                             )}
                         </SelectContent>
                     </Select>
                 </div>
@@ -261,3 +302,5 @@ export default function AdminUsersPage() {
     </>
   );
 }
+
+    

@@ -18,10 +18,10 @@
  * - Strict Ownership: A user can only access data within their own
  *   `/users/{userId}` document tree.
  * - Role-Based Access Control (RBAC): User permissions are determined by a 'role'
- *   field ('User', 'Superuser', 'Admin') on their user document.
- * - Admin role has full CRUD access.
- * - Superuser role has create/update access but not delete.
- * - User role has no access to the admin panel.
+ *   field ('User', 'Superuser', 'Admin', 'Superadmin') on their user document.
+ * - Superadmin has full CRUD access to all data.
+ * - Admin can manage Superusers and Users.
+ * - Superuser can manage Users.
  * - Public Read, Owner Write: For public collections, read access is granted
  *   to everyone, but write operations are strictly limited to the document's author.
  * - Inactive users have no access to any data.
@@ -50,26 +50,50 @@ service cloud.firestore {
     function getUserData(userId) {
       return get(/databases/$(database)/documents/users/$(userId)).data;
     }
-
-    function getUserRole(userId) {
-      return getUserData(userId).role;
-    }
     
     // Check if user is active
-    function isActive() {
-      return getUserData(request.auth.uid).status == 'Active';
+    function isActive(userId) {
+      return getUserData(userId).status == 'Active';
     }
 
-    function isAdmin() {
-      return isSignedIn() && getUserRole(request.auth.uid) == 'Admin';
+    function isSuperadmin(userId) {
+      return isSignedIn() && getUserData(userId).role == 'Superadmin';
+    }
+
+    function isAdmin(userId) {
+      return isSignedIn() && (getUserData(userId).role == 'Admin' || isSuperadmin(userId));
     }
     
-    function isSuperuser() {
-      return isSignedIn() && (getUserRole(request.auth.uid) == 'Superuser' || isAdmin());
+    function isSuperuser(userId) {
+      return isSignedIn() && (getUserData(userId).role == 'Superuser' || isAdmin(userId));
+    }
+
+    function canReadUsers(userId) {
+      // Allows admins and superadmins to read any user profile.
+      return isAdmin(userId) || isSuperadmin(userId);
+    }
+    
+    function canManageRole(requestingUserId, targetUserId, targetRole) {
+      let requesterRole = getUserData(requestingUserId).role;
+      let targetCurrentRole = getUserData(targetUserId).role;
+
+      // Superadmins can manage anyone.
+      if (requesterRole == 'Superadmin') {
+        return true;
+      }
+      // Admins cannot manage Superadmins or other Admins.
+      if (requesterRole == 'Admin') {
+        return targetCurrentRole != 'Admin' && targetCurrentRole != 'Superadmin';
+      }
+      // Superusers can only manage Users.
+      if (requesterRole == 'Superuser') {
+        return targetCurrentRole == 'User';
+      }
+      return false;
     }
 
     function createdByAuthenticatedUser(fieldName) {
-      return isSignedIn() && isActive() && request.resource.data[fieldName] == request.auth.uid;
+      return isSignedIn() && isActive(request.auth.uid) && request.resource.data[fieldName] == request.auth.uid;
     }
 
     function isImmutable(fieldName) {
@@ -77,30 +101,30 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow get: if (isOwner(userId) || isSuperuser()) && isActive();
-      allow list: if (isSuperuser()) && isActive();
+      allow get: if (isOwner(userId) || canReadUsers(request.auth.uid)) && isActive(request.auth.uid);
+      allow list: if isSuperuser(request.auth.uid) && isActive(request.auth.uid);
       allow create: if isOwner(userId);
-      // Admins can update any user. Superusers can update users with the 'User' role.
-      // Individual users can update their own profile.
-      allow update: if (isAdmin() || (isSuperuser() && resource.data.role == 'User') || isOwner(userId)) && isActive();
+      // More granular update rule
+      allow update: if isActive(request.auth.uid) && 
+                      (isOwner(userId) || canManageRole(request.auth.uid, userId, request.resource.data.role));
       // Deletes are disallowed. Status should be set to 'Inactive' via an update.
       allow delete: if false; 
     }
 
     match /users/{userId}/pets/{petId} {
-      allow get: if isOwner(userId) && isActive();
-      allow list: if isOwner(userId) && isActive();
-      allow create: if isOwner(userId) && request.resource.data.userId == userId && isActive();
-      allow update: if isOwner(userId) && isImmutable('userId') && isActive();
-      allow delete: if isOwner(userId) && isActive();
+      allow get: if isOwner(userId) && isActive(request.auth.uid);
+      allow list: if isOwner(userId) && isActive(request.auth.uid);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId && isActive(request.auth.uid);
+      allow update: if isOwner(userId) && isImmutable('userId') && isActive(request.auth.uid);
+      allow delete: if isOwner(userId) && isActive(request.auth.uid);
     }
 
     match /blogs/{blogId} {
       allow get: if true;
       allow list: if true;
       allow create: if createdByAuthenticatedUser('authorId');
-      allow update: if isOwner(resource.data.authorId) && isImmutable('authorId') && isActive();
-      allow delete: if isOwner(resource.data.authorId) && isActive();
+      allow update: if isOwner(resource.data.authorId) && isImmutable('authorId') && isActive(request.auth.uid);
+      allow delete: if isOwner(resource.data.authorId) && isActive(request.auth.uid);
     }
 
     match /categories/{categoryId} {
@@ -115,16 +139,23 @@ service cloud.firestore {
       allow get: if true;
       allow list: if true;
       allow create: if createdByAuthenticatedUser('userId');
-      allow update: if isOwner(resource.data.userId) && isImmutable('userId') && isActive();
-      allow delete: if isOwner(resource.data.userId) && isActive();
+      allow update: if isOwner(resource.data.userId) && isImmutable('userId') && isActive(request.auth.uid);
+      allow delete: if isOwner(resource.data.userId) && isActive(request.auth.uid);
     }
 
     match /lost_found_reports/{lostFoundReportId} {
-      update: if isOwner(resource.data.userId) && isImmutable('userId') && isActive();
-      delete: if isOwner(resource.data.userId) && isActive();
       allow get: if true;
       allow list: if true;
       allow create: if createdByAuthenticatedUser('userId');
+      update: if isOwner(resource.data.userId) && isImmutable('userId') && isActive(request.auth.uid);
+      delete: if isOwner(resource.data.userId) && isActive(request.auth.uid);
+    }
+
+    match /activities/{activityId} {
+      allow get, list: if isSuperuser(request.auth.uid) && isActive(request.auth.uid);
+      allow create: if isSuperuser(request.auth.uid) && isActive(request.auth.uid);
+      allow update, delete: if false;
     }
   }
 }
+    
