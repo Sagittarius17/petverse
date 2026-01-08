@@ -99,13 +99,13 @@ export default function LoginPage() {
             description = "Invalid email or password. Please double-check your credentials.";
             break;
           case 'auth/too-many-requests':
-            description = "Access to this account has been temporarily disabled due to many failed login attempts. You can immediately restore it by resetting your password or you can try again later.";
+            description = "Access to this account has been temporarily disabled due to many failed login attempts. You can try again later.";
             break;
           case 'auth/popup-closed-by-user':
             description = 'Sign-in process was cancelled.';
             break;
           case 'auth/account-exists-with-different-credential':
-            description = "An account already exists with this email address. Please sign in with the original method you used (e.g., email and password).";
+            description = "An account already exists with this email address. Please sign in with the original method you used.";
             break;
           default:
             description = `A login error occurred: ${error.message}`;
