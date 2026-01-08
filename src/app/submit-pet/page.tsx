@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm, Controller } from 'react-hook-form';
@@ -54,9 +55,10 @@ export default function SubmitPetPage() {
     }
 
     try {
+      const { petImage, ...restOfData } = data;
       const petsCollection = collection(firestore, 'pets');
       await addDoc(petsCollection, {
-        ...data,
+        ...restOfData,
         userId: user.uid, // Link pet to the current user
         imageId: `${data.species.toLowerCase()}-1`, // Assign a generic placeholder image
         viewCount: 0,
