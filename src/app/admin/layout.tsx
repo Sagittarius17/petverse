@@ -36,7 +36,6 @@ const menuItems = [
   { href: "/admin/pets", label: "Pets", icon: Dog },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/blogs", label: "Blogs", icon: FileText },
-  { href: "/admin/activity", label: "Activity", icon: ListCollapse },
 ];
 
 interface UserProfile {
