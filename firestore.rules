@@ -51,31 +51,35 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(userId)).data;
     }
     
+    function getRole(userId) {
+      return getUserData(userId).role;
+    }
+
     // Check if user is active
     function isActive(userId) {
       return getUserData(userId).status == 'Active';
     }
-
+    
     function isSuperadmin(userId) {
-      return isSignedIn() && getUserData(userId).role == 'Superadmin';
+        return isSignedIn() && getRole(userId) == 'Superadmin';
     }
-
+    
     function isAdmin(userId) {
-      return isSignedIn() && (getUserData(userId).role == 'Admin' || isSuperadmin(userId));
+        return isSignedIn() && (getRole(userId) == 'Admin' || isSuperadmin(userId));
     }
     
     function isSuperuser(userId) {
-      return isSignedIn() && (getUserData(userId).role == 'Superuser' || isAdmin(userId));
+        return isSignedIn() && (getRole(userId) == 'Superuser' || isAdmin(userId));
     }
-
+    
     function canReadUsers(userId) {
       // Allows admins and superadmins to read any user profile.
       return isAdmin(userId) || isSuperadmin(userId);
     }
     
     function canManageRole(requestingUserId, targetUserId, targetRole) {
-      let requesterRole = getUserData(requestingUserId).role;
-      let targetCurrentRole = getUserData(targetUserId).role;
+      let requesterRole = getRole(requestingUserId);
+      let targetCurrentRole = getRole(targetUserId);
 
       // Superadmins can manage anyone.
       if (requesterRole == 'Superadmin') {
