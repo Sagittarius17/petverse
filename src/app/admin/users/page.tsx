@@ -1,6 +1,6 @@
 'use client';
 
-import { MoreHorizontal, ShieldCheck, ShieldOff, Crown, UserCheck } from 'lucide-react';
+import { MoreHorizontal, ShieldCheck, ShieldOff, Crown, User as UserIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -45,7 +45,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { logActivity } from '@/lib/activity-log';
-import { User } from 'firebase/auth';
+import type { User } from 'firebase/auth';
 
 type Role = 'Admin' | 'Superadmin' | 'Superuser' | 'User';
 
@@ -64,7 +64,7 @@ const roleVisuals: Record<Role, { icon: React.ElementType; color: string }> = {
   Superadmin: { icon: Crown, color: 'text-amber-500' },
   Admin: { icon: ShieldCheck, color: 'text-blue-500' },
   Superuser: { icon: UserCheck, color: 'text-green-500' },
-  User: { icon: User, color: 'text-muted-foreground' },
+  User: { icon: UserIcon, color: 'text-muted-foreground' },
 };
 
 function RoleDisplay({ role }: { role: Role }) {
