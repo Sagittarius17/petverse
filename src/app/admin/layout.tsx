@@ -40,7 +40,7 @@ const menuItems = [
 ];
 
 interface UserProfile {
-  role?: 'Admin' | 'Superuser' | 'User';
+  role?: 'Admin' | 'Superuser' | 'User' | 'Superadmin';
   username?: string;
 }
 
@@ -77,7 +77,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const isLoading = isAuthLoading || isProfileLoading;
   
-  const isAuthorized = !isLoading && user && userProfile && (userProfile.role === 'Admin' || userProfile.role === 'Superuser');
+  const isAuthorized = !isLoading && user && userProfile && (userProfile.role === 'Admin' || userProfile.role === 'Superuser' || userProfile.role === 'Superadmin');
 
   useEffect(() => {
     if (!isLoading) {
@@ -123,7 +123,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             <SidebarContent className="flex-1 overflow-y-auto">
               <SidebarMenu>
-                {menuItems.filter(item => item.label !== 'Activity').map((item) => (
+                {menuItems.map((item) => (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
                       asChild
