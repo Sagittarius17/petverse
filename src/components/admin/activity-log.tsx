@@ -1,7 +1,11 @@
 'use client';
 
+import { useMemo } from 'react';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy, Timestamp } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   FileText,
   User,
@@ -11,109 +15,41 @@ import {
   Edit,
   Trash2,
   PlusCircle,
+  ListCollapse,
 } from 'lucide-react';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { formatDistanceToNow } from 'date-fns';
 
-const activities = [
-  {
-    id: 'act_1',
-    user: {
-      name: 'Admin',
-      avatar: PlaceHolderImages.find(p => p.id === 'user-avatar-1')?.imageUrl,
-    },
-    action: 'Disabled User',
-    target: 'jane.doe@example.com',
-    targetType: 'User',
-    date: '2 mins ago',
-    details: 'User status set to Inactive.',
-    icon: ShieldOff,
-    badgeVariant: 'destructive',
-  },
-  {
-    id: 'act_2',
-    user: {
-      name: 'Superuser',
-      avatar: 'https://github.com/shadcn.png',
-    },
-    action: 'Edited Blog Post',
-    target: 'Beginner\'s Guide to Dog Care',
-    targetType: 'Blog',
-    date: '1 hour ago',
-    details: 'Updated content and fixed typos.',
-    icon: Edit,
-    badgeVariant: 'secondary',
-  },
-  {
-    id: 'act_3',
-    user: {
-      name: 'Admin',
-      avatar: PlaceHolderImages.find(p => p.id === 'user-avatar-1')?.imageUrl,
-    },
-    action: 'Changed Role',
-    target: 'john.smith@example.com',
-    targetType: 'User',
-    date: '3 hours ago',
-    details: 'Promoted user to Superuser.',
-    icon: ShieldCheck,
-    badgeVariant: 'default',
-  },
-  {
-    id: 'act_4',
-    user: {
-      name: 'Superuser',
-      avatar: 'https://github.com/shadcn.png',
-    },
-    action: 'Added New Pet',
-    target: 'Milo (Corgi)',
-    targetType: 'Pet',
-    date: '1 day ago',
-    details: 'Added a new Corgi available for adoption.',
-    icon: PlusCircle,
-    badgeVariant: 'default',
-  },
-  {
-    id: 'act_5',
-    user: {
-      name: 'Admin',
-      avatar: PlaceHolderImages.find(p => p.id === 'user-avatar-1')?.imageUrl,
-    },
-    action: 'Deleted Blog Post',
-    target: 'Outdated Cat Food Guide',
-    targetType: 'Blog',
-    date: '2 days ago',
-    details: 'Removed post due to outdated information.',
-    icon: Trash2,
-    badgeVariant: 'destructive',
-  },
-  {
-    id: 'act_6',
-    user: {
-      name: 'Admin',
-      avatar: PlaceHolderImages.find(p => p.id === 'user-avatar-1')?.imageUrl,
-    },
-    action: 'Changed Role',
-    target: 'superuser@example.com',
-    targetType: 'User',
-    date: '3 days ago',
-    details: 'Promoted user to Superuser.',
-    icon: ShieldCheck,
-    badgeVariant: 'default',
-  },
-  {
-    id: 'act_7',
-    user: {
-      name: 'Superuser',
-      avatar: 'https://github.com/shadcn.png',
-    },
-    action: 'Added New Pet',
-    target: 'Simba (Cat)',
-    targetType: 'Pet',
-    date: '4 days ago',
-    details: 'Added a new Siamese cat available for adoption.',
-    icon: PlusCircle,
-    badgeVariant: 'default',
-  },
-];
+type ActivityType = 'User' | 'Blog' | 'Pet';
+type BadgeVariant = 'default' | 'secondary' | 'destructive';
+type IconName = 'ShieldCheck' | 'ShieldOff' | 'Edit' | 'Trash2' | 'PlusCircle';
+
+interface Activity {
+  id: string;
+  userId: string;
+  userName: string;
+  userAvatar: string;
+  action: string;
+  target: string;
+  targetType: ActivityType;
+  details: string;
+  timestamp: Timestamp;
+  badgeVariant: BadgeVariant;
+  iconName: IconName;
+}
+
+const actionIcons = {
+  ShieldCheck,
+  ShieldOff,
+  Edit,
+  Trash2,
+  PlusCircle,
+  ChangedRole: ShieldCheck,
+  'Enabled User': ShieldCheck,
+  'Disabled User': ShieldOff,
+  'Edited Blog Post': Edit,
+  'Deleted Blog Post': Trash2,
+  'Added New Pet': PlusCircle,
+};
 
 const typeIcons = {
   User: <User className="h-4 w-4" />,
@@ -121,35 +57,89 @@ const typeIcons = {
   Pet: <Dog className="h-4 w-4" />,
 };
 
+function formatRelativeTime(timestamp?: Timestamp): string {
+    if (!timestamp) return 'Just now';
+    return `${formatDistanceToNow(timestamp.toDate())} ago`;
+}
+
 export default function ActivityLog() {
+  const firestore = useFirestore();
+
+  const activitiesQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'activities'), orderBy('timestamp', 'desc'));
+  }, [firestore]);
+
+  const { data: activities, isLoading } = useCollection<Activity>(activitiesQuery);
+
+  const iconMap: Record<string, React.ElementType> = useMemo(() => ({
+    ShieldCheck: ShieldCheck,
+    ShieldOff: ShieldOff,
+    Edit: Edit,
+    Trash2: Trash2,
+    PlusCircle: PlusCircle,
+  }), []);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-8 pr-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="grid items-start grid-cols-[auto_1fr_auto] gap-x-4">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+            <Skeleton className="h-4 w-16" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (!activities || activities.length === 0) {
+    return (
+        <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-8">
+            <ListCollapse className="h-12 w-12 mb-4" />
+            <h3 className="text-lg font-semibold">No Activity Yet</h3>
+            <p className="text-sm">Administrative actions will be logged here.</p>
+        </div>
+    );
+  }
+
+
   return (
     <div className="space-y-8 pr-4">
-      {activities.map(activity => (
-        <div key={activity.id} className="grid items-start grid-cols-[auto_1fr_auto] gap-x-4">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={activity.user.avatar} />
-            <AvatarFallback>{activity.user.name.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <div className="text-sm">
-            <div>
-              <span className="font-semibold">{activity.user.name}</span>
-              <span className="text-muted-foreground"> performed action </span>
-              <Badge variant={activity.badgeVariant || 'secondary'} className="mx-1">
-                <activity.icon className="h-3 w-3 mr-1" />
-                {activity.action}
-              </Badge>
+      {activities.map(activity => {
+        const ActionIcon = iconMap[activity.iconName] || Edit;
+        return (
+            <div key={activity.id} className="grid items-start grid-cols-[auto_1fr_auto] gap-x-4">
+                <Avatar className="h-10 w-10">
+                    <AvatarImage src={activity.userAvatar} />
+                    <AvatarFallback>{activity.userName?.charAt(0) || 'A'}</AvatarFallback>
+                </Avatar>
+                <div className="text-sm">
+                    <div>
+                        <span className="font-semibold">{activity.userName}</span>
+                        <span className="text-muted-foreground"> performed action </span>
+                        <Badge variant={activity.badgeVariant || 'secondary'} className="mx-1">
+                            <ActionIcon className="h-3 w-3 mr-1" />
+                            {activity.action}
+                        </Badge>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1 text-muted-foreground">
+                        {typeIcons[activity.targetType as keyof typeof typeIcons]}
+                        <span className="font-medium truncate">{activity.target}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">{activity.details}</p>
+                </div>
+                <div className="text-xs text-muted-foreground self-start">
+                    {formatRelativeTime(activity.timestamp)}
+                </div>
             </div>
-            <div className="flex items-center gap-2 mt-1 text-muted-foreground">
-                {typeIcons[activity.targetType as keyof typeof typeIcons]}
-                <span className="font-medium truncate">{activity.target}</span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">{activity.details}</p>
-          </div>
-          <div className="text-xs text-muted-foreground self-start">
-            {activity.date}
-          </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   );
 }
