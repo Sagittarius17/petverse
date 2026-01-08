@@ -10,7 +10,7 @@ import { Eye } from 'lucide-react';
 
 interface PetCardProps {
   pet: Pet;
-  onPetSelect: (pet: Pet) => void;
+  onPetSelect?: (pet: Pet) => void;
 }
 
 export default function PetCard({ pet, onPetSelect }: PetCardProps) {
@@ -19,7 +19,7 @@ export default function PetCard({ pet, onPetSelect }: PetCardProps) {
   return (
     <Card 
       className="flex flex-col overflow-hidden transition-all hover:shadow-lg cursor-pointer group"
-      onClick={() => onPetSelect(pet)}
+      onClick={() => onPetSelect?.(pet)}
     >
       <CardHeader className="relative h-48 w-full p-0">
           {image && (
@@ -49,7 +49,7 @@ export default function PetCard({ pet, onPetSelect }: PetCardProps) {
         <p className="mt-3 text-sm line-clamp-2">{pet.description}</p>
       </CardContent>
       <CardFooter className="p-4 pt-0">
-        <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
+        <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={!onPetSelect}>
           Meet {pet.name}
         </Button>
       </CardFooter>
