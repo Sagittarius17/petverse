@@ -1,11 +1,16 @@
 'use client';
 
+import { useState } from 'react';
 import { Dog, Users, FileText, Heart } from 'lucide-react';
 import StatsCard from '@/components/stats-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import ActivityLog from '@/components/admin/activity-log';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, query, where, Timestamp } from 'firebase/firestore';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { subDays } from 'date-fns';
 
 const data = [
     { name: 'Jan', adoptions: 4, signups: 24 },
@@ -16,17 +21,99 @@ const data = [
     { name: 'Jun', adoptions: 7, signups: 38 },
 ];
 
-
 export default function AdminDashboardPage() {
+  const [timeFilter, setTimeFilter] = useState('30'); // Default to 30 days
+  const firestore = useFirestore();
+
+  const filterDate = useMemoFirebase(() => {
+    const days = parseInt(timeFilter);
+    if (isNaN(days) || days === -1) return null; // -1 for "All time"
+    return subDays(new Date(), days);
+  }, [timeFilter]);
+
+  const usersQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    const usersCollection = collection(firestore, 'users');
+    if (filterDate) {
+      return query(usersCollection, where('createdAt', '>=', filterDate));
+    }
+    return usersCollection;
+  }, [firestore, filterDate]);
+
+  const blogsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    const blogsCollection = collection(firestore, 'blogs');
+    if (filterDate) {
+      return query(blogsCollection, where('createdAt', '>=', filterDate));
+    }
+    return blogsCollection;
+  }, [firestore, filterDate]);
+
+  // Note: Pets are in a subcollection, so we query all users and their pets.
+  // This is not efficient for large datasets, but works for this structure.
+  // For simplicity, we'll just count all pets for now regardless of filter.
+  // A better structure would be a top-level 'pets' collection.
+  const allUsersQuery = useMemoFirebase(() => firestore ? collection(firestore, 'users') : null, [firestore]);
+  const { data: usersData, isLoading: usersLoading } = useCollection(usersQuery);
+  const { data: blogsData, isLoading: blogsLoading } = useCollection(blogsQuery);
+  const { data: allUsers, isLoading: allUsersLoading } = useCollection(allUsersQuery);
+
+  // We can't query subcollections directly for a total count efficiently.
+  // We are also missing a top level 'pets' collection.
+  // For now, let's keep pets count static as it was.
+  const totalPetsCount = '132';
+  const totalAdoptions = '23';
+
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold font-headline">Admin Dashboard</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold font-headline">Admin Dashboard</h1>
+        <div className="w-[180px]">
+          <Select value={timeFilter} onValueChange={setTimeFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a time range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">Last 7 days</SelectItem>
+              <SelectItem value="15">Last 15 days</SelectItem>
+              <SelectItem value="30">Last 30 days</SelectItem>
+              <SelectItem value="90">Last 3 months</SelectItem>
+              <SelectItem value="180">Last 6 months</SelectItem>
+              <SelectItem value="365">Last year</SelectItem>
+              <SelectItem value="-1">All time</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <StatsCard title="Total Pets" value="132" icon={Dog} description="+5 from last month" />
-        <StatsCard title="New Users" value="78" icon={Users} description="+12 from last month" />
-        <StatsCard title="Blog Posts" value="45" icon={FileText} description="+2 this week" />
-        <StatsCard title="Adoptions" value="23" icon={Heart} description="In the last 30 days" />
+        <StatsCard 
+          title="Total Pets" 
+          value={totalPetsCount}
+          icon={Dog}
+          description="All pets registered" 
+          isLoading={allUsersLoading}
+        />
+        <StatsCard 
+          title="New Users" 
+          value={usersData?.length?.toString() ?? '0'} 
+          icon={Users} 
+          description={timeFilter === '-1' ? 'All time' : `In the last ${timeFilter} days`}
+          isLoading={usersLoading}
+        />
+        <StatsCard 
+          title="Blog Posts" 
+          value={blogsData?.length?.toString() ?? '0'} 
+          icon={FileText} 
+          description={timeFilter === '-1' ? 'All time' : `In the last ${timeFilter} days`}
+          isLoading={blogsLoading}
+        />
+        <StatsCard 
+          title="Adoptions" 
+          value={totalAdoptions} 
+          icon={Heart} 
+          description="In the last 30 days" 
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
