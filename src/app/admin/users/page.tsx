@@ -45,7 +45,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { logActivity } from '@/lib/activity-log';
-import type { User } from 'firebase/auth';
+import type { User as AuthUser } from 'firebase/auth';
 
 type Role = 'Admin' | 'Superadmin' | 'Superuser' | 'User';
 
@@ -104,7 +104,7 @@ export default function AdminUsersPage() {
 
   const formatDate = (timestamp?: Timestamp) => {
     if (!timestamp) return 'N/A';
-    return timestamp.toDate().toLocaleDateString();
+    return timestamp.toDate().toLocaleDateString('en-GB');
   };
 
   const handleToggleStatus = () => {

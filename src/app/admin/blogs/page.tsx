@@ -89,7 +89,7 @@ export default function AdminBlogsPage() {
 
   const formatDate = (timestamp?: Timestamp) => {
     if (!timestamp) return 'N/A';
-    return timestamp.toDate().toLocaleDateString();
+    return timestamp.toDate().toLocaleDateString('en-GB');
   };
 
   return (
