@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, use } from 'react';
 import Image from 'next/image';
 import { notFound, useRouter } from 'next/navigation';
 import { useDoc, useFirestore, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
@@ -15,13 +15,14 @@ import { ArrowLeft, Mail, Phone, Heart } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export default function PetDetailPage({ params }: { params: { id: string } }) {
+export default function PetDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const firestore = useFirestore();
+  const resolvedParams = use(params);
 
   const petDocRef = useMemoFirebase(
-      () => firestore ? doc(firestore, 'pets', params.id) : null,
-      [firestore, params.id]
+      () => firestore ? doc(firestore, 'pets', resolvedParams.id) : null,
+      [firestore, resolvedParams.id]
   );
 
   const { data: pet, isLoading, error } = useDoc<Pet>(petDocRef);
@@ -137,5 +138,3 @@ export default function PetDetailPage({ params }: { params: { id: string } }) {
     </div>
   );
 }
-
-    
