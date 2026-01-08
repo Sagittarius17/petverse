@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PetDetailDialog from '@/components/pet-detail-dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { PetFormDialog } from './pet-form-dialog';
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
@@ -73,6 +74,14 @@ export default function ProfilePage() {
       setPetToDelete(null);
     }
   };
+  
+  const handleEditSuccess = () => {
+    toast({
+        title: 'Pet Updated',
+        description: 'The pet\'s information has been successfully updated.',
+    });
+    setPetToEdit(null);
+  }
 
   const isLoading = isUserLoading || isPetsLoading;
 
@@ -161,7 +170,7 @@ export default function ProfilePage() {
             {favoritedPets.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {favoritedPets.map(pet => (
-                    <PetCard key={pet.id} pet={pet} />
+                    <PetCard key={pet.id} pet={pet} onPetSelect={() => setSelectedPet(pet)} />
                 ))}
                 </div>
             ) : (
@@ -180,6 +189,15 @@ export default function ProfilePage() {
     
     {selectedPet && (
         <PetDetailDialog pet={selectedPet} isOpen={!!selectedPet} onClose={() => setSelectedPet(null)} />
+    )}
+
+    {petToEdit && (
+        <PetFormDialog
+            isOpen={!!petToEdit}
+            onClose={() => setPetToEdit(null)}
+            pet={petToEdit}
+            onSuccess={handleEditSuccess}
+        />
     )}
 
     {petToDelete && (
