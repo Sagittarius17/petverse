@@ -174,6 +174,21 @@ export default function AdminUsersPage() {
     if (!currentUserProfile) return false;
     return user.id !== currentUserProfile.id;
   };
+  
+  const getAvailableRoles = (): Role[] => {
+    if (!currentUserProfile) return [];
+    
+    switch (currentUserProfile.role) {
+      case 'Superadmin':
+        return ['User', 'Superuser', 'Admin', 'Superadmin'];
+      case 'Admin':
+        return ['User', 'Superuser'];
+      case 'Superuser':
+        return ['User'];
+      default:
+        return [];
+    }
+  };
 
   return (
     <>
@@ -303,12 +318,9 @@ export default function AdminUsersPage() {
                             <SelectValue placeholder="Select a role" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="User">User</SelectItem>
-                            <SelectItem value="Superuser">Superuser</SelectItem>
-                            <SelectItem value="Admin">Admin</SelectItem>
-                             {currentUserProfile?.role === 'Superadmin' && (
-                                <SelectItem value="Superadmin">Superadmin</SelectItem>
-                             )}
+                            {getAvailableRoles().map((role) => (
+                                <SelectItem key={role} value={role}>{role}</SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                 </div>

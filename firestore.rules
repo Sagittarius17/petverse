@@ -77,21 +77,22 @@ service cloud.firestore {
       return isAdmin(userId);
     }
     
-    function canManageRole(requestingUserId, targetUserId, targetRole) {
+    function canManageRole(requestingUserId, targetUserId, newRole) {
       let requesterRole = getRole(requestingUserId);
       let targetCurrentRole = getRole(targetUserId);
 
-      // Superadmins can manage anyone.
+      // Superadmins can manage anyone, including assigning 'Superadmin'
       if (requesterRole == 'Superadmin') {
         return true;
       }
       // Admins cannot manage Superadmins or other Admins.
+      // Admins can only assign 'User' or 'Superuser' roles.
       if (requesterRole == 'Admin') {
-        return targetCurrentRole != 'Admin' && targetCurrentRole != 'Superadmin';
+        return targetCurrentRole != 'Admin' && targetCurrentRole != 'Superadmin' && (newRole == 'User' || newRole == 'Superuser');
       }
-      // Superusers can only manage Users.
+      // Superusers can only manage Users and can only assign the 'User' role.
       if (requesterRole == 'Superuser') {
-        return targetCurrentRole == 'User';
+        return targetCurrentRole == 'User' && newRole == 'User';
       }
       return false;
     }
