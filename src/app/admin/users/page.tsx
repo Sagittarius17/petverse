@@ -1,6 +1,6 @@
 'use client';
 
-import { MoreHorizontal, ShieldCheck, ShieldOff } from 'lucide-react';
+import { MoreHorizontal, ShieldCheck, ShieldOff, Crown, UserCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -59,6 +59,24 @@ interface UserProfile {
   role?: Role;
   status?: 'Active' | 'Inactive';
 }
+
+const roleVisuals: Record<Role, { icon: React.ElementType; color: string }> = {
+  Superadmin: { icon: Crown, color: 'text-amber-500' },
+  Admin: { icon: ShieldCheck, color: 'text-blue-500' },
+  Superuser: { icon: UserCheck, color: 'text-green-500' },
+  User: { icon: User, color: 'text-muted-foreground' },
+};
+
+function RoleDisplay({ role }: { role: Role }) {
+  const { icon: Icon, color } = roleVisuals[role] || roleVisuals.User;
+  return (
+    <div className={cn('flex items-center gap-2', color)}>
+      <Icon className="h-4 w-4" />
+      <span>{role}</span>
+    </div>
+  );
+}
+
 
 export default function AdminUsersPage() {
   const firestore = useFirestore();
@@ -186,7 +204,7 @@ export default function AdminUsersPage() {
                   <TableRow key={i}>
                     <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-40" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-12" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-6 w-16 rounded-full" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-8 w-8" /></TableCell>
@@ -197,7 +215,9 @@ export default function AdminUsersPage() {
                   <TableRow key={user.id} className={cn(user.status === 'Inactive' && 'bg-muted/50 text-muted-foreground')}>
                     <TableCell className="font-medium">{getDisplayName(user)}</TableCell>
                     <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.role || 'User'}</TableCell>
+                    <TableCell>
+                      <RoleDisplay role={user.role || 'User'} />
+                    </TableCell>
                     <TableCell>
                       <Badge variant={user.status === 'Active' ? 'default' : 'destructive'}>
                         {user.status || 'Active'}
