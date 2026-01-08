@@ -149,8 +149,8 @@ export default function ProfilePage() {
           <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
         </Avatar>
         <div className="text-center md:text-left flex-grow">
-          <h1 className="text-4xl font-bold font-headline">{user.displayName || 'Anonymous User'}</h1>
-          <p className="text-muted-foreground mt-1">{user.email}</p>
+          <h1 className="text-4xl font-bold font-headline">{userProfile?.username || user.displayName || 'Anonymous User'}</h1>
+          <p className="text-muted-foreground mt-1">@{userProfile?.username || user.email?.split('@')[0]}</p>
           <p className="mt-4 max-w-prose">
             {userProfile?.bio || 'A passionate animal lover and advocate for pet adoption. In my free time, I volunteer at the local shelter and enjoy long walks with my two rescue dogs.'}
           </p>
