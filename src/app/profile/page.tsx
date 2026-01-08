@@ -8,12 +8,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Edit, LogOut } from 'lucide-react';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import PetCard from '@/components/pet-card';
 import { type Pet } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { collection, query, where } from 'firebase/firestore';
 import Link from 'next/link';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
@@ -34,8 +34,6 @@ export default function ProfilePage() {
     }
   }, [user, isUserLoading, router]);
 
-  const userAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar-1');
-  
   // TODO: Fetch user's actual favorited pets
   const favoritedPets: Pet[] = [];
 
@@ -88,10 +86,13 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <div className="space-y-12">
-        <section>
-          <h2 className="text-2xl font-bold font-headline mb-4">My Submitted Pets</h2>
-          {submittedPets && submittedPets.length > 0 ? (
+      <Tabs defaultValue="submitted">
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="submitted">My Submitted Pets</TabsTrigger>
+          <TabsTrigger value="favorites">My Favorite Pets</TabsTrigger>
+        </TabsList>
+        <TabsContent value="submitted" className="mt-6">
+           {submittedPets && submittedPets.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {submittedPets.map(pet => (
                 <PetCard key={pet.id} pet={pet} />
@@ -107,21 +108,26 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
           )}
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-bold font-headline mb-4">My Favorited Pets</h2>
-          {favoritedPets.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {favoritedPets.map(pet => (
-                <PetCard key={pet.id} pet={pet} />
-              ))}
-            </div>
-          ) : (
-            <p className="text-muted-foreground">You haven't favorited any pets yet.</p>
-          )}
-        </section>
-      </div>
+        </TabsContent>
+        <TabsContent value="favorites" className="mt-6">
+            {favoritedPets.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {favoritedPets.map(pet => (
+                    <PetCard key={pet.id} pet={pet} />
+                ))}
+                </div>
+            ) : (
+                <Card>
+                    <CardContent className="pt-6 text-center">
+                        <p className="text-muted-foreground">You haven't favorited any pets yet.</p>
+                         <Button asChild variant="link">
+                            <Link href="/adopt">Find a pet to favorite</Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
