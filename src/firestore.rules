@@ -1,0 +1,293 @@
+/**
+ * Core Philosophy:
+ * This ruleset enforces a strict, user-centric security model combined with
+ * support for public, community-driven content. The primary principle is that
+ * users have complete control over their own data and content they create,
+ * while certain data types like blogs and service listings are publicly readable
+ * to foster a community environment.
+ *
+ * Data Structure:
+ * The data is organized into two main categories:
+ * 1. User-Private Data: All data strictly belonging to a user (like their
+ *    profile and pet information) is nested under the `/users/{userId}` path.
+ * 2. Public Collections: Top-level collections like `/blogs`, `/categories`,
+ *    `/vet_services`, and `/lost_found_reports` store data intended for public
+ *    consumption.
+ *
+ * Key Security Decisions:
+ * - Strict Ownership: A user can only access data within their own
+ *   `/users/{userId}` document tree.
+ * - Role-Based Access Control (RBAC): User permissions are determined by a 'role'
+ *   field ('User', 'Superuser', 'Admin', 'Superadmin') on their user document.
+ * - Superadmin has full CRUD access to all data.
+ * - Admin can manage Superusers and Users.
+ * - Superuser can manage Users.
+ * - Public Read, Owner Write: For public collections, read access is granted
+ *   to everyone, but write operations are strictly limited to the document's author.
+ * - Inactive users have no access to any data.
+ *
+ * Denormalization for Authorization:
+ * To ensure fast and secure authorization, this ruleset relies on denormalized
+ * ownership fields (e.g., `authorId`, `userId`) directly within documents in
+ * public collections. This avoids slow and insecure cross-document `get()`
+ * calls in rules.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* ─────────────────────────────
+       AUTHENTICATION HELPERS
+    ───────────────────────────── */
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function userDoc(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data;
+    }
+
+    function isActive(userId) {
+      return userDoc(userId).status == 'Active';
+    }
+
+    /* ─────────────────────────────
+       ROLE HELPERS (RBAC)
+    ───────────────────────────── */
+
+    function role(userId) {
+      return userDoc(userId).role;
+    }
+
+    function isSuperadmin(userId) {
+      return role(userId) == 'Superadmin';
+    }
+
+    function isAdmin(userId) {
+      return role(userId) == 'Admin' || isSuperadmin(userId);
+    }
+
+    function isSuperuser(userId) {
+      return role(userId) == 'Superuser' || isAdmin(userId);
+    }
+
+    /* ─────────────────────────────
+       ROLE MANAGEMENT RULE
+       (NO if / let / blocks)
+    ───────────────────────────── */
+
+    function canManageUser(requesterId, targetId) {
+      return
+        // Superadmin → everyone
+        isSuperadmin(requesterId)
+
+        ||
+
+        // Admin → Users & Superusers
+        (
+          isAdmin(requesterId) &&
+          role(targetId) != 'Admin' &&
+          role(targetId) != 'Superadmin'
+        );
+    }
+
+    /* ─────────────────────────────
+       COMMON WRITE VALIDATORS
+    ───────────────────────────── */
+
+    function createdBy(field) {
+      return
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        request.resource.data[field] == request.auth.uid;
+    }
+
+    function immutable(field) {
+      return request.resource.data[field] == resource.data[field];
+    }
+
+    /* ─────────────────────────────
+       USERS COLLECTION
+    ───────────────────────────── */
+
+    match /users/{userId} {
+
+      // Owner + Admins can read
+      allow get: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        (
+          isOwner(userId) ||
+          isAdmin(request.auth.uid)
+        );
+
+      // Only Admins & above can list users
+      allow list: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        isAdmin(request.auth.uid);
+
+      // User can create only their own doc
+      allow create: if
+        isOwner(userId);
+
+      // Owner OR role managers can update
+      allow update: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        (
+          isOwner(userId) ||
+          canManageUser(request.auth.uid, userId)
+        );
+
+      // Hard delete disabled (soft delete only)
+      allow delete: if false;
+    }
+
+    /* ─────────────────────────────
+       USER PETS (PRIVATE DATA)
+    ───────────────────────────── */
+
+    match /users/{userId}/pets/{petId} {
+      allow read, list: if
+        isOwner(userId) &&
+        isActive(request.auth.uid);
+
+      allow create: if
+        isOwner(userId) &&
+        isActive(request.auth.uid) &&
+        request.resource.data.userId == userId;
+
+      allow update: if
+        isOwner(userId) &&
+        isActive(request.auth.uid) &&
+        immutable('userId');
+
+      allow delete: if
+        isOwner(userId) &&
+        isActive(request.auth.uid);
+    }
+
+    /* ─────────────────────────────
+       PETS (PUBLIC CONTENT)
+    ───────────────────────────── */
+    
+    match /pets/{petId} {
+      allow get, list: if true;
+      allow create: if createdBy('userId');
+      allow delete: if 
+        (isSignedIn() && isSuperuser(request.auth.uid)) ||
+        (isSignedIn() && request.auth.uid == resource.data.userId);
+        
+      allow update: if 
+        (isSignedIn() && isSuperuser(request.auth.uid)) ||
+        (isSignedIn() && request.auth.uid == resource.data.userId && immutable('userId')) ||
+        (
+          request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['viewCount'])
+        );
+    }
+
+    /* ─────────────────────────────
+       BLOGS (PUBLIC CONTENT)
+    ───────────────────────────── */
+
+    match /blogs/{blogId} {
+      allow read, list: if true;
+
+      allow create: if
+        createdBy('authorId');
+
+      allow update: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        request.auth.uid == resource.data.authorId &&
+        immutable('authorId');
+
+      allow delete: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        request.auth.uid == resource.data.authorId;
+    }
+
+    /* ─────────────────────────────
+       CATEGORIES (READ-ONLY)
+    ───────────────────────────── */
+
+    match /categories/{categoryId} {
+      allow read, list: if true;
+      allow write: if false;
+    }
+
+    /* ─────────────────────────────
+       VET SERVICES (PUBLIC LISTINGS)
+    ───────────────────────────── */
+
+    match /vet_services/{serviceId} {
+      allow read, list: if true;
+
+      allow create: if
+        createdBy('userId');
+
+      allow update: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        request.auth.uid == resource.data.userId &&
+        immutable('userId');
+
+      allow delete: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        request.auth.uid == resource.data.userId;
+    }
+
+    /* ─────────────────────────────
+       LOST & FOUND REPORTS
+    ───────────────────────────── */
+
+    match /lost_found_reports/{reportId} {
+      allow read, list: if true;
+
+      allow create: if
+        createdBy('userId');
+
+      allow update: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        request.auth.uid == resource.data.userId &&
+        immutable('userId');
+
+      allow delete: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        request.auth.uid == resource.data.userId;
+    }
+
+    /* ─────────────────────────────
+       ACTIVITIES (ADMIN LOGS)
+    ───────────────────────────── */
+
+    match /activities/{activityId} {
+      allow read, list, create: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        isSuperuser(request.auth.uid);
+
+      allow update, delete: if false;
+    }
+
+    /* ─────────────────────────────
+       ANIMAL BREEDS (PUBLIC)
+    ───────────────────────────── */
+
+    match /animalBreeds/{breedId} {
+      allow read, list: if true;
+      allow create, update, delete: if isSignedIn() && isSuperuser(request.auth.uid);
+    }
+  }
+}

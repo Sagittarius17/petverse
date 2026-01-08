@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useUser, useAuth } from '@/firebase';
+import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -10,13 +10,23 @@ import { Button } from '@/components/ui/button';
 import { Edit, LogOut } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import PetCard from '@/components/pet-card';
-import { allPets } from '@/lib/data';
+import { type Pet } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
+import { collection, query, where } from 'firebase/firestore';
+import Link from 'next/link';
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
+  const firestore = useFirestore();
   const router = useRouter();
+
+  const userPetsQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return query(collection(firestore, 'pets'), where('userId', '==', user.uid));
+  }, [firestore, user]);
+
+  const { data: submittedPets, isLoading: isPetsLoading } = useCollection<Pet>(userPetsQuery);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -25,14 +35,20 @@ export default function ProfilePage() {
   }, [user, isUserLoading, router]);
 
   const userAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar-1');
-  const favoritedPets = allPets.slice(2, 4);
+  
+  // TODO: Fetch user's actual favorited pets
+  const favoritedPets: Pet[] = [];
 
   const handleLogout = async () => {
-    await auth.signOut();
-    router.push('/');
+    if (auth) {
+      await auth.signOut();
+      router.push('/');
+    }
   };
 
-  if (isUserLoading || !user) {
+  const isLoading = isUserLoading || isPetsLoading;
+
+  if (isLoading || !user) {
     return (
       <div className="container mx-auto max-w-5xl px-4 py-8">
         <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-12">
@@ -74,6 +90,26 @@ export default function ProfilePage() {
 
       <div className="space-y-12">
         <section>
+          <h2 className="text-2xl font-bold font-headline mb-4">My Submitted Pets</h2>
+          {submittedPets && submittedPets.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {submittedPets.map(pet => (
+                <PetCard key={pet.id} pet={pet} />
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="pt-6 text-center">
+                <p className="text-muted-foreground">You haven't submitted any pets for adoption yet.</p>
+                <Button asChild variant="link">
+                    <Link href="/submit-pet">Submit a Pet for Adoption</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </section>
+
+        <section>
           <h2 className="text-2xl font-bold font-headline mb-4">My Favorited Pets</h2>
           {favoritedPets.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -82,20 +118,8 @@ export default function ProfilePage() {
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground">You haven&apos;t favorited any pets yet.</p>
+            <p className="text-muted-foreground">You haven't favorited any pets yet.</p>
           )}
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-bold font-headline mb-4">My Submitted Pets</h2>
-          <Card>
-            <CardContent className="pt-6 text-center">
-              <p className="text-muted-foreground">You haven&apos;t submitted any pets for adoption yet.</p>
-              <Button asChild variant="link">
-                  <a href="/submit-pet">Submit a Pet for Adoption</a>
-              </Button>
-            </CardContent>
-          </Card>
         </section>
       </div>
     </div>
