@@ -36,7 +36,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions to simplify and clarify rule logic.
+    /* ─────────────────────────────
+       AUTHENTICATION HELPERS
+    ───────────────────────────── */
 
     function isSignedIn() {
       return request.auth != null;
@@ -46,123 +48,249 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Function to get data from a user's document.
-    function getUserData(userId) {
+    function userDoc(userId) {
       return get(/databases/$(database)/documents/users/$(userId)).data;
     }
-    
-    function getRole(userId) {
-      return getUserData(userId).role;
-    }
 
-    // Check if user is active
     function isActive(userId) {
-      return getUserData(userId).status == 'Active';
+      return userDoc(userId).status == 'Active';
     }
-    
+
+    /* ─────────────────────────────
+       ROLE HELPERS (RBAC)
+    ───────────────────────────── */
+
+    function role(userId) {
+      return userDoc(userId).role;
+    }
+
     function isSuperadmin(userId) {
-      return isSignedIn() && getRole(userId) == 'Superadmin';
+      return role(userId) == 'Superadmin';
     }
-    
+
     function isAdmin(userId) {
-      return isSignedIn() && (getRole(userId) == 'Admin' || isSuperadmin(userId));
+      return role(userId) == 'Admin' || isSuperadmin(userId);
     }
-    
+
     function isSuperuser(userId) {
-      return isSignedIn() && (getRole(userId) == 'Superuser' || isAdmin(userId));
-    }
-    
-    function canReadUsers(userId) {
-      // Allows admins and superadmins to read any user profile.
-      return isAdmin(userId);
-    }
-    
-    function canManageRole(requestingUserId, targetUserId, newRole) {
-      let requesterRole = getRole(requestingUserId);
-
-      // Superadmins can manage anyone, including assigning 'Superadmin'
-      if (requesterRole == 'Superadmin') {
-        return true;
-      }
-      // Admins cannot manage Superadmins or other Admins.
-      // Admins can only assign 'User' or 'Superuser' roles.
-      if (requesterRole == 'Admin') {
-        return getRole(targetUserId) != 'Admin' && getRole(targetUserId) != 'Superadmin';
-      }
-      return false;
+      return role(userId) == 'Superuser' || isAdmin(userId);
     }
 
-    function createdByAuthenticatedUser(fieldName) {
-      return isSignedIn() && isActive(request.auth.uid) && request.resource.data[fieldName] == request.auth.uid;
+    /* ─────────────────────────────
+       ROLE MANAGEMENT RULE
+       (NO if / let / blocks)
+    ───────────────────────────── */
+
+    function canManageUser(requesterId, targetId) {
+      return
+        // Superadmin → everyone
+        isSuperadmin(requesterId)
+
+        ||
+
+        // Admin → Users & Superusers
+        (
+          role(requesterId) == 'Admin' &&
+          role(targetId) != 'Admin' &&
+          role(targetId) != 'Superadmin'
+        )
+
+        ||
+
+        // Superuser → Users only
+        (
+          role(requesterId) == 'Superuser' &&
+          role(targetId) == 'User'
+        );
     }
 
-    function isImmutable(fieldName) {
-      return request.resource.data[fieldName] == resource.data[fieldName];
+    /* ─────────────────────────────
+       COMMON WRITE VALIDATORS
+    ───────────────────────────── */
+
+    function createdBy(field) {
+      return
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        request.resource.data[field] == request.auth.uid;
     }
+
+    function immutable(field) {
+      return request.resource.data[field] == resource.data[field];
+    }
+
+    /* ─────────────────────────────
+       USERS COLLECTION
+    ───────────────────────────── */
 
     match /users/{userId} {
-      allow get: if (isOwner(userId) || canReadUsers(request.auth.uid)) && isActive(request.auth.uid);
-      allow list: if isAdmin(request.auth.uid) && isActive(request.auth.uid);
-      allow create: if isOwner(userId);
-      // More granular update rule
-      allow update: if isActive(request.auth.uid) && 
-                      (isOwner(userId) || canManageRole(request.auth.uid, userId, request.resource.data.role));
-      // Deletes are disallowed. Status should be set to 'Inactive' via an update.
-      allow delete: if false; 
-    }
 
-    match /users/{userId}/pets/{petId} {
-      allow get: if isOwner(userId) && isActive(request.auth.uid);
-      allow list: if isOwner(userId) && isActive(request.auth.uid);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId && isActive(request.auth.uid);
-      allow update: if isOwner(userId) && isImmutable('userId') && isActive(request.auth.uid);
-      allow delete: if isOwner(userId) && isActive(request.auth.uid);
-    }
+      // Owner + Admins can read
+      allow get: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        (
+          isOwner(userId) ||
+          isAdmin(request.auth.uid)
+        );
 
-    match /pets/{petId} {
-      allow read: if true;
-      allow create: if isSuperuser(request.auth.uid); // Only admins/superusers can create public pet listings
-      allow update: if isSuperuser(request.auth.uid) || isOwner(resource.data.userId); // Allow owner or admin to update
-      allow delete: if isSuperuser(request.auth.uid) || isOwner(resource.data.userId); // Allow owner or admin to delete
-    }
+      // Only Admins & above can list users
+      allow list: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        isAdmin(request.auth.uid);
 
-    match /blogs/{blogId} {
-      allow read: if true;
-      allow create: if createdByAuthenticatedUser('authorId');
-      allow update: if (isOwner(resource.data.authorId) || isAdmin(request.auth.uid)) && isImmutable('authorId') && isImmutable('createdAt') && isActive(request.auth.uid);
-      allow delete: if isOwner(resource.data.authorId) || isAdmin(request.auth.uid) && isActive(request.auth.uid);
-    }
+      // User can create only their own doc
+      allow create: if
+        isOwner(userId);
 
-    match /categories/{categoryId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if false;
-      allow update: if false;
+      // Owner OR role managers can update
+      allow update: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        (
+          isOwner(userId) ||
+          canManageUser(request.auth.uid, userId)
+        );
+
+      // Hard delete disabled (soft delete only)
       allow delete: if false;
     }
 
-    match /vet_services/{vetServiceId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if createdByAuthenticatedUser('userId');
-      allow update: if isOwner(resource.data.userId) && isImmutable('userId') && isActive(request.auth.uid);
-      allow delete: if isOwner(resource.data.userId) && isActive(request.auth.uid);
+    /* ─────────────────────────────
+       USER PETS (PRIVATE DATA)
+    ───────────────────────────── */
+
+    match /users/{userId}/pets/{petId} {
+      allow read, list: if
+        isOwner(userId) &&
+        isActive(request.auth.uid);
+
+      allow create: if
+        isOwner(userId) &&
+        isActive(request.auth.uid) &&
+        request.resource.data.userId == userId;
+
+      allow update: if
+        isOwner(userId) &&
+        isActive(request.auth.uid) &&
+        immutable('userId');
+
+      allow delete: if
+        isOwner(userId) &&
+        isActive(request.auth.uid);
     }
 
-    match /lost_found_reports/{lostFoundReportId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if createdByAuthenticatedUser('userId');
-      allow update: if isOwner(resource.data.userId) && isImmutable('userId') && isActive(request.auth.uid);
-      allow delete: if isOwner(resource.data.userId) && isActive(request.auth.uid);
+    /* ─────────────────────────────
+       PETS (PUBLIC CONTENT)
+    ───────────────────────────── */
+    
+    match /pets/{petId} {
+      allow get, list: if true;
+      allow create, delete: if isSignedIn() && isSuperuser(request.auth.uid);
+      allow update: if 
+        (isSignedIn() && isSuperuser(request.auth.uid)) ||
+        (
+          request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['viewCount'])
+        );
     }
+
+    /* ─────────────────────────────
+       BLOGS (PUBLIC CONTENT)
+    ───────────────────────────── */
+
+    match /blogs/{blogId} {
+      allow read, list: if true;
+
+      allow create: if
+        createdBy('authorId');
+
+      allow update: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        request.auth.uid == resource.data.authorId &&
+        immutable('authorId');
+
+      allow delete: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        request.auth.uid == resource.data.authorId;
+    }
+
+    /* ─────────────────────────────
+       CATEGORIES (READ-ONLY)
+    ───────────────────────────── */
+
+    match /categories/{categoryId} {
+      allow read, list: if true;
+      allow write: if false;
+    }
+
+    /* ─────────────────────────────
+       VET SERVICES (PUBLIC LISTINGS)
+    ───────────────────────────── */
+
+    match /vet_services/{serviceId} {
+      allow read, list: if true;
+
+      allow create: if
+        createdBy('userId');
+
+      allow update: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        request.auth.uid == resource.data.userId &&
+        immutable('userId');
+
+      allow delete: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        request.auth.uid == resource.data.userId;
+    }
+
+    /* ─────────────────────────────
+       LOST & FOUND REPORTS
+    ───────────────────────────── */
+
+    match /lost_found_reports/{reportId} {
+      allow read, list: if true;
+
+      allow create: if
+        createdBy('userId');
+
+      allow update: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        request.auth.uid == resource.data.userId &&
+        immutable('userId');
+
+      allow delete: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        request.auth.uid == resource.data.userId;
+    }
+
+    /* ─────────────────────────────
+       ACTIVITIES (ADMIN LOGS)
+    ───────────────────────────── */
 
     match /activities/{activityId} {
-      allow get, list: if isSuperuser(request.auth.uid) && isActive(request.auth.uid);
-      allow create: if isSuperuser(request.auth.uid) && isActive(request.auth.uid);
+      allow read, list, create: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        isSuperuser(request.auth.uid);
+
       allow update, delete: if false;
+    }
+
+    /* ─────────────────────────────
+       ANIMAL BREEDS (PUBLIC)
+    ───────────────────────────── */
+
+    match /animalBreeds/{breedId} {
+      allow read, list: if true;
+      allow create, update, delete: if isSignedIn() && isSuperuser(request.auth.uid);
     }
   }
 }
-
-    
