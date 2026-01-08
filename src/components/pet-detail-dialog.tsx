@@ -28,24 +28,25 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
   );
   
   useEffect(() => {
-    // Reset view flag when the pet changes or dialog closes
-    if (!isOpen) {
-      setHasBeenViewed(false);
-    }
-  }, [isOpen]);
-
-
-  useEffect(() => {
-    // Only increment if the dialog is open, we have a document reference,
-    // and this specific dialog session hasn't already incremented the count.
-    if (isOpen && petDocRef && !hasBeenViewed) {
-      updateDocumentNonBlocking(petDocRef, {
-        viewCount: increment(1)
-      });
-      // Set the flag to true to prevent further increments in this session
-      setHasBeenViewed(true);
+    // This single effect handles both incrementing the view and resetting the state.
+    if (isOpen) {
+      // Only increment if the dialog is open, we have a document reference,
+      // and this specific dialog session hasn't already incremented the count.
+      if (petDocRef && !hasBeenViewed) {
+        updateDocumentNonBlocking(petDocRef, {
+          viewCount: increment(1)
+        });
+        // Set the flag to true to prevent further increments in this session
+        setHasBeenViewed(true);
+      }
+    } else {
+      // When the dialog closes, reset the flag for the next time it opens.
+      if (hasBeenViewed) {
+        setHasBeenViewed(false);
+      }
     }
   }, [isOpen, petDocRef, hasBeenViewed]);
+
 
   if (!pet) {
     return null;
