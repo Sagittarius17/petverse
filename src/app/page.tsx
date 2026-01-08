@@ -1,14 +1,42 @@
+'use client';
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, PawPrint } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { featuredPets, featuredCareGuides } from '@/lib/data';
+import { featuredCareGuides, type Pet } from '@/lib/data';
 import PetCard from '@/components/pet-card';
 import CareGuideCard from '@/components/care-guide-card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
+import PetDetailDialog from '@/components/pet-detail-dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Home() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-1');
+  const firestore = useFirestore();
+  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
+
+  const petsCollection = useMemoFirebase(
+    () => collection(firestore, 'pets'),
+    [firestore]
+  );
+  
+  const petsQuery = useMemoFirebase(
+    () => petsCollection ? query(petsCollection, orderBy('name'), limit(4)) : null,
+    [petsCollection]
+  );
+
+  const { data: featuredPets, isLoading: petsLoading } = useCollection<Pet>(petsQuery);
+
+  const handlePetSelect = (pet: Pet) => {
+    setSelectedPet(pet);
+  };
+
+  const handleCloseDialog = () => {
+    setSelectedPet(null);
+  };
 
   return (
     <div className="flex flex-col">
@@ -60,13 +88,26 @@ export default function Home() {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {featuredPets.map((pet) => (
-              <PetCard key={pet.id} pet={pet} />
-            ))}
+             {petsLoading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="space-y-2">
+                        <Skeleton className="h-48 w-full" />
+                        <Skeleton className="h-6 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                        <Skeleton className="h-10 w-full" />
+                    </div>
+                ))
+            ) : (
+                featuredPets?.map((pet) => (
+                    <PetCard key={pet.id} pet={pet} onPetSelect={handlePetSelect} />
+                ))
+            )}
           </div>
           <div className="text-center">
-            <Button asChild variant="link" className="text-accent-foreground">
-              <Link href="/adopt">View All Adoptable Pets <ArrowRight className="ml-2" /></Link>
+             <Button asChild size="lg" variant="secondary">
+                <Link href="/adopt">
+                    View All Adoptable Pets <ArrowRight className="ml-2" />
+                </Link>
             </Button>
           </div>
         </div>
@@ -112,6 +153,14 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {selectedPet && (
+        <PetDetailDialog
+          pet={selectedPet}
+          isOpen={!!selectedPet}
+          onClose={handleCloseDialog}
+        />
+      )}
     </div>
   );
 }
