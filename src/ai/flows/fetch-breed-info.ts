@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Fetches detailed information about a specific pet breed using an AI model and saves it to Firestore.
@@ -25,7 +26,7 @@ export async function fetchBreedInfo(input: FetchBreedInfoInput): Promise<z.infe
   if (db) {
     try {
       const breedId = `${input.speciesName.toLowerCase()}-${result.name.replace(/ /g, '-').toLowerCase()}`;
-      const breedRef = db.collection('aiBreeds').doc(breedId);
+      const breedRef = db.collection('animalBreeds').doc(breedId);
       
       const breedData = {
         ...result,

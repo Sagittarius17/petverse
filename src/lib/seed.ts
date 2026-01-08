@@ -1,3 +1,4 @@
+
 import { initialPetCategories } from './initial-pet-data';
 import { db } from '../firebase/server';
 import dotenv from 'dotenv';
@@ -11,7 +12,7 @@ export async function seedDatabase() {
     for (const species of category.species) {
       if (species.breeds) {
         for (const breed of species.breeds) {
-          const breedRef = db.collection('aiBreeds').doc(`${species.name.toLowerCase()}-${breed.name.replace(/ /g, '-').toLowerCase()}`);
+          const breedRef = db.collection('animalBreeds').doc(`${species.name.toLowerCase()}-${breed.name.replace(/ /g, '-').toLowerCase()}`);
           await breedRef.set({
             ...breed,
             speciesName: species.name,

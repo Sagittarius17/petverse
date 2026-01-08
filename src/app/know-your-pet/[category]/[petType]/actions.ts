@@ -1,3 +1,4 @@
+
 "use server";
 
 import { PetBreed, PetCategory, initialPetCategories } from '@/lib/initial-pet-data';
@@ -8,17 +9,17 @@ export async function getPetCategories(): Promise<PetCategory[]> {
 
   try {
     if (!db) {
-        console.warn("Firestore is not initialized. Skipping fetching AI breeds.");
+        console.warn("Firestore is not initialized. Skipping fetching animal breeds.");
         return allCategories;
     }
-    const aiBreedsSnapshot = await db.collection('aiBreeds').get();
-    const aiBreeds: PetBreed[] = aiBreedsSnapshot.docs.map(doc => ({
+    const animalBreedsSnapshot = await db.collection('animalBreeds').get();
+    const animalBreeds: PetBreed[] = animalBreedsSnapshot.docs.map(doc => ({
       id: doc.id, // Store the Firestore document ID
       ...doc.data()
     })) as PetBreed[];
 
-    aiBreeds.forEach(aiBreed => {
-      const { speciesName, categoryName, ...restOfBreed } = aiBreed as any; // Destructure extra fields
+    animalBreeds.forEach(animalBreed => {
+      const { speciesName, categoryName, ...restOfBreed } = animalBreed as any; // Destructure extra fields
       const category = allCategories.find(cat => cat.category.toLowerCase() === categoryName.toLowerCase());
       if (category) {
         const species = category.species.find(sp => sp.name.toLowerCase() === speciesName.toLowerCase());
@@ -35,7 +36,7 @@ export async function getPetCategories(): Promise<PetCategory[]> {
     });
 
   } catch (error) {
-    console.error("Error fetching AI breeds from Firestore:", error);
+    console.error("Error fetching animal breeds from Firestore:", error);
     // Optionally, handle error more gracefully, e.g., return initial categories only
   }
 
