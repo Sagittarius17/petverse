@@ -62,6 +62,10 @@ const fetchBreedInfoPrompt = ai.definePrompt({
 
     Your task is to provide detailed information for the breed: '{{breedName}}' of the species '{{speciesName}}'.
 
+    First, determine if '{{breedName}}' is a real, recognized breed for the '{{speciesName}}' species.
+    - If it is NOT a real breed, set the 'isReal' output field to false and DO NOT generate any other information.
+    - If it IS a real breed, set 'isReal' to true and proceed to generate the following information:
+
     Generate a concise, one-sentence 'description' for this breed.
 
     Then, provide a comprehensive set of care details in the 'careDetails' array. Include the following topics if they are relevant to the species:
@@ -114,24 +118,39 @@ const fetchBreedInfoFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const [info, imageUrl] = await Promise.all([
+      const [infoResult, imageUrl] = await Promise.all([
         fetchBreedInfoPrompt(input),
         generateImageForBreed(input),
       ]);
   
+      const info = infoResult.output;
+      
+      if (!info || !info.isReal) {
+        throw new Error(`'${input.breedName}' is not a recognized ${input.speciesName} breed.`);
+      }
+
       const imageUrls = imageUrl ? [imageUrl] : [];
       
       return {
-        ...info.output!,
+        ...info,
         imageIds: imageUrls,
       };
 
     } catch (error) {
-      console.warn("Image generation failed. Continuing without images. Error:", error);
-      // If image generation fails, fetch only the text info.
-      const info = await fetchBreedInfoPrompt(input);
+       if (error instanceof Error && error.message.includes("is not a recognized")) {
+         throw error; // Re-throw the specific error for the client to catch
+       }
+      console.warn("Image generation or full info fetch failed. Trying text-only. Error:", error);
+      // If image generation or the main call fails, try one more time for just the text.
+      const infoResult = await fetchBreedInfoPrompt(input);
+      const info = infoResult.output;
+
+      if (!info || !info.isReal) {
+        throw new Error(`'${input.breedName}' is not a recognized ${input.speciesName} breed.`);
+      }
+      
       return {
-        ...info.output!,
+        ...info,
         imageIds: [], // Return empty array for images
       };
     }

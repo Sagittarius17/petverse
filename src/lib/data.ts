@@ -16,9 +16,10 @@ export const PetBreedSchema = z.object({
 export type PetBreed = z.infer<typeof PetBreedSchema>;
 
 export const FetchBreedInfoOutputSchema = z.object({
-  name: z.string().describe('The official name of the breed.'),
-  description: z.string().describe('A brief, one-sentence description of the breed.'),
-  careDetails: z.array(BreedCareDetailSchema).describe('An array of detailed care topics for the breed.'),
+  isReal: z.boolean().describe("Whether or not the breed is a real, recognized breed."),
+  name: z.string().describe('The official name of the breed.').optional(),
+  description: z.string().describe('A brief, one-sentence description of the breed.').optional(),
+  careDetails: z.array(BreedCareDetailSchema).describe('An array of detailed care topics for the breed.').optional(),
 });
 
 export const PetBreedWithImagesSchema = FetchBreedInfoOutputSchema.extend({
