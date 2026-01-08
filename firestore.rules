@@ -90,10 +90,6 @@ service cloud.firestore {
       if (requesterRole == 'Admin') {
         return targetCurrentRole != 'Admin' && targetCurrentRole != 'Superadmin' && (newRole == 'User' || newRole == 'Superuser');
       }
-      // Superusers can only manage Users and can only assign the 'User' role.
-      if (requesterRole == 'Superuser') {
-        return targetCurrentRole == 'User' && newRole == 'User';
-      }
       return false;
     }
 
@@ -107,7 +103,7 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow get: if (isOwner(userId) || canReadUsers(request.auth.uid)) && isActive(request.auth.uid);
-      allow list: if isSuperuser(request.auth.uid) && isActive(request.auth.uid);
+      allow list: if isAdmin(request.auth.uid) && isActive(request.auth.uid);
       allow create: if isOwner(userId);
       // More granular update rule
       allow update: if isActive(request.auth.uid) && 

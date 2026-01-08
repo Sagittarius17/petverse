@@ -165,7 +165,6 @@ export default function AdminUsersPage() {
 
     if (requesterRole === 'Superadmin') return true;
     if (requesterRole === 'Admin') return targetRole !== 'Admin' && targetRole !== 'Superadmin';
-    if (requesterRole === 'Superuser') return targetRole === 'User';
     
     return false;
   };
@@ -183,8 +182,6 @@ export default function AdminUsersPage() {
         return ['User', 'Superuser', 'Admin', 'Superadmin'];
       case 'Admin':
         return ['User', 'Superuser'];
-      case 'Superuser':
-        return ['User'];
       default:
         return [];
     }
