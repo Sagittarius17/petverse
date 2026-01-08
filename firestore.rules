@@ -61,20 +61,20 @@ service cloud.firestore {
     }
     
     function isSuperadmin(userId) {
-        return isSignedIn() && getRole(userId) == 'Superadmin';
+      return isSignedIn() && getRole(userId) == 'Superadmin';
     }
     
     function isAdmin(userId) {
-        return isSignedIn() && (getRole(userId) == 'Admin' || isSuperadmin(userId));
+      return isSignedIn() && (getRole(userId) == 'Admin' || isSuperadmin(userId));
     }
     
     function isSuperuser(userId) {
-        return isSignedIn() && (getRole(userId) == 'Superuser' || isAdmin(userId));
+      return isSignedIn() && (getRole(userId) == 'Superuser' || isAdmin(userId));
     }
     
     function canReadUsers(userId) {
       // Allows admins and superadmins to read any user profile.
-      return isAdmin(userId) || isSuperadmin(userId);
+      return isAdmin(userId);
     }
     
     function canManageRole(requestingUserId, targetUserId, targetRole) {
