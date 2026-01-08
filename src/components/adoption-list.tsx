@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { PawPrint } from 'lucide-react';
+import PetDetailDialog from './pet-detail-dialog';
 
 interface AdoptionListProps {
   allPets: Pet[];
@@ -17,6 +18,7 @@ export default function AdoptionList({ allPets }: AdoptionListProps) {
   const [speciesFilter, setSpeciesFilter] = useState('All');
   const [ageFilter, setAgeFilter] = useState('All');
   const [genderFilter, setGenderFilter] = useState('All');
+  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
 
   const filteredPets = useMemo(() => {
     return allPets.filter(pet => {
@@ -24,7 +26,7 @@ export default function AdoptionList({ allPets }: AdoptionListProps) {
         pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pet.breed.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesSpecies = speciesFilter === 'All' || pet.species === speciesFilter;
-      const matchesAge = ageFilter === 'All' || pet.age.includes(ageFilter.replace(' years', '').replace(' year', ''));
+      const matchesAge = ageFilter === 'All' || (pet.age && pet.age.includes(ageFilter.replace(' years', '').replace(' year', '')));
       const matchesGender = genderFilter === 'All' || pet.gender === genderFilter;
       
       return matchesSearch && matchesSpecies && matchesAge && matchesGender;
@@ -35,8 +37,16 @@ export default function AdoptionList({ allPets }: AdoptionListProps) {
   // Simple age groups for filtering
   const ageGroups = ['All', '6 months', '1 year', '2 years', '3 years', '4 years', '5 years'];
 
+  const handlePetSelect = (pet: Pet) => {
+    setSelectedPet(pet);
+  };
+
+  const handleCloseDialog = () => {
+    setSelectedPet(null);
+  };
+
   return (
-    <div>
+    <>
       <Card className="mb-8 shadow-md">
         <CardContent className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
             <Input
@@ -65,7 +75,7 @@ export default function AdoptionList({ allPets }: AdoptionListProps) {
       {filteredPets.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredPets.map(pet => (
-            <PetCard key={pet.id} pet={pet} />
+            <PetCard key={pet.id} pet={pet} onPetSelect={handlePetSelect} />
           ))}
         </div>
       ) : (
@@ -77,6 +87,14 @@ export default function AdoptionList({ allPets }: AdoptionListProps) {
           </p>
         </div>
       )}
-    </div>
+
+      {selectedPet && (
+        <PetDetailDialog
+          pet={selectedPet}
+          isOpen={!!selectedPet}
+          onClose={handleCloseDialog}
+        />
+      )}
+    </>
   );
 }

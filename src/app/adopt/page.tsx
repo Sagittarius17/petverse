@@ -1,4 +1,3 @@
-
 'use client';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
@@ -50,5 +49,3 @@ export default function AdoptPage() {
     </div>
   );
 }
-
-    

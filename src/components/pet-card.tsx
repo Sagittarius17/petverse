@@ -1,5 +1,6 @@
+'use client';
+
 import Image from 'next/image';
-import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,15 +10,18 @@ import { Eye } from 'lucide-react';
 
 interface PetCardProps {
   pet: Pet;
+  onPetSelect: (pet: Pet) => void;
 }
 
-export default function PetCard({ pet }: PetCardProps) {
+export default function PetCard({ pet, onPetSelect }: PetCardProps) {
   const image = PlaceHolderImages.find(p => p.id === pet.imageId);
 
   return (
-    <Card className="flex flex-col overflow-hidden transition-all hover:shadow-lg">
+    <Card 
+      className="flex flex-col overflow-hidden transition-all hover:shadow-lg cursor-pointer group"
+      onClick={() => onPetSelect(pet)}
+    >
       <CardHeader className="relative h-48 w-full p-0">
-        <Link href={`/adopt/${pet.id}`}>
           {image && (
             <Image
               src={image.imageUrl}
@@ -28,15 +32,14 @@ export default function PetCard({ pet }: PetCardProps) {
               className="transition-transform duration-300 group-hover:scale-105"
             />
           )}
-        </Link>
         <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
           <Eye className="h-3 w-3" />
           <span>{pet.viewCount || 0}</span>
         </div>
       </CardHeader>
       <CardContent className="flex-grow p-4">
-        <CardTitle className="mb-2 text-xl font-headline">
-          <Link href={`/adopt/${pet.id}`} className="hover:underline">{pet.name}</Link>
+        <CardTitle className="mb-2 text-xl font-headline group-hover:underline">
+          {pet.name}
         </CardTitle>
         <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
           <Badge variant="secondary">{pet.breed}</Badge>
@@ -46,12 +49,10 @@ export default function PetCard({ pet }: PetCardProps) {
         <p className="mt-3 text-sm line-clamp-2">{pet.description}</p>
       </CardContent>
       <CardFooter className="p-4 pt-0">
-        <Button asChild className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
-          <Link href={`/adopt/${pet.id}`}>Meet {pet.name}</Link>
+        <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
+          Meet {pet.name}
         </Button>
       </CardFooter>
     </Card>
   );
 }
-
-    
