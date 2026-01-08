@@ -1,6 +1,6 @@
 'use client';
 
-import { MoreHorizontal, ShieldCheck, ShieldOff, Crown, User as UserIcon } from 'lucide-react';
+import { MoreHorizontal, ShieldCheck, ShieldOff, Crown, User as UserIcon, UserCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
