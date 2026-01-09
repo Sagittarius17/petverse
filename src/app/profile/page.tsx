@@ -116,34 +116,41 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const fetchFavoritedBreeds = async () => {
-      if (!firestore || !favoriteBreedDocs) {
-        setFavoritedBreeds([]);
-        setIsFavoritesLoading(false);
-        return;
-      }
-      setIsFavoritesLoading(true);
-      try {
+        setIsFavoritesLoading(true);
+        if (!firestore || !favoriteBreedDocs) {
+            setFavoritedBreeds([]);
+            setIsFavoritesLoading(false);
+            return;
+        }
+
         const breedIds = favoriteBreedDocs.map(fav => fav.breedId);
+
         if (breedIds.length === 0) {
             setFavoritedBreeds([]);
             setIsFavoritesLoading(false);
             return;
         }
-        
-        const breedsQuery = query(collection(firestore, 'animalBreeds'), where('__name__', 'in', breedIds));
-        const breedSnapshots = await getDocs(breedsQuery);
-        const breeds = breedSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as PetBreed));
-        setFavoritedBreeds(breeds);
 
-      } catch (e) {
-        console.error("Error fetching favorited breeds:", e);
-        setFavoritedBreeds([]);
-      } finally {
-        setIsFavoritesLoading(false);
-      }
+        try {
+            const breedsQuery = query(collection(firestore, 'animalBreeds'), where('__name__', 'in', breedIds));
+            const breedSnapshots = await getDocs(breedsQuery);
+            const breeds = breedSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as PetBreed));
+            setFavoritedBreeds(breeds);
+        } catch (e) {
+            console.error("Error fetching favorited breeds:", e);
+            toast({
+                variant: 'destructive',
+                title: 'Error Fetching Favorites',
+                description: 'Could not load your favorite breeds. Please try again later.'
+            });
+            setFavoritedBreeds([]);
+        } finally {
+            setIsFavoritesLoading(false);
+        }
     };
+
     fetchFavoritedBreeds();
-  }, [favoriteBreedDocs, firestore]);
+  }, [favoriteBreedDocs, firestore, toast]);
   
 
   const handleLogout = async () => {
@@ -294,7 +301,22 @@ export default function ProfilePage() {
           )}
         </TabsContent>
         <TabsContent value="favorites" className="mt-6">
-            {favoritedBreeds.length > 0 ? (
+            {isFavoritesLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Card key={i}>
+                    <CardHeader className="relative h-40 w-full p-0">
+                      <Skeleton className="h-full w-full" />
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <Skeleton className="h-6 w-3/4 mb-2" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-full mt-1" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : favoritedBreeds.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {favoritedBreeds.map(breed => (
                     <FavoriteBreedCard key={breed.name} breed={breed} onSelect={setSelectedBreed} />
@@ -354,3 +376,5 @@ export default function ProfilePage() {
     </>
   );
 }
+
+    
