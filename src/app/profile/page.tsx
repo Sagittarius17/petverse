@@ -23,6 +23,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 
 interface UserProfile extends DocumentData {
+    displayName: string;
     username: string;
     email: string;
     bio?: string;
@@ -112,7 +113,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const fetchFavoritedBreeds = async () => {
-      if (!firestore || !favoriteBreedDocs || favoriteBreedDocs.length === 0) {
+      if (!firestore || !favoriteBreedDocs) {
         setFavoritedBreeds([]);
         setIsFavoritesLoading(false);
         return;
@@ -125,10 +126,12 @@ export default function ProfilePage() {
             setIsFavoritesLoading(false);
             return;
         }
+        
         const breedsQuery = query(collection(firestore, 'animalBreeds'), where('__name__', 'in', breedIds));
         const breedSnapshots = await getDocs(breedsQuery);
         const breeds = breedSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as PetBreed));
         setFavoritedBreeds(breeds);
+
       } catch (e) {
         console.error("Error fetching favorited breeds:", e);
         setFavoritedBreeds([]);
