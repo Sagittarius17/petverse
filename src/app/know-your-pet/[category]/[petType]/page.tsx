@@ -11,8 +11,105 @@ import PetInfoDialog from '@/components/pet-info-dialog';
 import { useRouter } from 'next/navigation';
 import BreedSearch from '@/components/ai/breed-search';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useUser, useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { collection, doc } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
+
+
+interface BreedCardProps {
+  breed: PetBreed;
+  onSelect: (breed: PetBreed) => void;
+  speciesName: string;
+}
+
+function BreedCard({ breed, onSelect, speciesName }: BreedCardProps) {
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const { toast } = useToast();
+
+  const breedId = `${speciesName.toLowerCase()}-${breed.name.replace(/ /g, '-').toLowerCase()}`;
+
+  const favoriteBreedsCollectionRef = useMemoFirebase(
+    () => (user && firestore ? collection(firestore, `users/${user.uid}/favoriteBreeds`) : null),
+    [user, firestore]
+  );
+  
+  const { data: favorites } = useCollection(favoriteBreedsCollectionRef);
+
+  const isFavorited = useMemo(() => favorites?.some(fav => fav.id === breedId), [favorites, breedId]);
+
+  const handleFavoriteToggle = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click from firing
+    if (!user || !firestore) {
+      toast({
+        variant: 'destructive',
+        title: 'Please log in',
+        description: 'You need to be logged in to favorite a breed.',
+      });
+      return;
+    }
+    
+    const favoriteDocRef = doc(firestore, `users/${user.uid}/favoriteBreeds`, breedId);
+
+    if (isFavorited) {
+      deleteDocumentNonBlocking(favoriteDocRef);
+      toast({
+        title: 'Removed from Favorites',
+        description: `${breed.name} has been removed from your favorite breeds.`,
+      });
+    } else {
+      setDocumentNonBlocking(favoriteDocRef, { breedId: breedId });
+      toast({
+        title: 'Added to Favorites',
+        description: `${breed.name} has been added to your favorite breeds!`,
+      });
+    }
+  };
+  
+  const imageId = breed.imageIds && breed.imageIds.length > 0 ? breed.imageIds[0] : 'dog-1';
+  const image = PlaceHolderImages.find((p) => p.id === imageId) || { imageUrl: imageId.startsWith('data:') ? imageId : '', imageHint: breed.name };
+
+  return (
+    <Card
+      className="flex flex-col overflow-hidden transition-all hover:shadow-lg cursor-pointer group"
+      onClick={() => onSelect(breed)}
+    >
+      <CardHeader className="relative h-40 w-full p-0">
+         {image.imageUrl ? (
+          <Image
+            src={image.imageUrl}
+            alt={breed.name}
+            fill
+            style={{ objectFit: 'cover' }}
+            data-ai-hint={image.imageHint}
+            className="transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-secondary">
+              <p className="text-xs text-muted-foreground">No Image</p>
+          </div>
+        )}
+        {user && (
+          <Button
+            size="icon"
+            variant="ghost"
+            className="absolute top-2 right-2 h-8 w-8 rounded-full bg-black/50 text-white hover:bg-black/75 hover:text-white"
+            onClick={handleFavoriteToggle}
+          >
+            <Heart className={cn("h-5 w-5 transition-colors", isFavorited ? "fill-red-500 text-red-500" : "text-white")} />
+          </Button>
+        )}
+      </CardHeader>
+      <CardContent className="p-4 flex-grow">
+        <CardTitle className="text-xl font-headline mb-2 group-hover:underline">{breed.name}</CardTitle>
+        <CardDescription className="text-sm line-clamp-3">{breed.description}</CardDescription>
+      </CardContent>
+    </Card>
+  );
+}
+
 
 interface PetSpeciesPageProps {
   params: Promise<{
@@ -134,37 +231,14 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
         <section>
           {filteredBreeds.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {filteredBreeds.map((breed) => {
-                const imageId = breed.imageIds && breed.imageIds.length > 0 ? breed.imageIds[0] : 'dog-1';
-                const image = PlaceHolderImages.find((p) => p.id === imageId) || { imageUrl: imageId.startsWith('data:') ? imageId : '', imageHint: breed.name };
-                return (
-                  <Card
-                    key={breed.name}
-                    className="flex flex-col overflow-hidden transition-all hover:shadow-lg cursor-pointer"
-                    onClick={() => setSelectedPet(breed)}
-                  >
-                    <CardHeader className="relative h-40 w-full p-0">
-                      {image.imageUrl ? (
-                        <Image
-                          src={image.imageUrl}
-                          alt={breed.name}
-                          fill
-                          style={{ objectFit: 'cover' }}
-                          data-ai-hint={image.imageHint}
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-secondary">
-                            <p className="text-xs text-muted-foreground">No Image</p>
-                        </div>
-                      )}
-                    </CardHeader>
-                    <CardContent className="p-4 flex-grow">
-                      <CardTitle className="text-xl font-headline mb-2">{breed.name}</CardTitle>
-                      <CardDescription className="text-sm line-clamp-3">{breed.description}</CardDescription>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+              {filteredBreeds.map((breed) => (
+                  <BreedCard 
+                    key={breed.name} 
+                    breed={breed} 
+                    onSelect={setSelectedPet}
+                    speciesName={currentPetType?.name || ''} 
+                  />
+              ))}
             </div>
           ) : (
             !loading && <div className="text-center py-16 text-muted-foreground">
@@ -179,3 +253,5 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
     </>
   );
 }
+
+    

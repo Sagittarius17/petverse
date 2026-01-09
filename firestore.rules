@@ -182,9 +182,9 @@ service cloud.firestore {
     }
     
     /* ─────────────────────────────
-       USER FAVORITES (PRIVATE DATA)
+       USER FAVORITE BREEDS (PRIVATE DATA)
     ───────────────────────────── */
-    match /users/{userId}/favorites/{favoriteId} {
+    match /users/{userId}/favoriteBreeds/{breedId} {
         allow read, write: if 
             isSignedIn() &&
             isActive(request.auth.uid) &&
@@ -304,3 +304,5 @@ service cloud.firestore {
     }
   }
 }
+
+    

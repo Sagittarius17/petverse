@@ -20,46 +20,7 @@ interface PetCardProps {
 
 export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
   const image = PlaceHolderImages.find(p => p.id === pet.imageId);
-  const { user } = useUser();
-  const firestore = useFirestore();
-  const { toast } = useToast();
-
-  const favoritesCollectionRef = useMemoFirebase(
-    () => (user && firestore ? collection(firestore, `users/${user.uid}/favorites`) : null),
-    [user, firestore]
-  );
   
-  const { data: favorites } = useCollection(favoritesCollectionRef);
-
-  const isFavorited = useMemo(() => favorites?.some(fav => fav.id === pet.id), [favorites, pet.id]);
-
-  const handleFavoriteToggle = () => {
-    if (!user || !firestore) {
-      toast({
-        variant: 'destructive',
-        title: 'Please log in',
-        description: 'You need to be logged in to favorite a pet.',
-      });
-      return;
-    }
-    
-    const favoriteDocRef = doc(firestore, `users/${user.uid}/favorites`, pet.id);
-
-    if (isFavorited) {
-      deleteDocumentNonBlocking(favoriteDocRef);
-      toast({
-        title: 'Removed from Favorites',
-        description: `${pet.name} has been removed from your favorites.`,
-      });
-    } else {
-      setDocumentNonBlocking(favoriteDocRef, { petId: pet.id });
-      toast({
-        title: 'Added to Favorites',
-        description: `${pet.name} has been added to your favorites!`,
-      });
-    }
-  };
-
   return (
     <Card 
       className="flex flex-col overflow-hidden transition-all hover:shadow-lg group"
@@ -84,16 +45,6 @@ export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
             <Eye className="h-3 w-3" />
             <span>{pet.viewCount || 0}</span>
           </div>
-          {user && (
-            <Button
-              size="icon"
-              variant="ghost"
-              className="absolute top-2 left-2 h-8 w-8 rounded-full bg-black/50 text-white hover:bg-black/75 hover:text-white"
-              onClick={handleFavoriteToggle}
-            >
-              <Heart className={cn("h-5 w-5 transition-colors", isFavorited ? "fill-red-500 text-red-500" : "text-white")} />
-            </Button>
-          )}
         </CardHeader>
         <CardContent 
             className="flex-grow p-4 cursor-pointer"
@@ -121,3 +72,5 @@ export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
     </Card>
   );
 }
+
+    

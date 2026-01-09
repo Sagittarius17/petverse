@@ -5,11 +5,11 @@ import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase, useDoc 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Edit, LogOut, Trash2, Eye, PlusCircle } from 'lucide-react';
+import { Edit, LogOut, Trash2, Eye, PlusCircle, Heart } from 'lucide-react';
 import PetCard from '@/components/pet-card';
-import { type Pet } from '@/lib/data';
+import { type Pet, type PetBreed } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { collection, query, where, doc, deleteDoc, DocumentData, getDocs } from 'firebase/firestore';
 import Link from 'next/link';
@@ -19,6 +19,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from '@/hooks/use-toast';
 import { PetFormDialog } from './pet-form-dialog';
 import { ProfileFormDialog } from './profile-form-dialog';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 
 interface UserProfile extends DocumentData {
@@ -27,10 +28,44 @@ interface UserProfile extends DocumentData {
     bio?: string;
 }
 
-interface Favorite {
+interface FavoriteBreed {
     id: string;
-    petId: string;
+    breedId: string;
 }
+
+
+function FavoriteBreedCard({ breed, onSelect }: { breed: PetBreed, onSelect: (breed: PetBreed) => void }) {
+  const imageId = breed.imageIds && breed.imageIds.length > 0 ? breed.imageIds[0] : 'dog-1';
+  const image = PlaceHolderImages.find((p) => p.id === imageId) || { imageUrl: imageId.startsWith('data:') ? imageId : '', imageHint: breed.name };
+
+  return (
+    <Card
+      className="flex flex-col overflow-hidden transition-all hover:shadow-lg cursor-pointer"
+      onClick={() => onSelect(breed)}
+    >
+      <CardHeader className="relative h-40 w-full p-0">
+        {image.imageUrl ? (
+          <Image
+            src={image.imageUrl}
+            alt={breed.name}
+            fill
+            style={{ objectFit: 'cover' }}
+            data-ai-hint={image.imageHint}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-secondary">
+              <p className="text-xs text-muted-foreground">No Image</p>
+          </div>
+        )}
+      </CardHeader>
+      <CardContent className="p-4 flex-grow">
+        <CardTitle className="text-xl font-headline mb-2">{breed.name}</CardTitle>
+        <CardDescription className="text-sm line-clamp-3">{breed.description}</CardDescription>
+      </CardContent>
+    </Card>
+  );
+}
+
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
@@ -44,7 +79,7 @@ export default function ProfilePage() {
   const [petToEdit, setPetToEdit] = useState<Pet | null>(null);
   const [isPetFormOpen, setIsPetFormOpen] = useState(false);
   const [isProfileFormOpen, setIsProfileFormOpen] = useState(false);
-  const [favoritedPets, setFavoritedPets] = useState<Pet[]>([]);
+  const [favoritedBreeds, setFavoritedBreeds] = useState<PetBreed[]>([]);
   const [isFavoritesLoading, setIsFavoritesLoading] = useState(true);
   
   const userDocRef = useMemoFirebase(() => {
@@ -62,12 +97,12 @@ export default function ProfilePage() {
 
   const { data: submittedPets, isLoading: isPetsLoading } = useCollection<Pet>(userPetsQuery);
 
-  const favoritesQuery = useMemoFirebase(() => {
+  const favoriteBreedsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    return collection(firestore, 'users', user.uid, 'favorites');
+    return collection(firestore, 'users', user.uid, 'favoriteBreeds');
   }, [firestore, user]);
 
-  const { data: favoriteIds } = useCollection<Favorite>(favoritesQuery);
+  const { data: favoriteBreedIds } = useCollection<FavoriteBreed>(favoriteBreedsQuery);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -76,28 +111,28 @@ export default function ProfilePage() {
   }, [user, isUserLoading, router]);
 
   useEffect(() => {
-    const fetchFavoritedPets = async () => {
-      if (!firestore || !favoriteIds || favoriteIds.length === 0) {
-        setFavoritedPets([]);
+    const fetchFavoritedBreeds = async () => {
+      if (!firestore || !favoriteBreedIds || favoriteBreedIds.length === 0) {
+        setFavoritedBreeds([]);
         setIsFavoritesLoading(false);
         return;
       }
       setIsFavoritesLoading(true);
       try {
-        const petIds = favoriteIds.map(fav => fav.id);
-        const petsQuery = query(collection(firestore, 'pets'), where('__name__', 'in', petIds));
-        const petSnapshots = await getDocs(petsQuery);
-        const pets = petSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as Pet));
-        setFavoritedPets(pets);
+        const breedIds = favoriteBreedIds.map(fav => fav.id);
+        const breedsQuery = query(collection(firestore, 'animalBreeds'), where('__name__', 'in', breedIds));
+        const breedSnapshots = await getDocs(breedsQuery);
+        const breeds = breedSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as PetBreed));
+        setFavoritedBreeds(breeds);
       } catch (e) {
-        console.error("Error fetching favorited pets:", e);
-        setFavoritedPets([]);
+        console.error("Error fetching favorited breeds:", e);
+        setFavoritedBreeds([]);
       } finally {
         setIsFavoritesLoading(false);
       }
     };
-    fetchFavoritedPets();
-  }, [favoriteIds, firestore]);
+    fetchFavoritedBreeds();
+  }, [favoriteBreedIds, firestore]);
   
 
   const handleLogout = async () => {
@@ -204,7 +239,7 @@ export default function ProfilePage() {
       <Tabs defaultValue="submitted">
         <TabsList className="grid w-full grid-cols-2 max-w-md">
           <TabsTrigger value="submitted">My Submitted Pets</TabsTrigger>
-          <TabsTrigger value="favorites">My Favorite Pets</TabsTrigger>
+          <TabsTrigger value="favorites">My Favorite Breeds</TabsTrigger>
         </TabsList>
         <TabsContent value="submitted" className="mt-6">
             <div className="flex justify-end mb-4">
@@ -248,18 +283,18 @@ export default function ProfilePage() {
           )}
         </TabsContent>
         <TabsContent value="favorites" className="mt-6">
-            {favoritedPets.length > 0 ? (
+            {favoritedBreeds.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {favoritedPets.map(pet => (
-                    <PetCard key={pet.id} pet={pet} onPetSelect={() => setSelectedPet(pet)} />
+                {favoritedBreeds.map(breed => (
+                    <FavoriteBreedCard key={breed.name} breed={breed} onSelect={() => {}} />
                 ))}
                 </div>
             ) : (
                 <Card>
                     <CardContent className="pt-6 text-center">
-                        <p className="text-muted-foreground">You haven't favorited any pets yet.</p>
+                        <p className="text-muted-foreground">You haven't favorited any breeds yet.</p>
                          <Button asChild variant="link">
-                            <Link href="/adopt">Find a pet to favorite</Link>
+                            <Link href="/know-your-pet">Find a breed to favorite</Link>
                         </Button>
                     </CardContent>
                 </Card>
@@ -306,3 +341,5 @@ export default function ProfilePage() {
     </>
   );
 }
+
+    
