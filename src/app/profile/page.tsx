@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -20,6 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { PetFormDialog } from './pet-form-dialog';
 import { ProfileFormDialog } from './profile-form-dialog';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import PetInfoDialog from '@/components/pet-info-dialog';
 
 
 interface UserProfile extends DocumentData {
@@ -29,7 +31,7 @@ interface UserProfile extends DocumentData {
     bio?: string;
 }
 
-interface FavoriteBreed {
+interface FavoriteBreedDoc {
     id: string;
     breedId: string;
 }
@@ -82,6 +84,7 @@ export default function ProfilePage() {
   const [isProfileFormOpen, setIsProfileFormOpen] = useState(false);
   const [favoritedBreeds, setFavoritedBreeds] = useState<PetBreed[]>([]);
   const [isFavoritesLoading, setIsFavoritesLoading] = useState(true);
+  const [selectedBreed, setSelectedBreed] = useState<PetBreed | null>(null);
   
   const userDocRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -103,7 +106,7 @@ export default function ProfilePage() {
     return collection(firestore, 'users', user.uid, 'favoriteBreeds');
   }, [firestore, user]);
 
-  const { data: favoriteBreedDocs } = useCollection<FavoriteBreed>(favoriteBreedsQuery);
+  const { data: favoriteBreedDocs } = useCollection<FavoriteBreedDoc>(favoriteBreedsQuery);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -186,7 +189,7 @@ export default function ProfilePage() {
         title: mode === 'created' ? 'Pet Submitted!' : 'Pet Updated!',
         description: mode === 'created' 
             ? 'Your pet is now listed for adoption.'
-            : 'The pet\'s information has been successfully updated.',
+            : 'The pet\\'s information has been successfully updated.',
     });
     setIsPetFormOpen(false);
     setPetToEdit(null);
@@ -294,7 +297,7 @@ export default function ProfilePage() {
             {favoritedBreeds.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {favoritedBreeds.map(breed => (
-                    <FavoriteBreedCard key={breed.name} breed={breed} onSelect={() => {}} />
+                    <FavoriteBreedCard key={breed.name} breed={breed} onSelect={setSelectedBreed} />
                 ))}
                 </div>
             ) : (
@@ -314,6 +317,8 @@ export default function ProfilePage() {
     {selectedPet && (
         <PetDetailDialog pet={selectedPet} isOpen={!!selectedPet} onClose={() => setSelectedPet(null)} />
     )}
+
+    <PetInfoDialog pet={selectedBreed} isOpen={!!selectedBreed} onClose={() => setSelectedBreed(null)} />
 
     <PetFormDialog
         isOpen={isPetFormOpen}

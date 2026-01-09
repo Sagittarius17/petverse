@@ -25,7 +25,7 @@ export async function fetchBreedInfo(input: FetchBreedInfoInput): Promise<z.infe
   // Save to Firestore if database is available
   if (db) {
     try {
-      const breedId = `${input.speciesName.toLowerCase()}-${result.name.replace(/ /g, '-').toLowerCase()}`;
+      const breedId = `${input.speciesName.toLowerCase()}-${result.name!.replace(/ /g, '-').toLowerCase()}`;
       const breedRef = db.collection('animalBreeds').doc(breedId);
       
       const breedData = {

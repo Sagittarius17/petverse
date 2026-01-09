@@ -60,7 +60,7 @@ function BreedCard({ breed, onSelect, speciesName }: BreedCardProps) {
         description: `${breed.name} has been removed from your favorite breeds.`,
       });
     } else {
-      setDocumentNonBlocking(favoriteDocRef, { breedId: breedId });
+      setDocumentNonBlocking(favoriteDocRef, { breedId: breedId }, { merge: true });
       toast({
         title: 'Added to Favorites',
         description: `${breed.name} has been added to your favorite breeds!`,
@@ -253,5 +253,3 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
     </>
   );
 }
-
-    
