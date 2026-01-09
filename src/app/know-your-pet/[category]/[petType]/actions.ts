@@ -1,4 +1,3 @@
-
 "use server";
 
 import { PetBreed, PetCategory, initialPetCategories } from '@/lib/initial-pet-data';
@@ -9,9 +8,10 @@ export async function getPetCategories(): Promise<PetCategory[]> {
 
   try {
     if (!db) {
-        console.warn("Firestore is not initialized. Skipping fetching animal breeds.");
+        console.warn("Firestore is not initialized. Skipping fetching AI breeds.");
         return allCategories;
     }
+    // Changed from aiBreeds to animalBreeds
     const animalBreedsSnapshot = await db.collection('animalBreeds').get();
     const animalBreeds: PetBreed[] = animalBreedsSnapshot.docs.map(doc => ({
       id: doc.id, // Store the Firestore document ID

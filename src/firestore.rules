@@ -90,9 +90,17 @@ service cloud.firestore {
 
         // Admin → Users & Superusers
         (
-          isAdmin(requesterId) &&
+          role(requesterId) == 'Admin' &&
           role(targetId) != 'Admin' &&
           role(targetId) != 'Superadmin'
+        )
+
+        ||
+
+        // Superuser → Users only
+        (
+          role(requesterId) == 'Superuser' &&
+          role(targetId) == 'User'
         );
     }
 
@@ -171,6 +179,16 @@ service cloud.firestore {
       allow delete: if
         isOwner(userId) &&
         isActive(request.auth.uid);
+    }
+    
+    /* ─────────────────────────────
+       USER FAVORITE BREEDS (PRIVATE DATA)
+    ───────────────────────────── */
+    match /users/{userId}/favoriteBreeds/{breedId} {
+        allow read, write: if 
+            isSignedIn() &&
+            isActive(request.auth.uid) &&
+            isOwner(userId);
     }
 
     /* ─────────────────────────────

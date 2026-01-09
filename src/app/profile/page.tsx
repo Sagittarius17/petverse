@@ -116,42 +116,42 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const fetchFavoritedBreeds = async () => {
-        setIsFavoritesLoading(true);
-        if (!firestore || !favoriteBreedDocs) {
-            setFavoritedBreeds([]);
-            setIsFavoritesLoading(false);
-            return;
-        }
+      setIsFavoritesLoading(true);
+      if (!firestore || !favoriteBreedDocs) {
+        setFavoritedBreeds([]);
+        setIsFavoritesLoading(false);
+        return;
+      }
 
-        const breedIds = favoriteBreedDocs.map(fav => fav.breedId);
+      // Use the document ID from the favorites subcollection, which IS the breedId.
+      const breedIds = favoriteBreedDocs.map(fav => fav.id);
 
-        if (breedIds.length === 0) {
-            setFavoritedBreeds([]);
-            setIsFavoritesLoading(false);
-            return;
-        }
+      if (breedIds.length === 0) {
+        setFavoritedBreeds([]);
+        setIsFavoritesLoading(false);
+        return;
+      }
 
-        try {
-            const breedsQuery = query(collection(firestore, 'animalBreeds'), where('__name__', 'in', breedIds));
-            const breedSnapshots = await getDocs(breedsQuery);
-            const breeds = breedSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as PetBreed));
-            setFavoritedBreeds(breeds);
-        } catch (e) {
-            console.error("Error fetching favorited breeds:", e);
-            toast({
-                variant: 'destructive',
-                title: 'Error Fetching Favorites',
-                description: 'Could not load your favorite breeds. Please try again later.'
-            });
-            setFavoritedBreeds([]);
-        } finally {
-            setIsFavoritesLoading(false);
-        }
+      try {
+        const breedsQuery = query(collection(firestore, 'animalBreeds'), where('__name__', 'in', breedIds));
+        const breedSnapshots = await getDocs(breedsQuery);
+        const breeds = breedSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as PetBreed));
+        setFavoritedBreeds(breeds);
+      } catch (e) {
+        console.error("Error fetching favorited breeds:", e);
+        toast({
+          variant: 'destructive',
+          title: 'Error Fetching Favorites',
+          description: 'Could not load your favorite breeds. Please try again later.'
+        });
+        setFavoritedBreeds([]);
+      } finally {
+        setIsFavoritesLoading(false);
+      }
     };
 
     fetchFavoritedBreeds();
   }, [favoriteBreedDocs, firestore, toast]);
-  
 
   const handleLogout = async () => {
     if (auth) {
@@ -324,8 +324,8 @@ export default function ProfilePage() {
                 </div>
             ) : (
                 <Card>
-                    <CardContent className="pt-6 text-center">
-                        <p className="text-muted-foreground">You haven't favorited any breeds yet.</p>
+                    <CardContent className="pt-6 text-center text-muted-foreground">
+                        <p>You haven't favorited any breeds yet.</p>
                          <Button asChild variant="link">
                             <Link href="/know-your-pet">Find a breed to favorite</Link>
                         </Button>
@@ -376,5 +376,3 @@ export default function ProfilePage() {
     </>
   );
 }
-
-    
