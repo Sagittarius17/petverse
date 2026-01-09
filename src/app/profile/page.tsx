@@ -189,7 +189,7 @@ export default function ProfilePage() {
         title: mode === 'created' ? 'Pet Submitted!' : 'Pet Updated!',
         description: mode === 'created' 
             ? 'Your pet is now listed for adoption.'
-            : 'The pet\\'s information has been successfully updated.',
+            : "The pet's information has been successfully updated.",
     });
     setIsPetFormOpen(false);
     setPetToEdit(null);
