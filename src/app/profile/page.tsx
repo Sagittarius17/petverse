@@ -11,7 +11,7 @@ import { Edit, LogOut, Trash2, Eye, PlusCircle } from 'lucide-react';
 import PetCard from '@/components/pet-card';
 import { type Pet } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
-import { collection, query, where, doc, deleteDoc, DocumentData } from 'firebase/firestore';
+import { collection, query, where, doc, deleteDoc, DocumentData, getDocs } from 'firebase/firestore';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PetDetailDialog from '@/components/pet-detail-dialog';
@@ -27,6 +27,11 @@ interface UserProfile extends DocumentData {
     bio?: string;
 }
 
+interface Favorite {
+    id: string;
+    petId: string;
+}
+
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
@@ -39,6 +44,8 @@ export default function ProfilePage() {
   const [petToEdit, setPetToEdit] = useState<Pet | null>(null);
   const [isPetFormOpen, setIsPetFormOpen] = useState(false);
   const [isProfileFormOpen, setIsProfileFormOpen] = useState(false);
+  const [favoritedPets, setFavoritedPets] = useState<Pet[]>([]);
+  const [isFavoritesLoading, setIsFavoritesLoading] = useState(true);
   
   const userDocRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -55,14 +62,43 @@ export default function ProfilePage() {
 
   const { data: submittedPets, isLoading: isPetsLoading } = useCollection<Pet>(userPetsQuery);
 
+  const favoritesQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return collection(firestore, 'users', user.uid, 'favorites');
+  }, [firestore, user]);
+
+  const { data: favoriteIds } = useCollection<Favorite>(favoritesQuery);
+
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login');
     }
   }, [user, isUserLoading, router]);
 
-  // TODO: Fetch user's actual favorited pets
-  const favoritedPets: Pet[] = [];
+  useEffect(() => {
+    const fetchFavoritedPets = async () => {
+      if (!firestore || !favoriteIds || favoriteIds.length === 0) {
+        setFavoritedPets([]);
+        setIsFavoritesLoading(false);
+        return;
+      }
+      setIsFavoritesLoading(true);
+      try {
+        const petIds = favoriteIds.map(fav => fav.id);
+        const petsQuery = query(collection(firestore, 'pets'), where('__name__', 'in', petIds));
+        const petSnapshots = await getDocs(petsQuery);
+        const pets = petSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as Pet));
+        setFavoritedPets(pets);
+      } catch (e) {
+        console.error("Error fetching favorited pets:", e);
+        setFavoritedPets([]);
+      } finally {
+        setIsFavoritesLoading(false);
+      }
+    };
+    fetchFavoritedPets();
+  }, [favoriteIds, firestore]);
+  
 
   const handleLogout = async () => {
     if (auth) {
@@ -122,7 +158,7 @@ export default function ProfilePage() {
   }
 
 
-  const isLoading = isUserLoading || isPetsLoading || isProfileLoading;
+  const isLoading = isUserLoading || isPetsLoading || isProfileLoading || isFavoritesLoading;
 
   if (isLoading || !user) {
     return (
@@ -149,7 +185,7 @@ export default function ProfilePage() {
           <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
         </Avatar>
         <div className="text-center md:text-left flex-grow">
-          <h1 className="text-4xl font-bold font-headline">{user.displayName || userProfile?.username || 'Anonymous User'}</h1>
+          <h1 className="text-4xl font-bold font-headline">{userProfile?.displayName || user.displayName || 'Anonymous User'}</h1>
           <p className="text-muted-foreground mt-1">@{userProfile?.username || user.email?.split('@')[0]}</p>
           <p className="mt-4 max-w-prose">
             {userProfile?.bio || 'A passionate animal lover and advocate for pet adoption. In my free time, I volunteer at the local shelter and enjoy long walks with my two rescue dogs.'}

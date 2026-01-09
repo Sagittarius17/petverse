@@ -180,6 +180,16 @@ service cloud.firestore {
         isOwner(userId) &&
         isActive(request.auth.uid);
     }
+    
+    /* ─────────────────────────────
+       USER FAVORITES (PRIVATE DATA)
+    ───────────────────────────── */
+    match /users/{userId}/favorites/{favoriteId} {
+        allow read, write: if 
+            isSignedIn() &&
+            isActive(request.auth.uid) &&
+            isOwner(userId);
+    }
 
     /* ─────────────────────────────
        PETS (PUBLIC CONTENT)
