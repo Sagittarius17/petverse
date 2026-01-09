@@ -102,7 +102,7 @@ export default function ProfilePage() {
     return collection(firestore, 'users', user.uid, 'favoriteBreeds');
   }, [firestore, user]);
 
-  const { data: favoriteBreedIds } = useCollection<FavoriteBreed>(favoriteBreedsQuery);
+  const { data: favoriteBreedDocs } = useCollection<FavoriteBreed>(favoriteBreedsQuery);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -112,14 +112,19 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const fetchFavoritedBreeds = async () => {
-      if (!firestore || !favoriteBreedIds || favoriteBreedIds.length === 0) {
+      if (!firestore || !favoriteBreedDocs || favoriteBreedDocs.length === 0) {
         setFavoritedBreeds([]);
         setIsFavoritesLoading(false);
         return;
       }
       setIsFavoritesLoading(true);
       try {
-        const breedIds = favoriteBreedIds.map(fav => fav.id);
+        const breedIds = favoriteBreedDocs.map(fav => fav.breedId);
+        if (breedIds.length === 0) {
+            setFavoritedBreeds([]);
+            setIsFavoritesLoading(false);
+            return;
+        }
         const breedsQuery = query(collection(firestore, 'animalBreeds'), where('__name__', 'in', breedIds));
         const breedSnapshots = await getDocs(breedsQuery);
         const breeds = breedSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as PetBreed));
@@ -132,7 +137,7 @@ export default function ProfilePage() {
       }
     };
     fetchFavoritedBreeds();
-  }, [favoriteBreedIds, firestore]);
+  }, [favoriteBreedDocs, firestore]);
   
 
   const handleLogout = async () => {
@@ -341,5 +346,3 @@ export default function ProfilePage() {
     </>
   );
 }
-
-    
