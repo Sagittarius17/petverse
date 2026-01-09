@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect, use } from 'react';
@@ -22,14 +23,15 @@ interface BreedCardProps {
   breed: PetBreed;
   onSelect: (breed: PetBreed) => void;
   speciesName: string;
+  speciesImageId: string;
 }
 
-function BreedCard({ breed, onSelect, speciesName }: BreedCardProps) {
+function BreedCard({ breed, onSelect, speciesName, speciesImageId }: BreedCardProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
 
-  const breedId = `${speciesName.toLowerCase()}-${breed.name.replace(/ /g, '-').toLowerCase()}`;
+  const breedId = `${speciesName.toLowerCase().replace(/ /g, '-')}-${breed.name.replace(/ /g, '-').toLowerCase()}`;
 
   const favoriteBreedsCollectionRef = useMemoFirebase(
     () => (user && firestore ? collection(firestore, `users/${user.uid}/favoriteBreeds`) : null),
@@ -68,8 +70,9 @@ function BreedCard({ breed, onSelect, speciesName }: BreedCardProps) {
     }
   };
   
-  const imageId = breed.imageIds && breed.imageIds.length > 0 ? breed.imageIds[0] : 'dog-1';
-  const image = PlaceHolderImages.find((p) => p.id === imageId) || { imageUrl: imageId.startsWith('data:') ? imageId : '', imageHint: breed.name };
+  const imageId = breed.imageIds && breed.imageIds.length > 0 ? breed.imageIds[0] : speciesImageId;
+  const image = PlaceHolderImages.find((p) => p.id === imageId) || PlaceHolderImages.find(p => p.id === speciesImageId) || { imageUrl: imageId.startsWith('data:') ? imageId : '', imageHint: breed.name };
+
 
   return (
     <Card
@@ -237,6 +240,7 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
                     breed={breed} 
                     onSelect={setSelectedPet}
                     speciesName={currentPetType?.name || ''} 
+                    speciesImageId={currentPetType?.imageId || ''}
                   />
               ))}
             </div>
