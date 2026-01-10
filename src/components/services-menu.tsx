@@ -100,19 +100,6 @@ const services = [
         description: 'Find your new best friend from our list of adoptable pets.',
         icon: Heart,
       },
-      {
-        title: 'About Us',
-        href: '#',
-        description: 'Learn more about our mission, team, and community involvement.',
-        icon: Info,
-      },
-
-      {
-        title: 'Blog',
-        href: '#',
-        description: 'Read our latest articles on pet care, training, and news.',
-        icon: BookMarked,
-      },
     ],
   },
   {
