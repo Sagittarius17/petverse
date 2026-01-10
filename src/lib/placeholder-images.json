@@ -7,6 +7,12 @@
       "imageHint": "dog field"
     },
     {
+      "id": "shop-hero-1",
+      "description": "A collection of happy pets including a dog and a cat.",
+      "imageUrl": "https://images.unsplash.com/photo-1548681528-6a5c45b66b42?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxkb2clMjBjYXR8ZW58MHx8fHwxNzY4NTg0MTU3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog cat"
+    },
+    {
       "id": "dog-golden-retriever-1",
       "description": "A friendly Golden Retriever puppy.",
       "imageUrl": "https://images.unsplash.com/photo-1642581684512-52947badee8c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxkb2clMjBwdXBweXxlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
@@ -345,7 +351,7 @@
     {
       "id": "know-hamster",
       "description": "A small hamster eating a seed.",
-      "imageUrl": "https://images.unsplash.com/photo-1630412989932-7d422f8ac136?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxoYW1zdGVyJTIwY3V0ZXxlbnwwfHx8fDE3Njc3MjE2MjR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1630412989932-7d4222f8ac136?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxoYW1zdGVyJTIwY3V0ZXxlbnwwfHx8fDE3Njc3MjE2MjR8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "hamster cute"
     },
     {
@@ -371,6 +377,126 @@
       "description": "A turtle swimming in water.",
       "imageUrl": "https://images.unsplash.com/photo-1690666056631-32e11d63df12?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8dHVydGxlJTIwd2F0ZXJ8ZW58MHx8fHwxNzY3NzIxNjI0fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "turtle water"
+    },
+    {
+      "id": "product-food-1",
+      "description": "A bag of organic dog food.",
+      "imageUrl": "https://images.unsplash.com/photo-1714068691210-073dc52c6c1d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkb2clMjBmb29kfGVufDB8fHx8MTc2ODA2MjI4M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog food"
+    },
+    {
+      "id": "product-food-2",
+      "description": "A bowl of salmon and sweet potato dog food.",
+      "imageUrl": "https://images.unsplash.com/photo-1714068691210-073dc52c6c1d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkb2clMjBmb29kfGVufDB8fHx8MTc2ODA2MjI4M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog food"
+    },
+    {
+      "id": "product-food-3",
+      "description": "A bag of indoor cat formula cat food.",
+      "imageUrl": "https://images.unsplash.com/photo-1623903088094-dba345c6a7b1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjYXQlMjBmb29kfGVufDB8fHx8MTc2ODAyNjAyNXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cat food"
+    },
+    {
+      "id": "product-food-4",
+      "description": "A colorful mix of bird seed.",
+      "imageUrl": "https://images.unsplash.com/photo-1748664425383-ce6780a6f7c8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxiaXJkJTIwc2VlZHxlbnwwfHx8fDE3Njc5NTk1NzB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bird seed"
+    },
+    {
+      "id": "product-toy-1",
+      "description": "A durable rubber bone toy for dogs.",
+      "imageUrl": "https://images.unsplash.com/photo-1591946614720-90a587da4a36?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxkb2clMjB0b3l8ZW58MHx8fHwxNzY4MDQ1ODcyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog toy"
+    },
+    {
+      "id": "product-toy-2",
+      "description": "Three small fabric mice toys for cats.",
+      "imageUrl": "https://images.unsplash.com/photo-1600693919791-7829a39b602e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjYXQlMjB0b3l8ZW58MHx8fHwxNzY4MDQ1ODcyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cat toy"
+    },
+    {
+      "id": "product-toy-3",
+      "description": "An interactive puzzle feeder for dogs.",
+      "imageUrl": "https://images.unsplash.com/photo-1568640347023-a616a30bc3bd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxkb2clMjBwdXp6bGV8ZW58MHx8fHwxNzY4MDY1NDQ5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog puzzle"
+    },
+    {
+      "id": "product-toy-4",
+      "description": "A feather wand cat teaser toy.",
+      "imageUrl": "https://images.unsplash.com/photo-1671757562233-0a7414c91ca4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjYXQlMjB3YW5kfGVufDB8fHx8MTc2ODA2NTQ0OXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cat wand"
+    },
+    {
+      "id": "product-accessory-1",
+      "description": "A red nylon dog leash with a metal clasp.",
+      "imageUrl": "https://images.unsplash.com/photo-1555265626-8ed04bde01a1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxkb2clMjBsZWFzaHxlbnwwfHx8fDE3NjgwNTY5MTF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog leash"
+    },
+    {
+      "id": "product-accessory-2",
+      "description": "A bone-shaped metal pet ID tag.",
+      "imageUrl": "https://images.unsplash.com/photo-1602070683150-c13e6387aca9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwZXQlMjB0YWd8ZW58MHx8fHwxNzY4MDY1NDQ5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "pet tag"
+    },
+    {
+      "id": "product-accessory-3",
+      "description": "A red and black plaid dog bandana.",
+      "imageUrl": "https://images.unsplash.com/photo-1671202938523-4f7cd97bea13?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxkb2clMjBiYW5kYW5hfGVufDB8fHx8MTc2ODA2NTQ0OXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog bandana"
+    },
+    {
+      "id": "product-accessory-4",
+      "description": "Two stainless steel pet bowls on a mat.",
+      "imageUrl": "https://images.unsplash.com/photo-1727337440811-7ae0b89136b6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxwZXQlMjBib3dsc3xlbnwwfHx8fDE3NjgwNDU4NzN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "pet bowls"
+    },
+    {
+      "id": "product-bed-1",
+      "description": "A grey orthopedic dog bed.",
+      "imageUrl": "https://images.unsplash.com/photo-1601758123927-4f7acc7da589?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxkb2clMjBiZWR8ZW58MHx8fHwxNzY4MDY1NDQ5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog bed"
+    },
+    {
+      "id": "product-bed-2",
+      "description": "A grey felted wool cat cave.",
+      "imageUrl": "https://images.unsplash.com/photo-1575337582562-a9bb16ed3cc8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjYXQlMjBiZWR8ZW58MHx8fHwxNzY4MDM1Nzg2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cat bed"
+    },
+    {
+      "id": "product-bed-3",
+      "description": "A plush crate mat for a dog.",
+      "imageUrl": "https://images.unsplash.com/photo-1745478433640-62d7a2fe9b96?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjcmF0ZSUyMG1hdHxlbnwwfHx8fDE3NjgwNjU0NDl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "crate mat"
+    },
+    {
+      "id": "product-bed-4",
+      "description": "An elevated cooling cot for a pet.",
+      "imageUrl": "https://images.unsplash.com/photo-1709432767122-d3cb5326911a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjb29saW5nJTIwY290fGVufDB8fHx8MTc2ODA2NTQ0OXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cooling cot"
+    },
+    {
+      "id": "category-food",
+      "description": "A bowl of pet food.",
+      "imageUrl": "https://images.unsplash.com/photo-1543466835-00a7907e9de1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxkb2clMjBmb29kfGVufDB8fHx8MTc2ODU4NDE1N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "pet food"
+    },
+    {
+      "id": "category-toys",
+      "description": "A collection of pet toys.",
+      "imageUrl": "https://images.unsplash.com/photo-1546238232-202a86d153ee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwZXQlMjB0b3lzfGVufDB8fHx8MTc2ODU4NDE1OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "pet toys"
+    },
+    {
+      "id": "category-accessories",
+      "description": "A dog wearing a bandana.",
+      "imageUrl": "https://images.unsplash.com/photo-1601925687611-e73fce816b18?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkb2clMjBiYW5kYW5hfGVufDB8fHx8MTc2ODU4NDE1OXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog bandana"
+    },
+    {
+      "id": "category-bedding",
+      "description": "A dog sleeping in a cozy bed.",
+      "imageUrl": "https://images.unsplash.com/photo-1580474258809-5635727a5183?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkb2clMjBiZWR8ZW58MHx8fHwxNzY4NTg0MTU5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog bed"
     }
   ]
 }

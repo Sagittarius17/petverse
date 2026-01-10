@@ -1,16 +1,18 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import Header from '@/components/header';
-import Footer from '@/components/footer';
+import AdoptionHeader from '@/components/adoption-header';
+import AdoptionFooter from '@/components/adoption-footer';
+import ShopHeader from '@/components/shop-header';
+import ShopFooter from '@/components/shop-footer';
 import { maintenanceStore } from '@/lib/maintenance-store';
 import MaintenancePage from './maintenance-page';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdminPage = pathname.startsWith('/admin');
+  const isShopPage = pathname.startsWith('/shop');
 
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
   const [estimatedTime, setEstimatedTime] = useState('');
@@ -36,11 +38,14 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   // On the server, and during the initial client render before the useEffect runs,
   // isClient will be false. We must render the default layout to match the server.
   if (!isClient) {
+    if (isAdminPage) {
+        return <main className="flex-grow">{children}</main>;
+    }
     return (
         <div className="flex min-h-screen flex-col">
-          {!isAdminPage && <Header />}
+          {isShopPage ? <ShopHeader /> : <AdoptionHeader />}
           <main className="flex-grow">{children}</main>
-          {!isAdminPage && <Footer />}
+          {isShopPage ? <ShopFooter /> : <AdoptionFooter />}
         </div>
     );
   }
@@ -50,11 +55,15 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     return <MaintenancePage estimatedTime={estimatedTime} />;
   }
 
+  if (isAdminPage) {
+    return <main className="flex-grow">{children}</main>;
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
-      {!isAdminPage && <Header />}
+      {isShopPage ? <ShopHeader /> : <AdoptionHeader />}
       <main className="flex-grow">{children}</main>
-      {!isAdminPage && <Footer />}
+      {isShopPage ? <ShopFooter /> : <AdoptionFooter />}
     </div>
   );
 }
