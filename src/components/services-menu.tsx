@@ -145,7 +145,7 @@ export function ServicesMenu() {
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <NavigationMenuTrigger>Services</NavigationMenuTrigger>
+          <NavigationMenuTrigger className="relative text-sm font-medium transition-colors hover:text-foreground after:absolute after:bottom-[-4px] after:left-0 after:h-[2px] after:w-full after:bg-primary after:scale-x-0 after:origin-left after:transition-transform after:duration-300 hover:after:scale-x-100 text-muted-foreground p-0">Services</NavigationMenuTrigger>
           <NavigationMenuContent>
             <div className="grid w-[600px] grid-cols-3 gap-x-4 p-4 md:w-[700px] lg:w-[900px]">
               {services.map(category => (
@@ -171,24 +171,24 @@ export function ServicesMenu() {
 const ListItem = React.forwardRef<React.ElementRef<'a'>, React.ComponentPropsWithoutRef<'a'> & { icon: React.ElementType }>(
   ({ className, title, children, icon: Icon, ...props }, ref) => {
     return (
-      <NavigationMenuLink asChild>
-        <a
-          ref={ref}
-          className={cn(
-            'group block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
-            className
-          )}
-          {...props}
-        >
-          <div className="flex items-center gap-x-2">
-            <Icon className="h-5 w-5 text-primary group-hover:text-accent-foreground" />
-            <div className="text-sm font-medium leading-none">{title}</div>
-          </div>
-          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground group-hover:text-accent-foreground">
-            {children}
-          </p>
-        </a>
-      </NavigationMenuLink>
+        <NavigationMenuLink asChild>
+          <a
+            ref={ref}
+            className={cn(
+              'group block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+              className
+            )}
+            {...props}
+          >
+            <div className="flex items-center gap-x-2">
+              <Icon className="h-5 w-5 text-primary group-hover:text-accent-foreground" />
+              <div className="text-sm font-medium leading-none">{title}</div>
+            </div>
+            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground group-hover:text-accent-foreground">
+              {children}
+            </p>
+          </a>
+        </NavigationMenuLink>
     );
   }
 );
