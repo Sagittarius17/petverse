@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -170,26 +171,24 @@ export function ServicesMenu() {
 const ListItem = React.forwardRef<React.ElementRef<'a'>, React.ComponentPropsWithoutRef<'a'> & { icon: React.ElementType }>(
   ({ className, title, children, icon: Icon, ...props }, ref) => {
     return (
-      <li>
-        <NavigationMenuLink asChild>
-          <a
-            ref={ref}
-            className={cn(
-              'group block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
-              className
-            )}
-            {...props}
-          >
-            <div className="flex items-center gap-x-2">
-              <Icon className="h-5 w-5 text-primary group-hover:text-accent-foreground" />
-              <div className="text-sm font-medium leading-none">{title}</div>
-            </div>
-            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground group-hover:text-accent-foreground">
-              {children}
-            </p>
-          </a>
-        </NavigationMenuLink>
-      </li>
+      <NavigationMenuLink asChild>
+        <a
+          ref={ref}
+          className={cn(
+            'group block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+            className
+          )}
+          {...props}
+        >
+          <div className="flex items-center gap-x-2">
+            <Icon className="h-5 w-5 text-primary group-hover:text-accent-foreground" />
+            <div className="text-sm font-medium leading-none">{title}</div>
+          </div>
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground group-hover:text-accent-foreground">
+            {children}
+          </p>
+        </a>
+      </NavigationMenuLink>
     );
   }
 );
