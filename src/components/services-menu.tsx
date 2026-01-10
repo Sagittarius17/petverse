@@ -145,7 +145,7 @@ export function ServicesMenu() {
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <NavigationMenuTrigger className="relative text-sm font-medium transition-colors hover:text-foreground after:absolute after:bottom-[-4px] after:left-0 after:h-[2px] after:w-full after:bg-primary after:scale-x-0 after:origin-left after:transition-transform after:duration-300 hover:after:scale-x-100 text-muted-foreground p-0">Services</NavigationMenuTrigger>
+          <NavigationMenuTrigger className="relative text-sm font-medium transition-colors hover:text-foreground after:absolute after:bottom-[-4px] after:left-0 after:h-[2px] after:w-full after:bg-primary after:scale-x-0 after:origin-left after:transition-transform after:duration-300 hover:after:scale-x-100 text-muted-foreground p-0 hover:bg-transparent focus:bg-transparent">Services</NavigationMenuTrigger>
           <NavigationMenuContent>
             <div className="grid w-[600px] grid-cols-3 gap-x-4 p-4 md:w-[700px] lg:w-[900px]">
               {services.map(category => (
