@@ -59,18 +59,6 @@ const services = [
         description: 'Reliable dog walking services to keep your friend active.',
         icon: HeartHandshake,
       },
-      {
-        title: 'Pet Relocation',
-        href: '#',
-        description: 'Safe and stress-free relocation services for your pets, worldwide.',
-        icon: Plane,
-      },
-      {
-        title: 'Pet Wellness',
-        href: '#',
-        description: 'Holistic wellness plans including nutrition and preventive care.',
-        icon: HeartPulse,
-      },
     ],
   },
   {
