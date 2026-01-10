@@ -82,12 +82,6 @@ const services = [
         description: 'Find a new loving home for your pet with our re-homing service.',
         icon: Home,
       },
-      {
-        title: 'Adopt a Pet',
-        href: '/adopt',
-        description: 'Find your new best friend from our list of adoptable pets.',
-        icon: Heart,
-      },
     ],
   },
   {
