@@ -29,6 +29,26 @@ function AccessoriesPageContent() {
         </p>
       </div>
 
+       <Card className="mb-8 shadow-md">
+        <CardContent className="p-4 flex justify-center">
+            <div className="w-full max-w-sm">
+                <Input
+                    placeholder="Search for accessories..."
+                    defaultValue={query || ''}
+                    onChange={(e) => {
+                        const params = new URLSearchParams(searchParams);
+                        if (e.target.value) {
+                            params.set('q', e.target.value);
+                        } else {
+                            params.delete('q');
+                        }
+                        window.history.replaceState(null, '', `?${params.toString()}`);
+                    }}
+                />
+            </div>
+        </CardContent>
+      </Card>
+
       {filteredProducts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredProducts.map(product => (

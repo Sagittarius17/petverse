@@ -105,14 +105,14 @@ export default function AdoptionHeader() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="focus:bg-transparent">
-                    <div className="flex items-center space-x-2 w-full">
-                        <Label htmlFor="view-mode-desktop" className="text-sm font-normal text-muted-foreground">Adoption</Label>
+                    <div className="flex items-center justify-between w-full">
+                        <Label htmlFor="view-mode-desktop" className="text-sm font-bold cursor-pointer pr-2">PetVerse</Label>
                         <Switch
                             id="view-mode-desktop"
                             checked={isShop}
                             onCheckedChange={handleToggle}
                         />
-                        <Label htmlFor="view-mode-desktop" className="text-sm font-medium">Shop</Label>
+                        <Label htmlFor="view-mode-desktop" className="text-sm font-bold cursor-pointer pl-2">PetShop</Label>
                     </div>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

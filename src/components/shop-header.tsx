@@ -76,7 +76,7 @@ export default function ShopHeader() {
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 gap-4">
         <Link href="/shop" className="flex items-center gap-2 text-xl font-bold font-headline">
           <PawPrint className="h-6 w-6 text-primary" />
-          PetVerse Shop
+          PetShop
         </Link>
         <nav className="hidden items-center gap-6 md:flex">
           {navLinks.map(({ href, label }) => (
@@ -135,14 +135,14 @@ export default function ShopHeader() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="focus:bg-transparent">
-                    <div className="flex items-center space-x-2 w-full">
-                        <Label htmlFor="view-mode-desktop-shop" className="text-sm font-normal text-muted-foreground">Adoption</Label>
+                    <div className="flex items-center justify-between w-full">
+                        <Label htmlFor="view-mode-desktop-shop" className="text-sm font-bold cursor-pointer pr-2">PetVerse</Label>
                         <Switch
                             id="view-mode-desktop-shop"
                             checked={isShop}
                             onCheckedChange={handleToggle}
                         />
-                        <Label htmlFor="view-mode-desktop-shop" className="text-sm font-medium">Shop</Label>
+                        <Label htmlFor="view-mode-desktop-shop" className="text-sm font-bold cursor-pointer pl-2">PetShop</Label>
                     </div>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -176,7 +176,7 @@ export default function ShopHeader() {
           <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
             <Link href="/shop" className="flex items-center gap-2 text-xl font-bold font-headline" onClick={() => setIsMenuOpen(false)}>
               <PawPrint className="h-6 w-6 text-primary" />
-               PetVerse Shop
+               PetShop
             </Link>
             <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(false)}>
               <X className="h-6 w-6" />
