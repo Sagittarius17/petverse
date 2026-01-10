@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThemeSwitcher } from './theme-switcher';
 import { cn } from '@/lib/utils';
+import { ServicesMenu } from './services-menu';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -67,6 +68,7 @@ export default function Header() {
               {label}
             </Link>
           ))}
+          <ServicesMenu />
         </nav>
         <div className="hidden items-center gap-2 md:flex">
           <ThemeSwitcher />
@@ -140,6 +142,13 @@ export default function Header() {
                 {label}
               </Link>
             ))}
+             <Link
+                href="#"
+                className="text-lg font-medium text-muted-foreground"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Services
+              </Link>
             <div className="mt-4">
               <ThemeSwitcher />
             </div>

@@ -15,7 +15,7 @@
     {
       "id": "dog-golden-retriever-2",
       "description": "An adult Golden Retriever sitting on grass.",
-      "imageUrl": "https://images.unsplash.com/photo-1596797882561-4683c848a478?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxnb2xkZW4lMjByZXRyaWV2ZXJ8ZW58MHx8fHwxNzY3NzQzMTQxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1633722715463-d30f4f325e24?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       "imageHint": "golden retriever"
     },
     {
@@ -135,13 +135,13 @@
     {
       "id": "cat-siamese-1",
       "description": "A classic Siamese cat with blue eyes.",
-      "imageUrl": "https://images.unsplash.com/photo-1625992965377-2a0723a4b6f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzaWFtZXNlJTIwY2F0fGVufDB8fHx8MTc2NzgwMjM3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1669095658634-2a5d9fae6d64?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       "imageHint": "siamese cat"
     },
     {
       "id": "cat-siamese-2",
       "description": "A Siamese cat resting on a chair.",
-      "imageUrl": "https://images.unsplash.com/photo-1574158622682-e40e69841006?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzaWFtZXNlJTIwY2F0fGVufDB8fHx8MTc2NzgwMjM3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1568309386325-ef86f13ac533?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       "imageHint": "siamese cat"
     },
     {
@@ -153,73 +153,73 @@
     {
       "id": "cat-persian-1",
       "description": "A fluffy white Persian cat.",
-      "imageUrl": "https://images.unsplash.com/photo-1596225435971-897d197943d0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwZXJzaWFuJTIwY2F0fGVufDB8fHx8MTc2NzgwMjQwNHww&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1596225435971-897d197943d0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwZXJzaWFuJTIwY2F0fGVufDB8fHx8MTc2NzgwMjQwNHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "persian cat"
     },
     {
       "id": "cat-persian-2",
       "description": "A Persian cat with long fur looking at the camera.",
-      "imageUrl": "https://images.unsplash.com/photo-1583795128727-6ec3642408f8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwZXJzaWFuJTIwY2F0fGVufDB8fHx8MTc2NzgwMjQwNHww&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1583795128727-6ec3642408f8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwZXJzaWFuJTIwY2F0fGVufDB8fHx8MTc2NzgwMjQwNHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "persian cat"
     },
     {
       "id": "cat-persian-3",
       "description": "A sleepy Persian kitten.",
-      "imageUrl": "https://images.unsplash.com/photo-1605332349764-5402a7337996?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwZXJzaWFuJTIwY2F0fGVufDB8fHx8MTc2NzgwMjQwNHww&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1605332349764-5402a7337996?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwZXJzaWFuJTIwY2F0fGVufDB8fHx8MTc2NzgwMjQwNHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "persian cat"
     },
     {
       "id": "cat-maine-coon-1",
       "description": "A large Maine Coon cat with tufted ears.",
-      "imageUrl": "https://images.unsplash.com/photo-1623992499648-5396593f2351?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtYWluZSUyMGNvb24lMjBjYXR8ZW58MHx8fHwxNzY3ODAyNDAyfDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1623992499648-5396593f2351?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtYWluZSUyMGNvb24lMjBjYXR8ZW58MHx8fHwxNzY3ODAyNDAyfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "maine coon"
     },
     {
       "id": "cat-maine-coon-2",
       "description": "A fluffy Maine Coon cat outdoors.",
-      "imageUrl": "https://images.unsplash.com/photo-1619194299929-28de082725a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxtYWluZSUyMGNvb24lMjBjYXR8ZW58MHx8fHwxNzY3ODAyNDAyfDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1619194299929-28de082725a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxtYWluZSUyMGNvb24lMjBjYXR8ZW58MHx8fHwxNzY3ODAyNDAyfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "maine coon"
     },
     {
       "id": "cat-maine-coon-3",
       "description": "A profile of a majestic Maine Coon cat.",
-      "imageUrl": "https://images.unsplash.com/photo-1618335919882-3c4bf29a6e43?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxtYWluZSUyMGNvb24lMjBjYXR8ZW58MHx8fHwxNzY3ODAyNDAyfDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1618335919882-3c4bf29a6e43?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxtYWluZSUyMGNvb24lMjBjYXR8ZW58MHx8fHwxNzY3ODAyNDAyfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "maine coon"
     },
     {
       "id": "cat-bengal-1",
       "description": "A Bengal cat with leopard-like spots.",
-      "imageUrl": "https://images.unsplash.com/photo-1597858356921-92d5c64c5841?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxiZW5nYWwlMjBjYXR8ZW58MHx8fHwxNzY3ODAyNDAxfDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1597858356921-92d5c64c5841?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxiZW5nYWwlMjBjYXR8ZW58MHx8fHwxNzY3ODAyNDAxfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "bengal cat"
     },
     {
       "id": "cat-bengal-2",
       "description": "A sleek Bengal cat playing.",
-      "imageUrl": "https://images.unsplash.com/photo-1603993099460-597576595d25?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxiZW5nYWwlMjBjYXR8ZW58MHx8fHwxNzY3ODAyNDAxfDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1603993099460-597576595d25?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxiZW5nYWwlMjBjYXR8ZW58MHx8fHwxNzY3ODAyNDAxfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "bengal cat"
     },
     {
       "id": "cat-bengal-3",
       "description": "A Bengal cat looking curiously at the camera.",
-      "imageUrl": "https://images.unsplash.com/photo-1609232889223-375940525542?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxiZW5nYWwlMjBjYXR8ZW58MHx8fHwxNzY3ODAyNDAxfDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1609232889223-375940525542?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxiZW5nYWwlMjBjYXR8ZW58MHx8fHwxNzY3ODAyNDAxfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "bengal cat"
     },
     {
       "id": "cat-2",
       "description": "A fluffy Persian kitten playing with a toy.",
-      "imageUrl": "https://images.unsplash.com/photo-1751402985543-2cc6991f1256?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjYXQlMjBraXR0ZW58ZW58MHx8fHwxNzY3NTI5MjA1fDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1751402985543-2cc6991f1256?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjYXQlMjBraXR0ZW58ZW58MHx8fHwxNzY3NTI5MjA1fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "cat kitten"
     },
     {
       "id": "cat-3",
       "description": "A sleek black cat lounging on a sofa.",
-      "imageUrl": "https://images.unsplash.com/photo-1617602819745-7780a53e3518?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjYXQlMjBhZHVsdHxlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1617602819745-7780a53e3518?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjYXQlMjBhZHVsdHxlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "cat adult"
     },
     {
       "id": "cat-4",
       "description": "A ginger tabby cat looking out a window.",
-      "imageUrl": "https://images.unsplash.com/photo-1588325690222-fbc2a58189c6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y2F0JTIwYWR1bHR8ZW58MHx8fHwxNzY3NTI5MjA1fDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1588325690222-fbc2a58189c6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y2F0JTIwYWR1bHR8ZW58MHx8fHwxNzY3NTI5MjA1fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "cat adult"
     },
     {
@@ -297,79 +297,79 @@
     {
       "id": "bird-1",
       "description": "A colorful parrot perched on a branch.",
-      "imageUrl": "https://images.unsplash.com/photo-1623922282992-7cf0ed185b8d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxiaXJkJTIwcGFycm90fGVufDB8fHx8MTc2NzUyOTIwNXww&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1623922282992-7cf0ed185b8d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxiaXJkJTIwcGFycm90fGVufDB8fHx8MTc2NzUyOTIwNXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "bird parrot"
     },
     {
       "id": "bird-2",
       "description": "A small canary singing in its cage.",
-      "imageUrl": "https://images.unsplash.com/photo-1730054478328-aac735cb49e4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxiaXJkJTIwc21hbGx8ZW58MHx8fHwxNzY3NTI5MjA1fDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1730054478328-aac735cb49e4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxiaXJkJTIwc21hbGx8ZW58MHx8fHwxNzY3NTI5MjA1fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "bird small"
     },
     {
       "id": "guide-dog",
       "description": "A person training a happy dog.",
-      "imageUrl": "https://images.unsplash.com/photo-1568393691622-c7ba131d63b4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxkb2clMjB0cmFpbmluZ3xlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1568393691622-c7ba131d63b4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxkb2clMjB0cmFpbmluZ3xlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "dog training"
     },
     {
       "id": "guide-cat",
       "description": "A cat peacefully sleeping in a cozy bed.",
-      "imageUrl": "https://images.unsplash.com/photo-1587417639866-0da8bb24b7d1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjYXQlMjBzbGVlcGluZ3xlbnwwfHx8fDE3Njc0NDE1NTl8MA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1587417639866-0da8bb24b7d1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjYXQlMjBzbGVlcGluZ3xlbnwwfHx8fDE3Njc0NDE1NTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "cat sleeping"
     },
     {
       "id": "guide-bird",
       "description": "A colorful bird eating from a feeder.",
-      "imageUrl": "https://images.unsplash.com/photo-1692212268925-524c44e64bab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxiaXJkJTIwZWF0aW5nfGVufDB8fHx8MTc2NzUyOTIwNXww&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1692212268925-524c44e64bab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxiaXJkJTIwZWF0aW5nfGVufDB8fHx8MTc2NzUyOTIwNXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "bird eating"
     },
     {
       "id": "guide-fish",
       "description": "Colorful fish swimming in a clean aquarium.",
-      "imageUrl": "https://images.unsplash.com/photo-1667680231289-1701f8b8b544?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxmaXNoJTIwYXF1YXJpdW18ZW58MHx8fHwxNzY3NTI5MjA1fDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1667680231289-1701f8b8b544?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxmaXNoJTIwYXF1YXJpdW18ZW58MHx8fHwxNzY3NTI5MjA1fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "fish aquarium"
     },
     {
       "id": "user-avatar-1",
       "description": "A placeholder avatar for a user profile.",
-      "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3Njc1MTExMDd8MA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3Njc1MTExMDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person portrait"
     },
     {
       "id": "know-rabbit",
       "description": "A fluffy rabbit in a green field.",
-      "imageUrl": "https://images.unsplash.com/photo-1595972727402-084f2162d637?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxyYWJiaXQlMjBuYXR1cmV8ZW58MHx8fHwxNzY3NzIxNjI1fDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1595972727402-084f2162d637?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxyYWJiaXQlMjBuYXR1cmV8ZW58MHx8fHwxNzY3NzIxNjI1fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "rabbit nature"
     },
     {
       "id": "know-hamster",
       "description": "A small hamster eating a seed.",
-      "imageUrl": "https://images.unsplash.com/photo-1630412989932-7d422f8ac136?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxoYW1zdGVyJTIwY3V0ZXxlbnwwfHx8fDE3Njc3MjE2MjR8MA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1630412989932-7d422f8ac136?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxoYW1zdGVyJTIwY3V0ZXxlbnwwfHx8fDE3Njc3MjE2MjR8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "hamster cute"
     },
     {
       "id": "know-cockatiel",
       "description": "A cockatiel with a yellow crest.",
-      "imageUrl": "https://images.unsplash.com/photo-1761627064452-68769313f360?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjb2NrYXRpZWwlMjBiaXJkfGVufDB8fHx8MTc2NzcyMTYyNHww&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1761627064452-68769313f360?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjb2NrYXRpZWwlMjBiaXJkfGVufDB8fHx8MTc2NzcyMTYyNHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "cockatiel bird"
     },
     {
       "id": "know-lizard",
       "description": "A green lizard on a rock.",
-      "imageUrl": "https://images.unsplash.com/photo-1722709276773-27d3720f70b4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxsaXphcmQlMjByZXB0aWxlfGVufDB8fHx8MTc2NzcyMTYyNHww&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1722709276773-27d3720f70b4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxsaXphcmQlMjByZXB0aWxlfGVufDB8fHx8MTc2NzcyMTYyNHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "lizard reptile"
     },
     {
       "id": "know-snake",
       "description": "A snake coiled on a branch.",
-      "imageUrl": "https://images.unsplash.com/photo-1751111303717-edf242287942?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzbmFrZSUyMHJlcHRpbGV8ZW58MHx8fHwxNzY3NzIxNjI0fDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1751111303717-edf242287942?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzbmFrZSUyMHJlcHRpbGV8ZW58MHx8fHwxNzY3NzIxNjI0fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "snake reptile"
     },
     {
       "id": "know-turtle",
       "description": "A turtle swimming in water.",
-      "imageUrl": "https://images.unsplash.com/photo-1690666056631-32e11d63df12?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8dHVydGxlJTIwd2F0ZXJ8ZW58MHx8fHwxNzY3NzIxNjI0fDA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1690666056631-32e11d63df12?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8dHVydGxlJTIwd2F0ZXJ8ZW58MHx8fHwxNzY3NzIxNjI0fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "turtle water"
     }
   ]
