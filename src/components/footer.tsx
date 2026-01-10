@@ -7,13 +7,13 @@ export default function Footer() {
       <div className="container mx-auto max-w-7xl px-4 py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* About Section */}
-          <div className="md:col-span-2">
+          <div className="md:col-span-1">
             <Link href="/" className="flex items-center gap-2 text-xl font-bold font-headline mb-2">
               <PawPrint className="h-6 w-6 text-primary" />
               PetVerse
             </Link>
             <p className="text-sm text-muted-foreground max-w-sm">
-              Your one-stop destination for pet adoption, care, and community. Find your new best friend today!
+              Your one-stop destination for pet adoption, care, and community.
             </p>
           </div>
 
@@ -22,7 +22,7 @@ export default function Footer() {
             <h3 className="text-md font-semibold font-headline mb-4">Quick Links</h3>
             <ul className="space-y-2 text-sm">
               <li><Link href="#" className="text-muted-foreground hover:text-primary">About Us</Link></li>
-              <li><Link href="#" className="text-muted-foreground hover:text-primary">Blog</Link></li>
+              <li><Link href="/blogs" className="text-muted-foreground hover:text-primary">Blog</Link></li>
               <li><Link href="#" className="text-muted-foreground hover:text-primary">Contact</Link></li>
               <li><Link href="#" className="text-muted-foreground hover:text-primary">FAQs</Link></li>
             </ul>
@@ -35,6 +35,17 @@ export default function Footer() {
               <li><Link href="/adopt" className="text-muted-foreground hover:text-primary">Adoption</Link></li>
               <li><Link href="/care" className="text-muted-foreground hover:text-primary">Care Guides</Link></li>
               <li><Link href="/lost-and-found" className="text-muted-foreground hover:text-primary">Lost & Found</Link></li>
+            </ul>
+          </div>
+
+          {/* Partner With Us */}
+          <div>
+            <h3 className="text-md font-semibold font-headline mb-4">Be a Partner</h3>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="#" className="text-muted-foreground hover:text-primary">Dog Trainers</Link></li>
+              <li><Link href="#" className="text-muted-foreground hover:text-primary">Dog Walkers</Link></li>
+              <li><Link href="#" className="text-muted-foreground hover:text-primary">Veterinarians</Link></li>
+              <li><Link href="#" className="text-muted-foreground hover:text-primary">Groomers</Link></li>
             </ul>
           </div>
         </div>
