@@ -21,13 +21,6 @@ function ToysPageContent() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold font-headline tracking-tight">Toys</h1>
-        <p className="mt-2 text-lg text-muted-foreground">
-          Fun and engaging toys to keep your pet entertained.
-        </p>
-      </div>
-
       {filteredProducts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredProducts.map(product => (
@@ -58,10 +51,6 @@ export default function ToysPage() {
 function PageSkeleton() {
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="text-center mb-8">
-        <Skeleton className="h-10 w-64 mx-auto" />
-        <Skeleton className="h-6 w-96 mx-auto mt-2" />
-      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className="space-y-2">
