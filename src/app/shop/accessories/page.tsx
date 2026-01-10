@@ -1,12 +1,9 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { allProducts, Product } from '@/lib/shop-data';
 import ProductCard from '@/components/product-card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
 import { PawPrint } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -14,11 +11,12 @@ function AccessoriesPageContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q');
   
-  const accessories = allProducts.filter(p => p.category === 'Accessories');
+  const accessories = useMemo(() => allProducts.filter(p => p.category === 'Accessories'), []);
 
-  const filteredProducts = query
-    ? accessories.filter(p => p.name.toLowerCase().includes(query.toLowerCase()) || p.description.toLowerCase().includes(query.toLowerCase()))
-    : accessories;
+  const filteredProducts = useMemo(() => {
+    if (!query) return accessories;
+    return accessories.filter(p => p.name.toLowerCase().includes(query.toLowerCase()) || p.description.toLowerCase().includes(query.toLowerCase()));
+  }, [query, accessories]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -28,26 +26,6 @@ function AccessoriesPageContent() {
           Stylish and functional accessories for every pet.
         </p>
       </div>
-
-       <Card className="mb-8 shadow-md">
-        <CardContent className="p-4 flex justify-center">
-            <div className="w-full max-w-sm">
-                <Input
-                    placeholder="Search for accessories..."
-                    defaultValue={query || ''}
-                    onChange={(e) => {
-                        const params = new URLSearchParams(searchParams);
-                        if (e.target.value) {
-                            params.set('q', e.target.value);
-                        } else {
-                            params.delete('q');
-                        }
-                        window.history.replaceState(null, '', `?${params.toString()}`);
-                    }}
-                />
-            </div>
-        </CardContent>
-      </Card>
 
       {filteredProducts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

@@ -36,7 +36,6 @@ export default function ShopHeader() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isClient, setIsClient] = useState(false);
-  const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
 
   useEffect(() => {
     setIsClient(true);
@@ -59,16 +58,16 @@ export default function ShopHeader() {
     setIsMenuOpen(false);
   };
   
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const params = new URLSearchParams(searchParams);
-    if (searchTerm) {
-      params.set('q', searchTerm);
+    const value = e.target.value;
+    if (value) {
+      params.set('q', value);
     } else {
       params.delete('q');
     }
-    // Navigate to the base shop page with search query
-    router.push(`/shop?${params.toString()}`);
+    // Use replace to avoid adding to browser history for each keystroke
+    router.replace(`${pathname}?${params.toString()}`);
   };
 
   return (
@@ -97,15 +96,15 @@ export default function ShopHeader() {
         </nav>
         
         <div className="hidden md:flex flex-1 max-w-md">
-           <form onSubmit={handleSearch} className="w-full relative">
+           <div className="w-full relative">
             <Input 
               placeholder="Search for food, toys, accessories..." 
               className="w-full pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              defaultValue={searchParams.get('q') || ''}
+              onChange={handleSearch}
             />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          </form>
+          </div>
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
@@ -135,14 +134,14 @@ export default function ShopHeader() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="focus:bg-transparent">
-                    <div className="flex items-center justify-between w-full">
-                        <Label htmlFor="view-mode-desktop-shop" className="text-sm font-bold cursor-pointer pr-2">PetVerse</Label>
+                    <div className="flex items-center justify-center w-full gap-2">
+                        <Label htmlFor="view-mode-desktop-shop" className="font-bold cursor-pointer">PetVerse</Label>
                         <Switch
                             id="view-mode-desktop-shop"
                             checked={isShop}
                             onCheckedChange={handleToggle}
                         />
-                        <Label htmlFor="view-mode-desktop-shop" className="text-sm font-bold cursor-pointer pl-2">PetShop</Label>
+                        <Label htmlFor="view-mode-desktop-shop" className="font-bold cursor-pointer">PetShop</Label>
                     </div>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -183,15 +182,15 @@ export default function ShopHeader() {
             </Button>
           </div>
           <div className="flex flex-col items-center gap-6 p-8">
-            <form onSubmit={handleSearch} className="w-full relative">
+            <div className="w-full relative">
                 <Input 
                   placeholder="Search..." 
                   className="w-full pl-10" 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  defaultValue={searchParams.get('q') || ''}
+                  onChange={handleSearch}
                 />
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            </form>
+            </div>
             {navLinks.map(({ href, label }) => (
               <Link
                 key={href}

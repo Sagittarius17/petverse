@@ -1,23 +1,23 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { allProducts, Product } from '@/lib/shop-data';
 import ProductCard from '@/components/product-card';
 import { PawPrint } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 
 function ToysPageContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q');
   
-  const toyProducts = allProducts.filter(p => p.category === 'Toys');
+  const toyProducts = useMemo(() => allProducts.filter(p => p.category === 'Toys'), []);
 
-  const filteredProducts = query
-    ? toyProducts.filter(p => p.name.toLowerCase().includes(query.toLowerCase()) || p.description.toLowerCase().includes(query.toLowerCase()))
-    : toyProducts;
+  const filteredProducts = useMemo(() => {
+    if (!query) return toyProducts;
+    return toyProducts.filter(p => p.name.toLowerCase().includes(query.toLowerCase()) || p.description.toLowerCase().includes(query.toLowerCase()));
+  }, [query, toyProducts]);
+
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -27,26 +27,6 @@ function ToysPageContent() {
           Fun and engaging toys to keep your pet entertained.
         </p>
       </div>
-
-       <Card className="mb-8 shadow-md">
-        <CardContent className="p-4 flex justify-center">
-            <div className="w-full max-w-sm">
-                <Input
-                    placeholder="Search for toys..."
-                    defaultValue={query || ''}
-                     onChange={(e) => {
-                        const params = new URLSearchParams(searchParams);
-                        if (e.target.value) {
-                            params.set('q', e.target.value);
-                        } else {
-                            params.delete('q');
-                        }
-                        window.history.replaceState(null, '', `?${params.toString()}`);
-                    }}
-                />
-            </div>
-        </CardContent>
-      </Card>
 
       {filteredProducts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
