@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Menu, X, PawPrint, ShoppingCart, Search, Sun, Moon, Trees, Flower, Monitor } from 'lucide-react';
+import { Menu, X, PawPrint, ShoppingCart, Search, Sun, Moon, Trees, Flower, Monitor, User, Package, Heart, Home, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useUser, useAuth } from '@/firebase';
@@ -148,16 +148,28 @@ export default function ShopHeader() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/profile">Profile</Link>
+                  <Link href="/profile">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/profile/orders">Orders</Link>
+                  <Link href="/profile/orders">
+                    <Package className="mr-2 h-4 w-4" />
+                    <span>Orders</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/profile/wishlist">Wishlist</Link>
+                  <Link href="/profile/wishlist">
+                    <Heart className="mr-2 h-4 w-4" />
+                    <span>Wishlist</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/profile/addresses">Address</Link>
+                  <Link href="/profile/addresses">
+                    <Home className="mr-2 h-4 w-4" />
+                    <span>Address</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
@@ -188,8 +200,10 @@ export default function ShopHeader() {
                     </DropdownMenuItem>
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
-                  Log out
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
