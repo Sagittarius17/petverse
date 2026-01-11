@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Fetches detailed information about a specific pet breed using an AI model and saves it to Firestore.
@@ -24,7 +25,7 @@ const FetchBreedInfoOutputSchema = PetBreedSchema.pick({
   description: true, 
   careDetails: true,
   imageIds: true,
-}).optional(); // Make the entire output optional
+}).partial(); // Make all fields optional
 export type FetchBreedInfoOutput = z.infer<typeof FetchBreedInfoOutputSchema>;
 
 
@@ -37,13 +38,16 @@ export async function fetchBreedInfo(input: FetchBreedInfoInput): Promise<PetBre
   }
 
   const breedId = `${input.speciesName.toLowerCase()}-${result.name.replace(/ /g, '-').toLowerCase()}`;
+  
+  // Construct the full breed data, ensuring all required fields have defaults if not provided by AI
   const breedData: PetBreed = {
     id: breedId,
     name: result.name,
-    description: result.description,
-    imageIds: result.imageIds,
-    careDetails: result.careDetails,
+    description: result.description || `A wonderful ${input.speciesName} looking for a home!`,
+    imageIds: result.imageIds || [`${input.speciesName.toLowerCase()}-1`],
+    careDetails: result.careDetails || [],
   };
+
 
   // Save to Firestore if database is available
   if (db) {
@@ -52,10 +56,10 @@ export async function fetchBreedInfo(input: FetchBreedInfoInput): Promise<PetBre
       const breedRef = db.collection('animalBreeds').doc(breedId);
       
       const firestoreBreedData = {
-        name: result.name,
-        description: result.description,
-        careDetails: result.careDetails,
-        imageIds: result.imageIds,
+        name: breedData.name,
+        description: breedData.description,
+        careDetails: breedData.careDetails,
+        imageIds: breedData.imageIds,
         speciesName: input.speciesName,
         categoryName: input.categoryName || 'Mammals', // Default to Mammals if not provided
       };
@@ -99,6 +103,6 @@ const fetchBreedInfoFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await fetchBreedInfoPrompt(input);
-    return output;
+    return output!;
   }
 );
