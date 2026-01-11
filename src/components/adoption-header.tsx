@@ -16,7 +16,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ThemeSwitcher } from './theme-switcher';
 import { cn } from '@/lib/utils';
 import { ServicesMenu } from './services-menu';
 import { Label } from './ui/label';
@@ -84,7 +83,6 @@ export default function AdoptionHeader() {
           <ServicesMenu />
         </nav>
         <div className="hidden items-center gap-2 md:flex">
-          <ThemeSwitcher />
           {isUserLoading ? null : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -105,7 +103,7 @@ export default function AdoptionHeader() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="focus:bg-transparent hover:bg-transparent focus:text-current hover:text-current">
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="focus:bg-transparent hover:bg-transparent focus:text-current hover:text-current cursor-default">
                     <div className="flex items-center justify-between w-full">
                         <Label htmlFor="view-mode-desktop" className="text-sm font-bold cursor-pointer pr-2">PetVerse</Label>
                         <Switch
@@ -174,9 +172,6 @@ export default function AdoptionHeader() {
               >
                 Services
               </Link>
-            <div className="mt-4">
-              <ThemeSwitcher />
-            </div>
             <div className="mt-6 flex flex-col gap-4 w-full">
               {user ? (
                  <Button variant="outline" size="lg" onClick={handleLogout}>

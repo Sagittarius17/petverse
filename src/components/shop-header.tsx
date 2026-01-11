@@ -17,7 +17,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ThemeSwitcher } from './theme-switcher';
 import { cn } from '@/lib/utils';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
@@ -113,7 +112,6 @@ export default function ShopHeader() {
               <ShoppingCart className="h-5 w-5" />
               <span className="sr-only">Shopping Cart</span>
           </Button>
-          <ThemeSwitcher />
           {isUserLoading ? null : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -134,7 +132,7 @@ export default function ShopHeader() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="focus:bg-transparent hover:bg-transparent focus:text-current hover:text-current">
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="focus:bg-transparent hover:bg-transparent focus:text-current hover:text-current cursor-default">
                     <div className="flex items-center justify-center w-full gap-2">
                         <Label htmlFor="view-mode-desktop-shop" className="font-bold cursor-pointer">PetVerse</Label>
                         <Switch
@@ -205,9 +203,6 @@ export default function ShopHeader() {
                 {label}
               </Link>
             ))}
-            <div className="mt-4">
-              <ThemeSwitcher />
-            </div>
             <div className="mt-6 flex flex-col gap-4 w-full">
               {user ? (
                  <Button variant="outline" size="lg" onClick={handleLogout}>

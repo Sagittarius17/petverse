@@ -5,10 +5,11 @@ import Image from 'next/image';
 import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTheme } from 'next-themes';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Edit, LogOut, Trash2, Eye, PlusCircle, Heart } from 'lucide-react';
+import { Edit, LogOut, Trash2, Eye, PlusCircle, Heart, Sun, Moon, Trees, Flower, Monitor } from 'lucide-react';
 import PetCard from '@/components/pet-card';
 import { type Pet, type PetBreed } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,6 +23,8 @@ import { PetFormDialog } from './pet-form-dialog';
 import { ProfileFormDialog } from './profile-form-dialog';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import PetInfoDialog from '@/components/pet-info-dialog';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 
 interface UserProfile extends DocumentData {
@@ -76,6 +79,7 @@ export default function ProfilePage() {
   const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
 
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const [petToDelete, setPetToDelete] = useState<Pet | null>(null);
@@ -255,9 +259,10 @@ export default function ProfilePage() {
       </div>
 
       <Tabs defaultValue="submitted">
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
+        <TabsList className="grid w-full grid-cols-3 max-w-2xl">
           <TabsTrigger value="submitted">My Submitted Pets</TabsTrigger>
           <TabsTrigger value="favorites">My Favorite Breeds</TabsTrigger>
+          <TabsTrigger value="appearance">Appearance</TabsTrigger>
         </TabsList>
         <TabsContent value="submitted" className="mt-6">
             <div className="flex justify-end mb-4">
@@ -332,6 +337,40 @@ export default function ProfilePage() {
                     </CardContent>
                 </Card>
             )}
+        </TabsContent>
+        <TabsContent value="appearance" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Appearance</CardTitle>
+              <CardDescription>Customize the look and feel of the application.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <RadioGroup
+                value={theme}
+                onValueChange={setTheme}
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"
+              >
+                {[
+                  { value: 'light', label: 'Light', icon: Sun },
+                  { value: 'dark', label: 'Dark', icon: Moon },
+                  { value: 'dark-forest', label: 'Forest', icon: Trees },
+                  { value: 'light-rose', label: 'Rose', icon: Flower },
+                  { value: 'system', label: 'System', icon: Monitor },
+                ].map(({ value, label, icon: Icon }) => (
+                  <div key={value}>
+                    <RadioGroupItem value={value} id={value} className="peer sr-only" />
+                    <Label
+                      htmlFor={value}
+                      className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer h-24"
+                    >
+                      <Icon className="mb-2 h-6 w-6" />
+                      {label}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
