@@ -27,9 +27,7 @@ import { useTheme } from 'next-themes';
 
 const navLinks = [
   { href: '/shop', label: 'Home' },
-  { href: '/shop/food', label: 'Food' },
-  { href: '/shop/toys', label: 'Toys' },
-  { href: '/shop/accessories', label: 'Accessories' },
+  { href: '/shop/products', label: 'Products' },
 ];
 
 export default function ShopHeader() {
@@ -71,8 +69,8 @@ export default function ShopHeader() {
     } else {
       params.delete('q');
     }
-    // Use replace to avoid adding to browser history for each keystroke
-    router.replace(`${pathname}?${params.toString()}`);
+    const currentPath = pathname.startsWith('/shop/products') ? pathname : '/shop/products';
+    router.replace(`${currentPath}?${params.toString()}`);
   };
 
   return (
