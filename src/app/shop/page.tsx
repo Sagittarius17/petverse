@@ -41,11 +41,18 @@ function ShopContent() {
             <p className="max-w-[600px] text-muted-foreground md:text-xl lg:mx-0">
               High-quality food, engaging toys, and stylish accessories to keep your best friend happy and healthy.
             </p>
-            <Button asChild size="lg" className="bg-amber-500 hover:bg-amber-600 text-amber-950">
-              <Link href="/shop/food">
-                Shop All Products <Sparkles className="ml-2" />
-              </Link>
-            </Button>
+            <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center lg:justify-start">
+              <Button asChild size="lg" className="bg-amber-500 hover:bg-amber-600 text-amber-950">
+                <Link href="/shop/toys">
+                  shop toys?
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link href="/adopt">
+                  want to adopt a pet?
+                </Link>
+              </Button>
+            </div>
           </div>
           <div className="relative h-64 w-full overflow-hidden rounded-xl shadow-2xl md:h-96">
             {heroImage && (
