@@ -32,8 +32,8 @@ export default function ShopFooter() {
           <div>
             <h3 className="text-md font-semibold font-headline mb-4">Customer Service</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="#" className="text-muted-foreground hover:text-primary">Contact Us</Link></li>
-              <li><Link href="#" className="text-muted-foreground hover:text-primary">FAQs</Link></li>
+              <li><Link href="/contact" className="text-muted-foreground hover:text-primary">Contact Us</Link></li>
+              <li><Link href="/faq" className="text-muted-foreground hover:text-primary">FAQs</Link></li>
               <li><Link href="#" className="text-muted-foreground hover:text-primary">Shipping & Returns</Link></li>
               <li><Link href="#" className="text-muted-foreground hover:text-primary">Track Your Order</Link></li>
             </ul>
@@ -44,8 +44,8 @@ export default function ShopFooter() {
             <h3 className="text-md font-semibold font-headline mb-4">About PetVerse</h3>
             <ul className="space-y-2 text-sm">
               <li><Link href="/" className="text-muted-foreground hover:text-primary">Main Site</Link></li>
-              <li><Link href="#" className="text-muted-foreground hover:text-primary">About Us</Link></li>
-              <li><Link href="/blogs" className="text-muted-foreground hover:text-primary">Blog</Link></li>
+              <li><Link href="/about" className="text-muted-foreground hover:text-primary">About Us</Link></li>
+              <li><Link href="/blog" className="text-muted-foreground hover:text-primary">Blog</Link></li>
             </ul>
           </div>
 

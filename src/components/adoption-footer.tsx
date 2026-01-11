@@ -21,10 +21,10 @@ export default function AdoptionFooter() {
           <div>
             <h3 className="text-md font-semibold font-headline mb-4">Quick Links</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="#" className="text-muted-foreground hover:text-primary">About Us</Link></li>
-              <li><Link href="/blogs" className="text-muted-foreground hover:text-primary">Blog</Link></li>
-              <li><Link href="#" className="text-muted-foreground hover:text-primary">Contact</Link></li>
-              <li><Link href="#" className="text-muted-foreground hover:text-primary">FAQs</Link></li>
+              <li><Link href="/about" className="text-muted-foreground hover:text-primary">About Us</Link></li>
+              <li><Link href="/blog" className="text-muted-foreground hover:text-primary">Blog</Link></li>
+              <li><Link href="/contact" className="text-muted-foreground hover:text-primary">Contact</Link></li>
+              <li><Link href="/faq" className="text-muted-foreground hover:text-primary">FAQs</Link></li>
             </ul>
           </div>
 
