@@ -9,6 +9,7 @@ export const BreedCareDetailSchema = z.object({
 });
 
 export const PetBreedSchema = z.object({
+  id: z.string().optional(),
   name: z.string(),
   description: z.string(),
   imageIds: z.array(z.string()),

@@ -7,9 +7,9 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { BreedCareDetailSchema, PetBreedSchema } from '@/lib/data';
+import { PetBreedSchema } from '@/lib/data';
 import { db } from '@/firebase/server';
-import { initialPetCategories } from '@/lib/initial-pet-data';
+import type { PetBreed } from '@/lib/data';
 
 const FetchBreedInfoInputSchema = z.object({
   breedName: z.string().describe('The name of the breed to look up.'),
@@ -32,11 +32,11 @@ export async function fetchBreedInfo(input: FetchBreedInfoInput): Promise<PetBre
   const result = await fetchBreedInfoFlow(input);
   
   if (!result.name) {
-    throw new Error(`The breed "${input.breedName}" could not be found or does not seem to be a real breed. Please try a different name.`);
+    throw new Error(`The breed "${input.breedName}" could not be found or is not a recognized breed. Please try a different name.`);
   }
 
   const breedId = `${input.speciesName.toLowerCase()}-${result.name.replace(/ /g, '-').toLowerCase()}`;
-  const breedData = {
+  const breedData: PetBreed = {
     id: breedId,
     ...result,
   };
