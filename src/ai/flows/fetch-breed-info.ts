@@ -24,21 +24,25 @@ const FetchBreedInfoOutputSchema = PetBreedSchema.pick({
   description: true, 
   careDetails: true,
   imageIds: true,
-});
+}).optional(); // Make the entire output optional
 export type FetchBreedInfoOutput = z.infer<typeof FetchBreedInfoOutputSchema>;
 
 
 export async function fetchBreedInfo(input: FetchBreedInfoInput): Promise<PetBreed> {
   const result = await fetchBreedInfoFlow(input);
   
-  if (!result.name) {
+  // If the result is empty or doesn't have a name, the breed is not real.
+  if (!result || !result.name) {
     throw new Error(`The breed "${input.breedName}" could not be found or is not a recognized breed. Please try a different name.`);
   }
 
   const breedId = `${input.speciesName.toLowerCase()}-${result.name.replace(/ /g, '-').toLowerCase()}`;
   const breedData: PetBreed = {
     id: breedId,
-    ...result,
+    name: result.name,
+    description: result.description,
+    imageIds: result.imageIds,
+    careDetails: result.careDetails,
   };
 
   // Save to Firestore if database is available
@@ -48,7 +52,10 @@ export async function fetchBreedInfo(input: FetchBreedInfoInput): Promise<PetBre
       const breedRef = db.collection('animalBreeds').doc(breedId);
       
       const firestoreBreedData = {
-        ...result,
+        name: result.name,
+        description: result.description,
+        careDetails: result.careDetails,
+        imageIds: result.imageIds,
         speciesName: input.speciesName,
         categoryName: input.categoryName || 'Mammals', // Default to Mammals if not provided
       };
@@ -57,7 +64,7 @@ export async function fetchBreedInfo(input: FetchBreedInfoInput): Promise<PetBre
       return breedData;
     } catch (error) {
       console.error("Error saving breed to Firestore:", error);
-      // Still return the result even if DB save fails
+      // Still return the result even if DB save fails, but now we know it's a valid breed
     }
   }
 
@@ -73,7 +80,7 @@ const fetchBreedInfoPrompt = ai.definePrompt({
 
     Your FIRST task is to determine if the user-provided breed name, "{{breedName}}", is a real, recognized breed of {{speciesName}}.
     - If it is a real breed, find its most common, internationally recognized name. For example, if the user provides a local name like "Desi Kukur", you must identify it as "Indian Pariah Dog". Use this official name for the 'name' field in your response.
-    - If it is NOT a real breed (e.g., a random string like "ghjtyghf", a fantasy creature, or a breed that does not exist for this species), you MUST NOT invent information. Respond with an empty object.
+    - If it is NOT a real breed (e.g., a random string like "ghjtyghf", a fantasy creature, or a breed that does not exist for this species), you MUST NOT invent information. Respond with a completely empty object.
 
     If the breed is real, your SECOND task is to provide the following information:
     1.  'name': The most common, official name of the breed.
@@ -92,6 +99,6 @@ const fetchBreedInfoFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await fetchBreedInfoPrompt(input);
-    return output!;
+    return output;
   }
 );
