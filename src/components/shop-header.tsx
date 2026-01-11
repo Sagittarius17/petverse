@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Menu, X, PawPrint, ShoppingCart, Search } from 'lucide-react';
+import { Menu, X, PawPrint, ShoppingCart, Search, Sun, Moon, Trees, Flower, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useUser, useAuth } from '@/firebase';
@@ -16,11 +16,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { cn } from '@/lib/utils';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
-import { ThemeSwitcher } from './theme-switcher';
+import { useTheme } from 'next-themes';
 
 const navLinks = [
   { href: '/shop', label: 'Home' },
@@ -33,6 +36,7 @@ export default function ShopHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
+  const { setTheme } = useTheme();
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -148,9 +152,35 @@ export default function ShopHeader() {
                 <DropdownMenuItem asChild>
                   <Link href="/profile">Profile</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <ThemeSwitcher />
-                </DropdownMenuItem>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                    <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                    <span className="ml-2">Toggle theme</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={() => setTheme('light')}>
+                      <Sun className="mr-2 h-4 w-4" />
+                      <span>Light</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme('dark')}>
+                      <Moon className="mr-2 h-4 w-4" />
+                      <span>Dark</span>
+                    </DropdownMenuItem>
+                     <DropdownMenuItem onClick={() => setTheme("dark-forest")}>
+                      <Trees className="mr-2 h-4 w-4" />
+                      <span>Forest</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme("light-rose")}>
+                      <Flower className="mr-2 h-4 w-4" />
+                      <span>Rose</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme('system')}>
+                      <Monitor className="mr-2 h-4 w-4" />
+                      <span>System</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
                 <DropdownMenuItem onClick={handleLogout}>
                   Log out
                 </DropdownMenuItem>
@@ -158,7 +188,6 @@ export default function ShopHeader() {
             </DropdownMenu>
           ) : (
             <>
-              <ThemeSwitcher />
               <Button variant="ghost" asChild>
                 <Link href="/login">Log In</Link>
               </Button>

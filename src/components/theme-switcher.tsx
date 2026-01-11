@@ -1,7 +1,8 @@
+
 "use client"
 
 import * as React from "react"
-import { Moon, Sun, Trees, Flower, Monitor } from "lucide-react"
+import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 
 import { Button } from "@/components/ui/button"
@@ -13,60 +14,26 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export function ThemeSwitcher() {
-  const { setTheme, theme } = useTheme()
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const ActiveThemeIcon = () => {
-    if (!mounted) {
-      return <Monitor className="h-[1.2rem] w-[1.2rem]" />;
-    }
-    switch (theme) {
-      case 'light':
-        return <Sun className="h-[1.2rem] w-[1.2rem]" />;
-      case 'dark':
-        return <Moon className="h-[1.2rem] w-[1.2rem]" />;
-      case 'dark-forest':
-        return <Trees className="h-[1.2rem] w-[1.2rem]" />;
-      case 'light-rose':
-        return <Flower className="h-[1.2rem] w-[1.2rem]" />;
-      default:
-        return <Monitor className="h-[1.2rem] w-[1.2rem]" />;
-    }
-  };
-
+  const { setTheme } = useTheme()
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon">
-          <ActiveThemeIcon />
+          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
           <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setTheme("light")}>
-          <Sun className="mr-2 h-4 w-4" />
-          <span>Light</span>
+          Light
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("dark")}>
-          <Moon className="mr-2 h-4 w-4" />
-          <span>Dark</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark-forest")}>
-          <Trees className="mr-2 h-4 w-4" />
-          <span>Forest</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("light-rose")}>
-          <Flower className="mr-2 h-4 w-4" />
-          <span>Rose</span>
+          Dark
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("system")}>
-          <Monitor className="mr-2 h-4 w-4" />
-          <span>System</span>
+          System
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
