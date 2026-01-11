@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { ServicesMenu } from './services-menu';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
+import { ThemeSwitcher } from './theme-switcher';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -118,6 +119,9 @@ export default function AdoptionHeader() {
                 <DropdownMenuItem asChild>
                   <Link href="/profile">Profile</Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <ThemeSwitcher />
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout}>
                   Log out
                 </DropdownMenuItem>
@@ -125,6 +129,7 @@ export default function AdoptionHeader() {
             </DropdownMenu>
           ) : (
             <>
+              <ThemeSwitcher />
               <Button variant="ghost" asChild>
                 <Link href="/login">Log In</Link>
               </Button>

@@ -20,6 +20,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
+import { ThemeSwitcher } from './theme-switcher';
 
 const navLinks = [
   { href: '/shop', label: 'Home' },
@@ -147,6 +148,9 @@ export default function ShopHeader() {
                 <DropdownMenuItem asChild>
                   <Link href="/profile">Profile</Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <ThemeSwitcher />
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout}>
                   Log out
                 </DropdownMenuItem>
@@ -154,6 +158,7 @@ export default function ShopHeader() {
             </DropdownMenu>
           ) : (
             <>
+              <ThemeSwitcher />
               <Button variant="ghost" asChild>
                 <Link href="/login">Log In</Link>
               </Button>
