@@ -128,7 +128,7 @@ export default function Home() {
              ))}
           </div>
           <div className="text-center">
-            <Button asChild variant="link" className="text-accent-foreground">
+            <Button asChild size="lg" variant="secondary">
               <Link href="/care">Explore All Guides <ArrowRight className="ml-2" /></Link>
             </Button>
           </div>
