@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -133,7 +134,7 @@ export default function ShopHeader() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="focus:bg-transparent">
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="focus:bg-transparent hover:bg-transparent focus:text-current hover:text-current">
                     <div className="flex items-center justify-center w-full gap-2">
                         <Label htmlFor="view-mode-desktop-shop" className="font-bold cursor-pointer">PetVerse</Label>
                         <Switch

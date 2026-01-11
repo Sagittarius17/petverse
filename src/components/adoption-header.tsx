@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -104,7 +105,7 @@ export default function AdoptionHeader() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="focus:bg-transparent">
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="focus:bg-transparent hover:bg-transparent focus:text-current hover:text-current">
                     <div className="flex items-center justify-between w-full">
                         <Label htmlFor="view-mode-desktop" className="text-sm font-bold cursor-pointer pr-2">PetVerse</Label>
                         <Switch
