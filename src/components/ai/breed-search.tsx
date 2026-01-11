@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2, Wand2, Search } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { fetchBreedInfo, FetchBreedInfoInput } from '@/ai/flows/fetch-breed-info';
 import type { PetBreed } from '@/lib/data';
 
