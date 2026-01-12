@@ -89,18 +89,38 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
       const querySnapshot = await getDocs(q);
       
       if (querySnapshot.empty) {
+        // Create conversation and first message
         const conversationDocRef = doc(conversationsRef, conversationId);
+        // Set participants and last message stub
+        await setDoc(conversationDocRef, {
+          participants: [currentUser.uid, owner.id],
+          lastMessage: {
+            text: initialMessage || `Hi, I'm interested in ${pet?.name}!`,
+            timestamp: serverTimestamp(),
+            senderId: currentUser.uid,
+          }
+        });
+        // Add the first message to subcollection
         await addDoc(collection(conversationDocRef, 'messages'), {
           senderId: currentUser.uid,
           text: initialMessage || `Hi, I'm interested in ${pet?.name}!`,
           timestamp: serverTimestamp(),
         });
-      } else if (initialMessage) {
-        // If convo exists and there's a specific initial message
+      } else {
         const conversationDocRef = doc(conversationsRef, conversationId);
+        const messageText = initialMessage || `Hi, I'm interested in ${pet?.name}!`;
+        // Update last message
+        await updateDoc(conversationDocRef, {
+            lastMessage: {
+              text: messageText,
+              timestamp: serverTimestamp(),
+              senderId: currentUser.uid,
+            }
+        });
+         // Add new message to subcollection
          await addDoc(collection(conversationDocRef, 'messages'), {
           senderId: currentUser.uid,
-          text: initialMessage,
+          text: messageText,
           timestamp: serverTimestamp(),
         });
       }
@@ -123,6 +143,8 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
   if (!pet) {
     return null;
   }
+  
+  const isOwner = currentUser?.uid === pet.userId;
 
   const image = PlaceHolderImages.find(p => p.id === pet.imageId);
 
@@ -188,17 +210,17 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
                        ) : null}
 
                         <p className="mb-4 text-sm text-muted-foreground">
-                            Ready to take the next step? Get in touch with the owner to ask questions or arrange a meet-and-greet.
+                            {isOwner ? "This is your pet's listing." : "Ready to take the next step? Get in touch with the owner to ask questions or arrange a meet-and-greet."}
                         </p>
                         <div className="space-y-3">
-                            <Button variant="outline" className="w-full justify-start" onClick={() => handleStartChat(`Hi! I'd like to inquire about getting your email for ${pet.name}.`)}>
+                            <Button variant="outline" className="w-full justify-start" onClick={() => handleStartChat(`Hi! I'd like to inquire about getting your email for ${pet.name}.`)} disabled={isOwner}>
                                 <Mail className="mr-2 h-4 w-4" /> Ask for email
                             </Button>
-                             <Button variant="outline" className="w-full justify-start" onClick={() => handleStartChat(`Hi! Could I get your phone number to discuss ${pet.name}?`)}>
+                             <Button variant="outline" className="w-full justify-start" onClick={() => handleStartChat(`Hi! Could I get your phone number to discuss ${pet.name}?`)} disabled={isOwner}>
                                 <Phone className="mr-2 h-4 w-4" /> Ask for phone number
                             </Button>
                         </div>
-                        <Button className="mt-6 w-full text-lg" size="lg" onClick={() => handleStartChat()}>
+                        <Button className="mt-6 w-full text-lg" size="lg" onClick={() => handleStartChat()} disabled={isOwner}>
                             <MessageSquare className="mr-2" /> Chat With The Owner
                         </Button>
                     </CardContent>
