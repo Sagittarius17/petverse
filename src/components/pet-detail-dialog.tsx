@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useFirestore, useMemoFirebase, updateDocumentNonBlocking, useDoc, useUser } from '@/firebase';
-import { doc, increment, DocumentData, collection, getDocs, query, where, addDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, increment, DocumentData, collection, getDoc, query, where, addDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import type { Pet } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
