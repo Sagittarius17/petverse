@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Pet } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Eye } from 'lucide-react';
+import { Eye, AtSign } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, DocumentData } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
@@ -22,7 +22,7 @@ interface UserProfile extends DocumentData {
     username?: string;
 }
 
-function PetOwner({ userId }: { userId: string }) {
+function PetOwnerUsername({ userId }: { userId: string }) {
     const firestore = useFirestore();
     const userDocRef = useMemoFirebase(() => {
         if (!firestore || !userId) return null;
@@ -32,7 +32,11 @@ function PetOwner({ userId }: { userId: string }) {
     const { data: userProfile, isLoading } = useDoc<UserProfile>(userDocRef);
 
     if (isLoading) {
-        return <Skeleton className="h-4 w-24 mb-2" />;
+        return (
+            <div className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
+                <Skeleton className="h-3 w-12" />
+            </div>
+        );
     }
 
     if (!userProfile?.username) {
@@ -40,7 +44,10 @@ function PetOwner({ userId }: { userId: string }) {
     }
     
     return (
-        <p className="text-sm text-muted-foreground mb-1">@{userProfile.username}</p>
+        <div className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
+            <AtSign className="h-3 w-3" />
+            <span>{userProfile.username}</span>
+        </div>
     );
 }
 
@@ -68,6 +75,7 @@ export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
               />
             )}
           </div>
+          {pet.userId && <PetOwnerUsername userId={pet.userId} />}
           <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
             <Eye className="h-3 w-3" />
             <span>{pet.viewCount || 0}</span>
@@ -77,7 +85,6 @@ export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
             className="flex-grow p-4 cursor-pointer"
             onClick={() => onPetSelect?.(pet)}
         >
-          {pet.userId && <PetOwner userId={pet.userId} />}
           <CardTitle className="mb-2 text-xl font-headline group-hover:underline">
             {pet.name}
           </CardTitle>
