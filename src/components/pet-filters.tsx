@@ -16,6 +16,8 @@ interface PetFiltersProps {
   setSpeciesFilter: (species: string[]) => void;
   genderFilter: string[];
   setGenderFilter: (genders: string[]) => void;
+  ageFilter: string[];
+  setAgeFilter: (ages: string[]) => void;
 }
 
 export default function PetFilters({
@@ -26,30 +28,30 @@ export default function PetFilters({
   setSpeciesFilter,
   genderFilter,
   setGenderFilter,
+  ageFilter,
+  setAgeFilter,
 }: PetFiltersProps) {
 
-  const uniqueSpecies = ['All', ...Array.from(new Set(allPets.map(p => p.species)))];
+  const uniqueSpecies = [...Array.from(new Set(allPets.map(p => p.species)))];
+  const ageRanges = ['Puppy/Kitten', 'Young', 'Adult', 'Senior'];
 
-  const handleSpeciesChange = (species: string) => {
-    setSpeciesFilter(
-      speciesFilter.includes(species)
-        ? speciesFilter.filter(s => s !== species)
-        : [...speciesFilter, species]
+  const handleCheckboxChange = (
+    value: string,
+    filter: string[],
+    setter: (newFilter: string[]) => void
+  ) => {
+    setter(
+      filter.includes(value)
+        ? filter.filter(item => item !== value)
+        : [...filter, value]
     );
   };
   
-  const handleGenderChange = (gender: string) => {
-    setGenderFilter(
-      genderFilter.includes(gender)
-        ? genderFilter.filter(g => g !== gender)
-        : [...genderFilter, gender]
-    );
-  };
-
   const clearFilters = () => {
     setSearchTerm('');
     setSpeciesFilter([]);
     setGenderFilter([]);
+    setAgeFilter([]);
   };
 
   return (
@@ -74,12 +76,12 @@ export default function PetFilters({
           <CardTitle className="text-lg">Species</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {uniqueSpecies.filter(s => s !== 'All').map(species => (
+          {uniqueSpecies.map(species => (
             <div key={species} className="flex items-center space-x-2">
               <Checkbox
                 id={`species-${species}`}
                 checked={speciesFilter.includes(species)}
-                onCheckedChange={() => handleSpeciesChange(species)}
+                onCheckedChange={() => handleCheckboxChange(species, speciesFilter, setSpeciesFilter)}
               />
               <Label htmlFor={`species-${species}`} className="cursor-pointer capitalize">{species}</Label>
             </div>
@@ -97,14 +99,30 @@ export default function PetFilters({
               <Checkbox
                 id={`gender-${gender}`}
                 checked={genderFilter.includes(gender)}
-                onCheckedChange={() => handleGenderChange(gender)}
+                onCheckedChange={() => handleCheckboxChange(gender, genderFilter, setGenderFilter)}
               />
               <Label htmlFor={`gender-${gender}`} className="cursor-pointer">{gender}</Label>
             </div>
           ))}
         </CardContent>
       </Card>
-      {/* Age and Breed filters can be added here in the future */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Age</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {ageRanges.map(age => (
+            <div key={age} className="flex items-center space-x-2">
+              <Checkbox
+                id={`age-${age}`}
+                checked={ageFilter.includes(age)}
+                onCheckedChange={() => handleCheckboxChange(age, ageFilter, setAgeFilter)}
+              />
+              <Label htmlFor={`age-${age}`} className="cursor-pointer">{age}</Label>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -7,11 +7,29 @@ import AdoptionList from '@/components/adoption-list';
 import PetFilters from '@/components/pet-filters';
 import { Skeleton } from '@/components/ui/skeleton';
 
+// Helper function to categorize age string into groups
+const getAgeGroup = (ageString: string): string => {
+  const ageNum = parseInt(ageString);
+  const isMonths = ageString.toLowerCase().includes('month');
+
+  if (isMonths || ageNum < 1) {
+    return 'Puppy/Kitten';
+  }
+  if (ageNum >= 1 && ageNum <= 3) {
+    return 'Young';
+  }
+  if (ageNum > 3 && ageNum <= 7) {
+    return 'Adult';
+  }
+  return 'Senior';
+};
+
 export default function AdoptPage() {
   const firestore = useFirestore();
   const [searchTerm, setSearchTerm] = useState('');
   const [speciesFilter, setSpeciesFilter] = useState<string[]>([]);
   const [genderFilter, setGenderFilter] = useState<string[]>([]);
+  const [ageFilter, setAgeFilter] = useState<string[]>([]);
 
   const petsCollection = useMemoFirebase(
     () => collection(firestore, 'pets'),
@@ -33,10 +51,11 @@ export default function AdoptPage() {
         pet.breed.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesSpecies = speciesFilter.length === 0 || speciesFilter.includes(pet.species);
       const matchesGender = genderFilter.length === 0 || genderFilter.includes(pet.gender);
+      const matchesAge = ageFilter.length === 0 || ageFilter.includes(getAgeGroup(pet.age));
       
-      return matchesSearch && matchesSpecies && matchesGender;
+      return matchesSearch && matchesSpecies && matchesGender && matchesAge;
     });
-  }, [allPets, searchTerm, speciesFilter, genderFilter]);
+  }, [allPets, searchTerm, speciesFilter, genderFilter, ageFilter]);
 
   if (isLoading) {
     return (
@@ -45,6 +64,7 @@ export default function AdoptPage() {
                 <div className="lg:col-span-1 space-y-4">
                     <Skeleton className="h-10 w-full" />
                     <Skeleton className="h-32 w-full" />
+                    <Skeleton className="h-24 w-full" />
                     <Skeleton className="h-24 w-full" />
                 </div>
                 <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -89,6 +109,8 @@ export default function AdoptPage() {
             setSpeciesFilter={setSpeciesFilter}
             genderFilter={genderFilter}
             setGenderFilter={setGenderFilter}
+            ageFilter={ageFilter}
+            setAgeFilter={setAgeFilter}
           />
         </div>
         <div className="lg:col-span-3">
