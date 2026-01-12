@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,14 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
-import type { Pet } from '@/lib/data';
+import { petCategories } from '@/lib/data';
 
 interface PetFiltersProps {
-  allPets: Pet[];
   searchTerm: string;
   setSearchTerm: (term: string) => void;
-  speciesFilter: string[];
-  setSpeciesFilter: (species: string[]) => void;
+  categoryFilter: string[];
+  setCategoryFilter: (categories: string[]) => void;
   genderFilter: string[];
   setGenderFilter: (genders: string[]) => void;
   ageFilter: string[];
@@ -21,18 +21,17 @@ interface PetFiltersProps {
 }
 
 export default function PetFilters({
-  allPets,
   searchTerm,
   setSearchTerm,
-  speciesFilter,
-  setSpeciesFilter,
+  categoryFilter,
+  setCategoryFilter,
   genderFilter,
   setGenderFilter,
   ageFilter,
   setAgeFilter,
 }: PetFiltersProps) {
 
-  const uniqueSpecies = [...Array.from(new Set(allPets.map(p => p.species)))];
+  const categories = petCategories.map(c => c.category);
   const ageRanges = ['Puppy/Kitten', 'Young', 'Adult', 'Senior'];
 
   const handleCheckboxChange = (
@@ -49,7 +48,7 @@ export default function PetFilters({
   
   const clearFilters = () => {
     setSearchTerm('');
-    setSpeciesFilter([]);
+    setCategoryFilter([]);
     setGenderFilter([]);
     setAgeFilter([]);
   };
@@ -73,17 +72,17 @@ export default function PetFilters({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Species</CardTitle>
+          <CardTitle className="text-lg">Category</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {uniqueSpecies.map(species => (
-            <div key={species} className="flex items-center space-x-2">
+          {categories.map(category => (
+            <div key={category} className="flex items-center space-x-2">
               <Checkbox
-                id={`species-${species}`}
-                checked={speciesFilter.includes(species)}
-                onCheckedChange={() => handleCheckboxChange(species, speciesFilter, setSpeciesFilter)}
+                id={`category-${category}`}
+                checked={categoryFilter.includes(category)}
+                onCheckedChange={() => handleCheckboxChange(category, categoryFilter, setCategoryFilter)}
               />
-              <Label htmlFor={`species-${species}`} className="cursor-pointer capitalize">{species}</Label>
+              <Label htmlFor={`category-${category}`} className="cursor-pointer capitalize">{category}</Label>
             </div>
           ))}
         </CardContent>

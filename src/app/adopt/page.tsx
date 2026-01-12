@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
@@ -6,6 +7,7 @@ import type { Pet } from '@/lib/data';
 import AdoptionList from '@/components/adoption-list';
 import PetFilters from '@/components/pet-filters';
 import { Skeleton } from '@/components/ui/skeleton';
+import { petCategories } from '@/lib/data';
 
 // Helper function to categorize age string into groups
 const getAgeGroup = (ageString: string): string => {
@@ -24,10 +26,33 @@ const getAgeGroup = (ageString: string): string => {
   return 'Senior';
 };
 
+// Create a mapping from species to category for efficient lookup
+const speciesToCategoryMap = new Map<string, string>();
+petCategories.forEach(category => {
+  category.species.forEach(specie => {
+    speciesToCategoryMap.set(specie.name, category.category);
+  });
+});
+
+const getCategoryFromSpecies = (species: string): string => {
+  // Handle 'Dog' and 'Cat' which are inside 'Mammals'
+  if (species === 'Dog' || species === 'Cat') return 'Mammals';
+  // Handle 'Parrots' which is inside 'Birds'
+  if (species === 'Parrot' || species === 'Bird') return 'Birds';
+  // A more robust lookup
+  for (const category of petCategories) {
+    if (category.species.some(s => s.name === species)) {
+      return category.category;
+    }
+  }
+  return 'Other'; // Fallback category
+};
+
+
 export default function AdoptPage() {
   const firestore = useFirestore();
   const [searchTerm, setSearchTerm] = useState('');
-  const [speciesFilter, setSpeciesFilter] = useState<string[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
   const [genderFilter, setGenderFilter] = useState<string[]>([]);
   const [ageFilter, setAgeFilter] = useState<string[]>([]);
 
@@ -49,13 +74,13 @@ export default function AdoptPage() {
       const matchesSearch =
         pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pet.breed.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesSpecies = speciesFilter.length === 0 || speciesFilter.includes(pet.species);
+      const matchesCategory = categoryFilter.length === 0 || categoryFilter.includes(getCategoryFromSpecies(pet.species));
       const matchesGender = genderFilter.length === 0 || genderFilter.includes(pet.gender);
       const matchesAge = ageFilter.length === 0 || ageFilter.includes(getAgeGroup(pet.age));
       
-      return matchesSearch && matchesSpecies && matchesGender && matchesAge;
+      return matchesSearch && matchesCategory && matchesGender && matchesAge;
     });
-  }, [allPets, searchTerm, speciesFilter, genderFilter, ageFilter]);
+  }, [allPets, searchTerm, categoryFilter, genderFilter, ageFilter]);
 
   if (isLoading) {
     return (
@@ -102,11 +127,10 @@ export default function AdoptPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
         <div className="lg:col-span-1 lg:sticky lg:top-20">
           <PetFilters
-            allPets={allPets || []}
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
-            speciesFilter={speciesFilter}
-            setSpeciesFilter={setSpeciesFilter}
+            categoryFilter={categoryFilter}
+            setCategoryFilter={setCategoryFilter}
             genderFilter={genderFilter}
             setGenderFilter={setGenderFilter}
             ageFilter={ageFilter}
