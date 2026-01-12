@@ -76,7 +76,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                 const userData = userDoc.data();
                 otherParticipant = {
                     id: userDoc.id,
-                    displayName: userData.displayName || 'User',
+                    displayName: userData.displayName || userData.username || 'User',
                     photoURL: userData.profilePicture || ''
                 };
             }
