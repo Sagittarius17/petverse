@@ -103,12 +103,6 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
                     <h2 className="text-xl font-bold font-headline">About {pet.name}</h2>
                     <p className="mt-2 text-muted-foreground leading-relaxed">{pet.description}</p>
                 </div>
-                <div>
-                    <h2 className="text-xl font-bold font-headline">Temperament & Personality</h2>
-                    <p className="mt-2 text-muted-foreground leading-relaxed">
-                        A very good boy who loves to play fetch. Loyal and intelligent, great with families and other pets. He is house-trained and knows basic commands.
-                    </p>
-                </div>
 
                 <Card className="bg-background">
                     <CardHeader>
