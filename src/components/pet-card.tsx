@@ -1,22 +1,49 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Pet } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Eye, Heart } from 'lucide-react';
-import { useUser, useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
-import { doc, collection } from 'firebase/firestore';
-import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
+import { Eye } from 'lucide-react';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc, DocumentData } from 'firebase/firestore';
+import { Skeleton } from './ui/skeleton';
 
 interface PetCardProps {
   pet: Pet;
   onPetSelect?: (pet: Pet) => void;
   actions?: React.ReactNode;
 }
+
+interface UserProfile extends DocumentData {
+    username?: string;
+}
+
+function PetOwner({ userId }: { userId: string }) {
+    const firestore = useFirestore();
+    const userDocRef = useMemoFirebase(() => {
+        if (!firestore || !userId) return null;
+        return doc(firestore, 'users', userId);
+    }, [firestore, userId]);
+    
+    const { data: userProfile, isLoading } = useDoc<UserProfile>(userDocRef);
+
+    if (isLoading) {
+        return <Skeleton className="h-4 w-24 mb-2" />;
+    }
+
+    if (!userProfile?.username) {
+        return null;
+    }
+    
+    return (
+        <p className="text-sm text-muted-foreground mb-1">@{userProfile.username}</p>
+    );
+}
+
 
 export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
   const image = PlaceHolderImages.find(p => p.id === pet.imageId);
@@ -50,6 +77,7 @@ export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
             className="flex-grow p-4 cursor-pointer"
             onClick={() => onPetSelect?.(pet)}
         >
+          {pet.userId && <PetOwner userId={pet.userId} />}
           <CardTitle className="mb-2 text-xl font-headline group-hover:underline">
             {pet.name}
           </CardTitle>
@@ -72,5 +100,3 @@ export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
     </Card>
   );
 }
-
-    
