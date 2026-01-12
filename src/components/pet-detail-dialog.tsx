@@ -1,14 +1,15 @@
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { useFirestore, useMemoFirebase, updateDocumentNonBlocking, useUser } from '@/firebase';
+import { useFirestore, useMemoFirebase, updateDocumentNonBlocking, useUser, useDoc } from '@/firebase';
 import { doc, increment, DocumentData, collection, getDoc, query, where, addDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import type { Pet } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Mail, Phone, MessageSquare } from 'lucide-react';
+import { Mail, Phone, MessageSquare, Eye, AtSign } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -30,6 +31,55 @@ interface UserProfile extends DocumentData {
     displayName: string;
     username: string;
     profilePicture?: string;
+    photoURL?: string;
+}
+
+function PetOwnerInfo({ ownerId }: { ownerId: string }) {
+    const firestore = useFirestore();
+    const ownerDocRef = useMemoFirebase(
+        () => (firestore && ownerId ? doc(firestore, 'users', ownerId) : null),
+        [firestore, ownerId]
+    );
+    const { data: ownerProfile, isLoading } = useDoc<UserProfile>(ownerDocRef);
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center space-x-4">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-[150px]" />
+                    <Skeleton className="h-4 w-[100px]" />
+                </div>
+            </div>
+        );
+    }
+    
+    if (!ownerProfile) {
+        return (
+             <div className="flex items-center space-x-4">
+                <Avatar className="h-12 w-12">
+                    <AvatarFallback>?</AvatarFallback>
+                </Avatar>
+                <div>
+                    <p className="font-semibold">Unknown Owner</p>
+                    <p className="text-sm text-muted-foreground">This pet is looking for a home!</p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex items-center space-x-4">
+            <Avatar className="h-12 w-12">
+                <AvatarImage src={ownerProfile.photoURL || ownerProfile.profilePicture} alt={ownerProfile.displayName} />
+                <AvatarFallback>{ownerProfile.displayName?.charAt(0) || 'U'}</AvatarFallback>
+            </Avatar>
+            <div>
+                <p className="font-semibold">{ownerProfile.displayName}</p>
+                <p className="text-sm text-muted-foreground">@{ownerProfile.username}</p>
+            </div>
+        </div>
+    );
 }
 
 export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialogProps) {
@@ -44,6 +94,12 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
   );
   
   const ownerId = pet?.userId;
+  const ownerDocRef = useMemoFirebase(
+    () => (firestore && ownerId ? doc(firestore, 'users', ownerId) : null),
+    [firestore, ownerId]
+  );
+  const { data: ownerProfile } = useDoc<UserProfile>(ownerDocRef);
+
 
   useEffect(() => {
     if (isOpen && petDocRef) {
@@ -80,8 +136,6 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
     const messageText = initialMessage || `Hi, I'm interested in ${pet?.name}!`;
     
     try {
-      // Use setDoc with merge:true to create or update the conversation document
-      // This ensures the participants array is set on creation and the lastMessage is updated
       await setDoc(conversationDocRef, {
         participants: [currentUser.uid, ownerId],
         lastMessage: {
@@ -91,7 +145,6 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
         }
       }, { merge: true });
 
-      // Add the actual message to the subcollection
       await addDoc(collection(conversationDocRef, 'messages'), {
           senderId: currentUser.uid,
           text: messageText,
@@ -100,7 +153,7 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
 
       setActiveConversationId(conversationId);
       openChat();
-      onClose(); // Close the pet detail dialog
+      onClose();
 
     } catch (error) {
       console.error("Error starting chat:", error);
@@ -125,7 +178,6 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl p-0 overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-2">
-            {/* Image Section */}
             <div className="relative h-96 w-full md:h-full min-h-[300px]">
                 {image && (
                 <Image
@@ -137,9 +189,18 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
                     priority
                 />
                 )}
+                {ownerProfile?.username && (
+                    <div className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
+                        <AtSign className="h-3 w-3" />
+                        <span>@{ownerProfile.username}</span>
+                    </div>
+                )}
+                <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
+                    <Eye className="h-3 w-3" />
+                    <span>{pet.viewCount || 0}</span>
+                </div>
             </div>
 
-            {/* Details Section */}
             <div className="flex flex-col space-y-6 p-6 overflow-y-auto max-h-[90vh]">
                 <DialogHeader>
                     <DialogTitle className="text-4xl font-bold font-headline tracking-tight">{pet.name}</DialogTitle>
@@ -161,17 +222,8 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
                         <CardTitle className="font-headline text-2xl">Contact Owner</CardTitle>
                     </CardHeader>
                     <CardContent>
-                       <div className="flex items-center space-x-4 mb-4">
-                            <Avatar className="h-12 w-12">
-                                <AvatarFallback>{'O'}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <p className="font-semibold">The Owner</p>
-                                <p className="text-sm text-muted-foreground">Ready to connect?</p>
-                            </div>
-                        </div>
-
-                        <p className="mb-4 text-sm text-muted-foreground">
+                       {ownerId ? <PetOwnerInfo ownerId={ownerId} /> : <Skeleton className="h-12 w-full" />}
+                        <p className="my-4 text-sm text-muted-foreground">
                             {isOwner ? "This is your pet's listing." : "Ready to take the next step? Get in touch with the owner to ask questions or arrange a meet-and-greet."}
                         </p>
                         <div className="space-y-3">
@@ -193,3 +245,5 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
     </Dialog>
   );
 }
+
+    
