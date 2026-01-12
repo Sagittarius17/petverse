@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useFirestore, useMemoFirebase, updateDocumentNonBlocking, useDoc, useUser } from '@/firebase';
-import { doc, increment, DocumentData, collection, getDocs, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, increment, DocumentData, collection, getDocs, query, where, addDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import type { Pet } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
@@ -43,13 +43,7 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
     [firestore, pet]
   );
   
-  const ownerDocRef = useMemoFirebase(
-    () => (firestore && pet?.userId ? doc(firestore, 'users', pet.userId) : null),
-    [firestore, pet]
-  );
-  
-  const { data: owner, isLoading: isOwnerLoading } = useDoc<UserProfile>(ownerDocRef);
-
+  const ownerId = pet?.userId;
 
   useEffect(() => {
     if (isOpen && petDocRef) {
@@ -63,7 +57,7 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
   }, [isOpen, petDocRef]);
 
   const handleStartChat = async (initialMessage?: string) => {
-    if (!currentUser || !owner || !firestore) {
+    if (!currentUser || !ownerId || !firestore) {
       toast({
         variant: 'destructive',
         title: 'Please log in',
@@ -72,7 +66,7 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
       return;
     }
 
-    if (currentUser.uid === owner.id) {
+    if (currentUser.uid === ownerId) {
         toast({
             variant: 'destructive',
             title: 'This is your pet!',
@@ -81,49 +75,35 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
         return;
     }
 
-    const conversationId = [currentUser.uid, owner.id].sort().join('_');
+    const conversationId = [currentUser.uid, ownerId].sort().join('_');
     const conversationsRef = collection(firestore, 'conversations');
-    const q = query(conversationsRef, where('__name__', '==', conversationId));
-
+    
     try {
-      const querySnapshot = await getDocs(q);
+      const conversationDocRef = doc(conversationsRef, conversationId);
+      const conversationSnap = await getDoc(conversationDocRef);
+      const messageText = initialMessage || `Hi, I'm interested in ${pet?.name}!`;
       
-      if (querySnapshot.empty) {
+      if (!conversationSnap.exists()) {
         // Create conversation and first message
-        const conversationDocRef = doc(conversationsRef, conversationId);
-        // Set participants and last message stub
         await setDoc(conversationDocRef, {
-          participants: [currentUser.uid, owner.id],
-          lastMessage: {
-            text: initialMessage || `Hi, I'm interested in ${pet?.name}!`,
-            timestamp: serverTimestamp(),
-            senderId: currentUser.uid,
-          }
+          participants: [currentUser.uid, ownerId],
         });
-        // Add the first message to subcollection
-        await addDoc(collection(conversationDocRef, 'messages'), {
-          senderId: currentUser.uid,
-          text: initialMessage || `Hi, I'm interested in ${pet?.name}!`,
-          timestamp: serverTimestamp(),
-        });
-      } else {
-        const conversationDocRef = doc(conversationsRef, conversationId);
-        const messageText = initialMessage || `Hi, I'm interested in ${pet?.name}!`;
-        // Update last message
-        await updateDoc(conversationDocRef, {
-            lastMessage: {
-              text: messageText,
-              timestamp: serverTimestamp(),
-              senderId: currentUser.uid,
-            }
-        });
-         // Add new message to subcollection
-         await addDoc(collection(conversationDocRef, 'messages'), {
+      }
+
+      // Add the message and update the last message summary
+      await addDoc(collection(conversationDocRef, 'messages'), {
           senderId: currentUser.uid,
           text: messageText,
           timestamp: serverTimestamp(),
-        });
-      }
+      });
+      await updateDoc(conversationDocRef, {
+          lastMessage: {
+            text: messageText,
+            timestamp: serverTimestamp(),
+            senderId: currentUser.uid,
+          }
+      });
+
 
       setActiveConversationId(conversationId);
       openChat();
@@ -188,26 +168,15 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
                         <CardTitle className="font-headline text-2xl">Contact Owner</CardTitle>
                     </CardHeader>
                     <CardContent>
-                       {isOwnerLoading ? (
-                        <div className="flex items-center space-x-4">
-                            <Skeleton className="h-12 w-12 rounded-full" />
-                            <div className="space-y-2">
-                                <Skeleton className="h-4 w-[150px]" />
-                                <Skeleton className="h-4 w-[100px]" />
-                            </div>
-                        </div>
-                       ) : owner ? (
-                        <div className="flex items-center space-x-4 mb-4">
+                       <div className="flex items-center space-x-4 mb-4">
                             <Avatar className="h-12 w-12">
-                                <AvatarImage src={owner.profilePicture} />
-                                <AvatarFallback>{owner.displayName?.charAt(0) || 'U'}</AvatarFallback>
+                                <AvatarFallback>{'O'}</AvatarFallback>
                             </Avatar>
                             <div>
-                                <p className="font-semibold">{owner.displayName}</p>
-                                <p className="text-sm text-muted-foreground">@{owner.username}</p>
+                                <p className="font-semibold">The Owner</p>
+                                <p className="text-sm text-muted-foreground">Ready to connect?</p>
                             </div>
                         </div>
-                       ) : null}
 
                         <p className="mb-4 text-sm text-muted-foreground">
                             {isOwner ? "This is your pet's listing." : "Ready to take the next step? Get in touch with the owner to ask questions or arrange a meet-and-greet."}
