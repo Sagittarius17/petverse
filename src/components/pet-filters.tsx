@@ -31,7 +31,7 @@ export default function PetFilters({
   setAgeFilter,
 }: PetFiltersProps) {
 
-  const categories = petCategories.map(c => c.category);
+  const categories = [...petCategories.map(c => c.category), 'Other'];
   const ageRanges = ['Puppy/Kitten', 'Young', 'Adult', 'Senior'];
 
   const handleCheckboxChange = (
