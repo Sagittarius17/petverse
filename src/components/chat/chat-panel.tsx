@@ -235,10 +235,15 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
             </form>
             </>
         ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground p-8">
-                <p className="text-lg font-semibold">Error</p>
-                <p className="text-sm">Could not find the selected conversation.</p>
-                 <Button variant="link" onClick={() => setActiveConversationId(null)}>Back to conversations</Button>
+            <div className="h-full flex flex-col">
+                 <SheetHeader className="p-4 border-b">
+                    <SheetTitle>Error</SheetTitle>
+                </SheetHeader>
+                <div className="flex-1 flex flex-col items-center justify-center text-center text-muted-foreground p-8">
+                    <p className="text-lg font-semibold">Conversation Not Found</p>
+                    <p className="text-sm">Could not find the selected conversation.</p>
+                    <Button variant="link" onClick={() => setActiveConversationId(null)}>Back to conversations</Button>
+                </div>
             </div>
         )}
     </div>
