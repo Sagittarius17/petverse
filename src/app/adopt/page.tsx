@@ -1,12 +1,17 @@
 'use client';
+import { useState, useMemo } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import type { Pet } from '@/lib/data';
 import AdoptionList from '@/components/adoption-list';
+import PetFilters from '@/components/pet-filters';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdoptPage() {
   const firestore = useFirestore();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [speciesFilter, setSpeciesFilter] = useState<string[]>([]);
+  const [genderFilter, setGenderFilter] = useState<string[]>([]);
 
   const petsCollection = useMemoFirebase(
     () => collection(firestore, 'pets'),
@@ -18,7 +23,52 @@ export default function AdoptPage() {
     [petsCollection]
   );
 
-  const { data: pets, isLoading, error } = useCollection<Pet>(petsQuery);
+  const { data: allPets, isLoading, error } = useCollection<Pet>(petsQuery);
+
+  const filteredPets = useMemo(() => {
+    if (!allPets) return [];
+    return allPets.filter(pet => {
+      const matchesSearch =
+        pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        pet.breed.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSpecies = speciesFilter.length === 0 || speciesFilter.includes(pet.species);
+      const matchesGender = genderFilter.length === 0 || genderFilter.includes(pet.gender);
+      
+      return matchesSearch && matchesSpecies && matchesGender;
+    });
+  }, [allPets, searchTerm, speciesFilter, genderFilter]);
+
+  if (isLoading) {
+    return (
+        <div className="container mx-auto px-4 py-8">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <div className="lg:col-span-1 space-y-4">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-32 w-full" />
+                    <Skeleton className="h-24 w-full" />
+                </div>
+                <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                    {Array.from({length: 6}).map((_, i) => (
+                        <div key={i} className="space-y-2">
+                            <Skeleton className="h-48 w-full" />
+                            <Skeleton className="h-6 w-3/4" />
+                            <Skeleton className="h-4 w-1/2" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+        <div className="container mx-auto px-4 py-8 text-center text-destructive">
+            <p>Error loading pets: {error.message}</p>
+        </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -28,24 +78,23 @@ export default function AdoptPage() {
           Browse our listings of lovable pets waiting for a forever home.
         </p>
       </div>
-      {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {Array.from({length: 8}).map((_, i) => (
-                <div key={i} className="space-y-2">
-                    <Skeleton className="h-48 w-full" />
-                    <Skeleton className="h-6 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                    <Skeleton className="h-10 w-full" />
-                </div>
-            ))}
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+        <div className="lg:col-span-1 lg:sticky lg:top-20">
+          <PetFilters
+            allPets={allPets || []}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            speciesFilter={speciesFilter}
+            setSpeciesFilter={setSpeciesFilter}
+            genderFilter={genderFilter}
+            setGenderFilter={setGenderFilter}
+          />
         </div>
-      ) : error ? (
-        <div className="text-center text-destructive">
-            <p>Error loading pets: {error.message}</p>
+        <div className="lg:col-span-3">
+            <AdoptionList pets={filteredPets} />
         </div>
-      ) : (
-        <AdoptionList allPets={pets || []} />
-      )}
+      </div>
     </div>
   );
 }
