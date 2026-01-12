@@ -197,21 +197,18 @@ service cloud.firestore {
     
     match /pets/{petId} {
       allow get, list: if true;
-      allow create, delete: if isSignedIn() && isSuperuser(request.auth.uid);
+      allow create: if createdBy('userId');
+      allow delete: if 
+        (isSignedIn() && isSuperuser(request.auth.uid)) ||
+        (isSignedIn() && request.auth.uid == resource.data.userId);
+        
       allow update: if 
         (isSignedIn() && isSuperuser(request.auth.uid)) ||
+        (isSignedIn() && request.auth.uid == resource.data.userId && immutable('userId')) ||
         (
           request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(['viewCount'])
         );
-    }
-    
-    /* ─────────────────────────────
-       PRODUCTS (PUBLIC SHOP CONTENT)
-    ───────────────────────────── */
-    match /products/{productId} {
-      allow read: if true;
-      allow write: if isSignedIn() && isAdmin(request.auth.uid);
     }
 
     /* ─────────────────────────────
@@ -309,6 +306,35 @@ service cloud.firestore {
     match /animalBreeds/{breedId} {
       allow read, list: if true;
       allow create, update, delete: if isSignedIn() && isSuperuser(request.auth.uid);
+    }
+    
+    /* ─────────────────────────────
+       CONVERSATIONS & MESSAGES
+    ───────────────────────────── */
+
+    function isParticipant(conversationId) {
+      return isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+    }
+    
+    function isParticipantInRequest(requestData) {
+      return isSignedIn() && request.auth.uid in requestData.participants;
+    }
+
+    match /conversations/{conversationId} {
+      allow get: if isParticipant(conversationId);
+      allow list: if isSignedIn(); // Query must be secured with `where('participants', 'array-contains', request.auth.uid)`
+      
+      // Allow write (create/update) if the user is a participant in the new data being written.
+      // This covers both creating a conversation and updating the `lastMessage`.
+      allow write: if isParticipantInRequest(request.resource.data);
+
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read, list: if isParticipant(conversationId);
+        allow create: if isParticipant(conversationId) && createdBy('senderId');
+        allow update, delete: if false;
+      }
     }
   }
 }

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { useFirestore, useMemoFirebase, updateDocumentNonBlocking, useDoc, useUser } from '@/firebase';
+import { useFirestore, useMemoFirebase, updateDocumentNonBlocking, useUser } from '@/firebase';
 import { doc, increment, DocumentData, collection, getDoc, query, where, addDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import type { Pet } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -76,34 +76,27 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
     }
 
     const conversationId = [currentUser.uid, ownerId].sort().join('_');
-    const conversationsRef = collection(firestore, 'conversations');
+    const conversationDocRef = doc(firestore, 'conversations', conversationId);
+    const messageText = initialMessage || `Hi, I'm interested in ${pet?.name}!`;
     
     try {
-      const conversationDocRef = doc(conversationsRef, conversationId);
-      const conversationSnap = await getDoc(conversationDocRef);
-      const messageText = initialMessage || `Hi, I'm interested in ${pet?.name}!`;
-      
-      if (!conversationSnap.exists()) {
-        // Create conversation and first message
-        await setDoc(conversationDocRef, {
-          participants: [currentUser.uid, ownerId],
-        });
-      }
+      // Use setDoc with merge:true to create or update the conversation document
+      // This ensures the participants array is set on creation and the lastMessage is updated
+      await setDoc(conversationDocRef, {
+        participants: [currentUser.uid, ownerId],
+        lastMessage: {
+          text: messageText,
+          timestamp: serverTimestamp(),
+          senderId: currentUser.uid,
+        }
+      }, { merge: true });
 
-      // Add the message and update the last message summary
+      // Add the actual message to the subcollection
       await addDoc(collection(conversationDocRef, 'messages'), {
           senderId: currentUser.uid,
           text: messageText,
           timestamp: serverTimestamp(),
       });
-      await updateDoc(conversationDocRef, {
-          lastMessage: {
-            text: messageText,
-            timestamp: serverTimestamp(),
-            senderId: currentUser.uid,
-          }
-      });
-
 
       setActiveConversationId(conversationId);
       openChat();
