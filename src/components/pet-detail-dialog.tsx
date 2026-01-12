@@ -2,15 +2,17 @@
 
 import React, { useEffect } from 'react';
 import Image from 'next/image';
-import { useFirestore, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
-import { doc, increment } from 'firebase/firestore';
+import { useFirestore, useMemoFirebase, updateDocumentNonBlocking, useDoc } from '@/firebase';
+import { doc, increment, DocumentData } from 'firebase/firestore';
 import type { Pet } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Mail, Phone, Heart } from 'lucide-react';
+import { Mail, Phone, MessageSquare } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Skeleton } from './ui/skeleton';
 
 // A simple in-memory cache to track viewed pets for the current session.
 // This prevents double-counting issues caused by React's Strict Mode in development.
@@ -22,6 +24,13 @@ interface PetDetailDialogProps {
   onClose: () => void;
 }
 
+interface UserProfile extends DocumentData {
+    id: string;
+    displayName: string;
+    username: string;
+    profilePicture?: string;
+}
+
 export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialogProps) {
   const firestore = useFirestore();
 
@@ -30,6 +39,14 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
     [firestore, pet]
   );
   
+  const ownerDocRef = useMemoFirebase(
+    () => (firestore && pet?.userId ? doc(firestore, 'users', pet.userId) : null),
+    [firestore, pet]
+  );
+  
+  const { data: owner, isLoading: isOwnerLoading } = useDoc<UserProfile>(ownerDocRef);
+
+
   useEffect(() => {
     // Only run the effect if the dialog is open, a pet is selected, and we have a database reference.
     if (isOpen && petDocRef) {
@@ -95,24 +112,43 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
 
                 <Card className="bg-background">
                     <CardHeader>
-                        <CardTitle className="font-headline text-2xl">Interested in Adoption?</CardTitle>
+                        <CardTitle className="font-headline text-2xl">Contact Owner</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="mb-4 text-sm text-muted-foreground">
-                            To start the adoption process or ask any questions, please contact our adoption coordinator.
-                        </p>
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-3">
-                                <Mail className="h-5 w-5 text-primary" />
-                                <a href="mailto:adoptions@petverse.com" className="hover:underline">adoptions@petverse.com</a>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <Phone className="h-5 w-5 text-primary" />
-                                <span>(555) 123-4567</span>
+                       {isOwnerLoading ? (
+                        <div className="flex items-center space-x-4">
+                            <Skeleton className="h-12 w-12 rounded-full" />
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-[150px]" />
+                                <Skeleton className="h-4 w-[100px]" />
                             </div>
                         </div>
+                       ) : owner ? (
+                        <div className="flex items-center space-x-4 mb-4">
+                            <Avatar className="h-12 w-12">
+                                <AvatarImage src={owner.profilePicture} />
+                                <AvatarFallback>{owner.displayName.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <p className="font-semibold">{owner.displayName}</p>
+                                <p className="text-sm text-muted-foreground">@{owner.username}</p>
+                            </div>
+                        </div>
+                       ) : null}
+
+                        <p className="mb-4 text-sm text-muted-foreground">
+                            Ready to take the next step? Get in touch with the owner to ask questions or arrange a meet-and-greet.
+                        </p>
+                        <div className="space-y-3">
+                            <Button variant="outline" className="w-full justify-start">
+                                <Mail className="mr-2 h-4 w-4" /> Ask for email
+                            </Button>
+                             <Button variant="outline" className="w-full justify-start">
+                                <Phone className="mr-2 h-4 w-4" /> Ask for phone number
+                            </Button>
+                        </div>
                         <Button className="mt-6 w-full text-lg" size="lg">
-                            <Heart className="mr-2" /> Inquire About {pet.name}
+                            <MessageSquare className="mr-2" /> Chat With The Owner
                         </Button>
                     </CardContent>
                 </Card>
