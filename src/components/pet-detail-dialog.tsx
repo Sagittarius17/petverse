@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import Image from 'next/image';
 import { useFirestore, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
 import { doc, increment } from 'firebase/firestore';
@@ -12,6 +12,10 @@ import { Mail, Phone, Heart } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
+// A simple in-memory cache to track viewed pets for the current session.
+// This prevents double-counting issues caused by React's Strict Mode in development.
+const viewedPets = new Set<string>();
+
 interface PetDetailDialogProps {
   pet: Pet | null;
   isOpen: boolean;
@@ -20,7 +24,6 @@ interface PetDetailDialogProps {
 
 export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialogProps) {
   const firestore = useFirestore();
-  const [hasBeenViewed, setHasBeenViewed] = useState(false);
 
   const petDocRef = useMemoFirebase(
     () => (firestore && pet ? doc(firestore, 'pets', pet.id) : null),
@@ -28,20 +31,19 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
   );
   
   useEffect(() => {
-    if (isOpen) {
-      if (petDocRef && !hasBeenViewed) {
+    // Only run the effect if the dialog is open, a pet is selected, and we have a database reference.
+    if (isOpen && petDocRef) {
+      // Check if this pet's ID is already in our session cache.
+      if (!viewedPets.has(petDocRef.id)) {
+        // If not, update the view count in Firestore.
         updateDocumentNonBlocking(petDocRef, {
           viewCount: increment(1)
         });
-        setHasBeenViewed(true);
-      }
-    } else {
-      // Reset the flag only when the dialog is closed.
-      if (hasBeenViewed) {
-        setHasBeenViewed(false);
+        // And add the ID to the cache to prevent future updates in this session.
+        viewedPets.add(petDocRef.id);
       }
     }
-  }, [isOpen, petDocRef]); // The effect now only depends on the dialog's state and the pet reference.
+  }, [isOpen, petDocRef]);
 
 
   if (!pet) {
