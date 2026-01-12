@@ -307,5 +307,31 @@ service cloud.firestore {
       allow read, list: if true;
       allow create, update, delete: if isSignedIn() && isSuperuser(request.auth.uid);
     }
+    
+    /* ─────────────────────────────
+       CONVERSATIONS & MESSAGES
+    ───────────────────────────── */
+    
+    function isParticipant(conversationId) {
+      return isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+    }
+
+    match /conversations/{conversationId} {
+      // Allow read/write only if the user is a participant.
+      // `participants` field must be immutable after creation.
+      allow get, list, write: if isParticipant(conversationId);
+      allow create: if isSignedIn() && request.auth.uid in request.resource.data.participants;
+      allow update: if isParticipant(conversationId) && immutable('participants');
+    }
+
+    match /conversations/{conversationId}/messages/{messageId} {
+      // Allow reads only by participants of the parent conversation.
+      allow read: if isParticipant(conversationId);
+      // Allow message creation only by a participant.
+      // Sender ID must match the authenticated user.
+      allow create: if isParticipant(conversationId) && createdBy('senderId');
+      // Messages are immutable once created.
+      allow update, delete: if false;
+    }
   }
 }

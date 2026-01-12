@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { useFirestore, useMemoFirebase, updateDocumentNonBlocking, useDoc } from '@/firebase';
-import { doc, increment, DocumentData } from 'firebase/firestore';
+import { useFirestore, useMemoFirebase, updateDocumentNonBlocking, useDoc, useUser } from '@/firebase';
+import { doc, increment, DocumentData, collection, getDocs, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import type { Pet } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
@@ -13,9 +13,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Skeleton } from './ui/skeleton';
+import { useChatStore } from '@/lib/chat-store';
+import { useToast } from '@/hooks/use-toast';
 
-// A simple in-memory cache to track viewed pets for the current session.
-// This prevents double-counting issues caused by React's Strict Mode in development.
+
 const viewedPets = new Set<string>();
 
 interface PetDetailDialogProps {
@@ -33,6 +34,9 @@ interface UserProfile extends DocumentData {
 
 export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialogProps) {
   const firestore = useFirestore();
+  const { user: currentUser } = useUser();
+  const { openChat, setActiveConversationId } = useChatStore();
+  const { toast } = useToast();
 
   const petDocRef = useMemoFirebase(
     () => (firestore && pet ? doc(firestore, 'pets', pet.id) : null),
@@ -48,19 +52,72 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
 
 
   useEffect(() => {
-    // Only run the effect if the dialog is open, a pet is selected, and we have a database reference.
     if (isOpen && petDocRef) {
-      // Check if this pet's ID is already in our session cache.
       if (!viewedPets.has(petDocRef.id)) {
-        // If not, update the view count in Firestore.
         updateDocumentNonBlocking(petDocRef, {
           viewCount: increment(1)
         });
-        // And add the ID to the cache to prevent future updates in this session.
         viewedPets.add(petDocRef.id);
       }
     }
   }, [isOpen, petDocRef]);
+
+  const handleStartChat = async (initialMessage?: string) => {
+    if (!currentUser || !owner || !firestore) {
+      toast({
+        variant: 'destructive',
+        title: 'Please log in',
+        description: 'You need to be logged in to chat with the owner.',
+      });
+      return;
+    }
+
+    if (currentUser.uid === owner.id) {
+        toast({
+            variant: 'destructive',
+            title: 'This is your pet!',
+            description: "You can't start a chat with yourself.",
+        });
+        return;
+    }
+
+    const conversationId = [currentUser.uid, owner.id].sort().join('_');
+    const conversationsRef = collection(firestore, 'conversations');
+    const q = query(conversationsRef, where('__name__', '==', conversationId));
+
+    try {
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        const conversationDocRef = doc(conversationsRef, conversationId);
+        await addDoc(collection(conversationDocRef, 'messages'), {
+          senderId: currentUser.uid,
+          text: initialMessage || `Hi, I'm interested in ${pet?.name}!`,
+          timestamp: serverTimestamp(),
+        });
+      } else if (initialMessage) {
+        // If convo exists and there's a specific initial message
+        const conversationDocRef = doc(conversationsRef, conversationId);
+         await addDoc(collection(conversationDocRef, 'messages'), {
+          senderId: currentUser.uid,
+          text: initialMessage,
+          timestamp: serverTimestamp(),
+        });
+      }
+
+      setActiveConversationId(conversationId);
+      openChat();
+      onClose(); // Close the pet detail dialog
+
+    } catch (error) {
+      console.error("Error starting chat:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Error starting chat',
+        description: 'Could not initiate the conversation. Please try again.',
+      });
+    }
+  };
 
 
   if (!pet) {
@@ -121,7 +178,7 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
                         <div className="flex items-center space-x-4 mb-4">
                             <Avatar className="h-12 w-12">
                                 <AvatarImage src={owner.profilePicture} />
-                                <AvatarFallback>{owner.displayName.charAt(0)}</AvatarFallback>
+                                <AvatarFallback>{owner.displayName?.charAt(0) || 'U'}</AvatarFallback>
                             </Avatar>
                             <div>
                                 <p className="font-semibold">{owner.displayName}</p>
@@ -134,14 +191,14 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
                             Ready to take the next step? Get in touch with the owner to ask questions or arrange a meet-and-greet.
                         </p>
                         <div className="space-y-3">
-                            <Button variant="outline" className="w-full justify-start">
+                            <Button variant="outline" className="w-full justify-start" onClick={() => handleStartChat(`Hi! I'd like to inquire about getting your email for ${pet.name}.`)}>
                                 <Mail className="mr-2 h-4 w-4" /> Ask for email
                             </Button>
-                             <Button variant="outline" className="w-full justify-start">
+                             <Button variant="outline" className="w-full justify-start" onClick={() => handleStartChat(`Hi! Could I get your phone number to discuss ${pet.name}?`)}>
                                 <Phone className="mr-2 h-4 w-4" /> Ask for phone number
                             </Button>
                         </div>
-                        <Button className="mt-6 w-full text-lg" size="lg">
+                        <Button className="mt-6 w-full text-lg" size="lg" onClick={() => handleStartChat()}>
                             <MessageSquare className="mr-2" /> Chat With The Owner
                         </Button>
                     </CardContent>

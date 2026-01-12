@@ -4,6 +4,7 @@ import './globals.css';
 import { FirebaseClientProvider } from '@/firebase';
 import { ThemeProvider } from '@/components/theme-provider';
 import MainLayout from '@/components/main-layout';
+import Chat from '@/components/chat/chat';
 
 export const metadata: Metadata = {
   title: 'PetVerse - Your Universe for Pets',
@@ -34,6 +35,7 @@ export default function RootLayout({
             <MainLayout>
               {children}
             </MainLayout>
+            <Chat />
             <Toaster />
           </FirebaseClientProvider>
         </ThemeProvider>
