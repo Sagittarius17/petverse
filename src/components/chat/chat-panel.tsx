@@ -2,21 +2,20 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { collection, query, where, onSnapshot, doc, getDoc, addDoc, serverTimestamp, updateDoc, Timestamp, orderBy } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
+import { collection, query, where, onSnapshot, doc, getDoc, addDoc, serverTimestamp, updateDoc, Timestamp, orderBy, DocumentData } from 'firebase/firestore';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { User } from 'firebase/auth';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, ArrowLeft, Loader2 } from 'lucide-react';
+import { Send, ArrowLeft, Loader2, Dot } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import MessageBubble from './message-bubble';
 import { useChatStore } from '@/lib/chat-store';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
-
+import { format, formatDistanceToNow, isToday, isYesterday, isThisWeek, parseISO } from 'date-fns';
 
 interface Conversation {
   id: string;
@@ -30,14 +29,26 @@ interface Conversation {
     text: string;
     timestamp: Timestamp;
   };
+  typing?: {
+    [key: string]: boolean;
+  };
 }
 
 interface Message {
   id: string;
   senderId: string;
   text: string;
-  timestamp: any;
+  timestamp: Timestamp;
 }
+
+interface UserProfile extends DocumentData {
+    id: string;
+    displayName: string;
+    photoURL?: string;
+    isOnline?: boolean;
+    lastSeen?: Timestamp;
+}
+
 
 interface ChatPanelProps {
   isOpen: boolean;
@@ -50,6 +61,47 @@ function formatRelativeTime(timestamp?: Timestamp): string {
     return formatDistanceToNow(timestamp.toDate(), { addSuffix: true });
 }
 
+function formatMessageTimestamp(timestamp?: Timestamp): string {
+  if (!timestamp) return '';
+  return format(timestamp.toDate(), 'h:mm a');
+}
+
+function formatDateSeparator(timestamp: Timestamp): string {
+  const date = timestamp.toDate();
+  if (isToday(date)) return 'Today';
+  if (isYesterday(date)) return 'Yesterday';
+  return format(date, 'MMMM d, yyyy');
+}
+
+
+function OtherParticipantStatus({ otherParticipantId, typingStatus }: { otherParticipantId: string, typingStatus?: boolean }) {
+  const firestore = useFirestore();
+  const userDocRef = useMemoFirebase(
+    () => (firestore ? doc(firestore, 'users', otherParticipantId) : null),
+    [firestore, otherParticipantId]
+  );
+  const { data: userProfile, isLoading } = useDoc<UserProfile>(userDocRef);
+
+  if (isLoading) {
+    return <Skeleton className="h-4 w-20" />;
+  }
+
+  if (typingStatus) {
+    return <p className="text-sm text-green-400 animate-pulse">typing...</p>;
+  }
+
+  if (userProfile?.isOnline) {
+    return <p className="text-sm text-green-400 flex items-center"><Dot className="h-6 w-6 -ml-1"/>online</p>;
+  }
+
+  if (userProfile?.lastSeen) {
+    return <p className="text-sm text-muted-foreground">last seen {formatRelativeTime(userProfile.lastSeen)}</p>;
+  }
+
+  return <p className="text-sm text-muted-foreground">Offline</p>;
+}
+
+
 export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelProps) {
   const firestore = useFirestore();
   const { activeConversationId, setActiveConversationId } = useChatStore();
@@ -59,6 +111,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   const [newMessage, setNewMessage] = useState('');
   const [isLoadingConvos, setIsLoadingConvos] = useState(true);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
 
   // Fetch conversations where the current user is a participant
@@ -93,13 +146,13 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
           id: docSnap.id,
           participants: data.participants,
           lastMessage: data.lastMessage,
+          typing: data.typing || {},
           otherParticipant
         } as Conversation;
       });
 
       const resolvedConvos = await Promise.all(convosPromises);
       
-      // Sort conversations on the client side
       resolvedConvos.sort((a, b) => {
         const timeA = a.lastMessage?.timestamp?.toMillis() || 0;
         const timeB = b.lastMessage?.timestamp?.toMillis() || 0;
@@ -139,20 +192,47 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const updateTypingStatus = (isTyping: boolean) => {
+    if (!firestore || !activeConversationId || !currentUser) return;
+    const convoDocRef = doc(firestore, 'conversations', activeConversationId);
+    updateDoc(convoDocRef, {
+        [`typing.${currentUser.uid}`]: isTyping
+    });
+  };
+
+  const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessage(e.target.value);
+    
+    if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+    } else {
+        updateTypingStatus(true);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+        updateTypingStatus(false);
+        typingTimeoutRef.current = null;
+    }, 3000);
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !firestore || !activeConversationId) return;
 
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+    updateTypingStatus(false);
+
     const convoDocRef = doc(firestore, 'conversations', activeConversationId);
     
-    // Add new message to the subcollection
     await addDoc(collection(convoDocRef, 'messages'), {
       senderId: currentUser.uid,
       text: newMessage,
       timestamp: serverTimestamp(),
     });
     
-    // Update the lastMessage on the conversation document
     await updateDoc(convoDocRef, {
         lastMessage: {
             text: newMessage,
@@ -214,17 +294,25 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
 
   const renderMessageView = () => (
     <div className="flex flex-col h-full">
-        {selectedConversation ? (
+        {selectedConversation && selectedConversation.otherParticipant ? (
             <>
             <SheetHeader className="p-4 border-b flex-row items-center gap-4">
                 <Button variant="ghost" size="icon" onClick={() => setActiveConversationId(null)}>
                     <ArrowLeft />
                 </Button>
                 <Avatar>
-                <AvatarImage src={selectedConversation.otherParticipant?.photoURL} />
-                <AvatarFallback>{selectedConversation.otherParticipant?.displayName[0] || 'U'}</AvatarFallback>
+                    <AvatarImage src={selectedConversation.otherParticipant.photoURL} />
+                    <AvatarFallback>{selectedConversation.otherParticipant.displayName[0] || 'U'}</AvatarFallback>
                 </Avatar>
-                <SheetTitle className="truncate">{selectedConversation.otherParticipant?.displayName || 'Chat'}</SheetTitle>
+                <div className="flex-1 overflow-hidden">
+                    <SheetTitle className="truncate">{selectedConversation.otherParticipant.displayName || 'Chat'}</SheetTitle>
+                    <SheetDescription asChild>
+                         <OtherParticipantStatus 
+                            otherParticipantId={selectedConversation.otherParticipant.id} 
+                            typingStatus={selectedConversation.typing?.[selectedConversation.otherParticipant.id]}
+                        />
+                    </SheetDescription>
+                </div>
             </SheetHeader>
             <ScrollArea className="flex-1 bg-secondary/50 p-4">
                 {isLoadingMessages ? (
@@ -232,10 +320,21 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
                 ) : (
-                    <div className="space-y-4">
-                        {messages.map(msg => (
-                            <MessageBubble key={msg.id} message={msg} isCurrentUser={msg.senderId === currentUser.uid} />
-                        ))}
+                    <div className="space-y-2">
+                        {messages.map((msg, index) => {
+                            const prevMsg = messages[index - 1];
+                            const showDateSeparator = !prevMsg || !msg.timestamp || !prevMsg.timestamp || !isToday(msg.timestamp.toDate()) || !isSameDay(msg.timestamp.toDate(), prevMsg.timestamp.toDate());
+                            return (
+                                <React.Fragment key={msg.id}>
+                                    {showDateSeparator && msg.timestamp && (
+                                        <div className="text-center text-xs text-muted-foreground my-4">
+                                            {formatDateSeparator(msg.timestamp)}
+                                        </div>
+                                    )}
+                                    <MessageBubble message={msg} isCurrentUser={msg.senderId === currentUser.uid} />
+                                </React.Fragment>
+                            )
+                        })}
                         <div ref={messagesEndRef} />
                     </div>
                 )}
@@ -243,11 +342,11 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
             <form onSubmit={handleSendMessage} className="p-4 border-t flex items-center gap-2">
                 <Input
                     value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
+                    onChange={handleTyping}
                     placeholder="Type a message..."
                     autoComplete="off"
                 />
-                <Button type="submit" size="icon">
+                <Button type="submit" size="icon" disabled={!newMessage.trim()}>
                     <Send className="h-5 w-5" />
                 </Button>
             </form>
@@ -276,3 +375,11 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     </Sheet>
   );
 }
+
+function isSameDay(date1: Date, date2: Date) {
+  return date1.getFullYear() === date2.getFullYear() &&
+         date1.getMonth() === date2.getMonth() &&
+         date1.getDate() === date2.getDate();
+}
+
+    

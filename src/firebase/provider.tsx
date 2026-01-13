@@ -2,8 +2,9 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore } from 'firebase/firestore';
+import { Firestore, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
+import { getDatabase, ref, onValue, onDisconnect, set } from 'firebase/database';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 
 interface FirebaseProviderProps {
@@ -80,6 +81,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       auth,
       (firebaseUser) => { // Auth state determined
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
+        if (firebaseUser) {
+           setupPresence(firebaseUser, firestore);
+        }
       },
       (error) => { // Auth listener error
         console.error("FirebaseProvider: onAuthStateChanged error:", error);
@@ -87,7 +91,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       }
     );
     return () => unsubscribe(); // Cleanup
-  }, [auth]); // Depends on the auth instance
+  }, [auth, firestore]); // Depends on the auth instance and firestore
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
@@ -110,6 +114,27 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     </FirebaseContext.Provider>
   );
 };
+
+function setupPresence(user: User, firestore: Firestore) {
+  const database = getDatabase();
+  const myConnectionsRef = ref(database, `users/${user.uid}/connections`);
+  const lastOnlineRef = ref(database, `users/${user.uid}/lastOnline`);
+  const connectedRef = ref(database, '.info/connected');
+
+  onValue(connectedRef, (snap) => {
+    if (snap.val() === true) {
+      const con = set(myConnectionsRef, true); // Use set to represent a connection
+      
+      const userStatusFirestoreRef = doc(firestore, 'users', user.uid);
+      setDoc(userStatusFirestoreRef, { isOnline: true }, { merge: true });
+
+      onDisconnect(myConnectionsRef).remove();
+      onDisconnect(lastOnlineRef).set(serverTimestamp());
+       onDisconnect(userStatusFirestoreRef).update({ isOnline: false, lastSeen: serverTimestamp() });
+    }
+  });
+}
+
 
 /**
  * Hook to access core Firebase services and user authentication state.
@@ -174,3 +199,5 @@ export const useUser = (): UserHookResult => { // Renamed from useAuthUser
   const { user, isUserLoading, userError } = useFirebase(); // Leverages the main hook
   return { user, isUserLoading, userError };
 };
+
+    
