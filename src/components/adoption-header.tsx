@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, PawPrint, Sun, Moon, Trees, Flower, Monitor } from 'lucide-react';
+import { Menu, X, PawPrint, Sun, Moon, Trees, Flower, Monitor, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUser, useAuth } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -69,13 +69,13 @@ export default function AdoptionHeader() {
           <PawPrint className="h-6 w-6 text-primary" />
           PetVerse
         </Link>
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden items-center gap-6 text-sm md:flex">
           {navLinks.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
               className={cn(
-                "relative text-sm font-medium transition-colors hover:text-foreground",
+                "relative font-medium transition-colors hover:text-foreground",
                 "after:absolute after:bottom-[-4px] after:left-0 after:h-[2px] after:w-full after:bg-primary after:scale-x-0 after:origin-left after:transition-transform after:duration-300 hover:after:scale-x-100",
                 isClient && pathname === href
                   ? "text-foreground after:scale-x-100"
@@ -185,7 +185,7 @@ export default function AdoptionHeader() {
               <X className="h-6 w-6" />
             </Button>
           </div>
-          <div className="flex flex-col items-center gap-6 p-8">
+          <div className="flex flex-col items-center gap-6 p-4">
             {navLinks.map(({ href, label }) => (
               <Link
                 key={href}
@@ -206,11 +206,19 @@ export default function AdoptionHeader() {
               >
                 Services
               </Link>
-            <div className="mt-6 flex flex-col gap-4 w-full">
+            <div className="mt-6 flex flex-col gap-4 w-full max-w-xs">
               {user ? (
-                 <Button variant="outline" size="lg" onClick={handleLogout}>
-                    Log Out
-                </Button>
+                <>
+                    <Button asChild size="lg" variant="outline">
+                        <Link href="/profile" onClick={() => setIsMenuOpen(false)}>
+                            <UserIcon className="mr-2 h-4 w-4" />
+                            Profile
+                        </Link>
+                    </Button>
+                    <Button variant="ghost" size="lg" onClick={handleLogout}>
+                        Log Out
+                    </Button>
+                </>
               ) : (
                 <>
                   <Button variant="outline" asChild size="lg">

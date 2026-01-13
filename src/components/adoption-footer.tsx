@@ -1,13 +1,14 @@
+
 import Link from 'next/link';
 import { PawPrint, Twitter, Facebook, Instagram } from 'lucide-react';
 
 export default function AdoptionFooter() {
   return (
     <footer className="border-t bg-secondary">
-      <div className="container mx-auto max-w-7xl px-4 py-12">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+      <div className="container mx-auto max-w-7xl px-4 py-8 md:py-12">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           {/* About Section */}
-          <div className="md:col-span-1">
+          <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 text-xl font-bold font-headline mb-2">
               <PawPrint className="h-6 w-6 text-primary" />
               PetVerse
@@ -39,7 +40,7 @@ export default function AdoptionFooter() {
           </div>
 
           {/* Partner With Us */}
-          <div>
+          <div className='col-span-2 md:col-span-1'>
             <h3 className="text-md font-semibold font-headline mb-4">Be a Partner</h3>
             <ul className="space-y-2 text-sm">
               <li><Link href="#" className="text-muted-foreground hover:text-primary">Dog Trainers</Link></li>

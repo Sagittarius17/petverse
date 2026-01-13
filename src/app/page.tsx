@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import Image from 'next/image';
@@ -79,7 +80,7 @@ export default function Home() {
       </section>
 
       {/* Featured Pets */}
-      <section id="featured-pets" className="w-full py-12 md:py-24 lg:py-32">
+      <section id="featured-pets" className="w-full py-12 md:py-24">
         <div className="container mx-auto space-y-8 px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-5xl">Ready for a Home</h2>
@@ -87,7 +88,7 @@ export default function Home() {
               These lovely pets are looking for a forever family. Could it be you?
             </p>
           </div>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-6">
              {petsLoading ? (
                 Array.from({ length: 4 }).map((_, i) => (
                     <div key={i} className="space-y-2">
@@ -114,7 +115,7 @@ export default function Home() {
       </section>
 
       {/* Care Guides */}
-      <section id="care-guides" className="w-full bg-secondary py-12 md:py-24 lg:py-32">
+      <section id="care-guides" className="w-full bg-secondary py-12 md:py-24">
         <div className="container mx-auto space-y-8 px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-5xl">Expert Pet Care Guides</h2>
@@ -122,7 +123,7 @@ export default function Home() {
               Everything you need to know to keep your furry, feathery, or scaly friend happy and healthy.
             </p>
           </div>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 md:gap-6">
              {featuredCareGuides.map((guide) => (
                 <CareGuideCard key={guide.id} guide={guide} />
              ))}
@@ -136,7 +137,7 @@ export default function Home() {
       </section>
 
       {/* Lost and Found */}
-      <section id="lost-found" className="w-full py-12 md:py-24 lg:py-32">
+      <section id="lost-found" className="w-full py-12 md:py-24">
         <div className="container mx-auto grid items-center justify-center gap-4 px-4 text-center md:px-6">
           <div className="space-y-3">
             <h2 className="font-headline text-3xl font-bold tracking-tighter md:text-4xl/tight">Lost & Found</h2>

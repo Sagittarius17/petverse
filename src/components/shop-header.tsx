@@ -73,13 +73,12 @@ export default function ShopHeader() {
       params.delete('q');
     }
 
-    // Determine the most appropriate path to apply the search.
-    // If we're already on a category page, stay there. Otherwise, go to the main products page.
-    const currentPath = ['/shop/food', '/shop/toys', '/shop/accessories'].includes(pathname)
+    const currentPath = ['/shop/food', '/shop/toys', '/shop/accessories', '/shop/products'].includes(pathname)
       ? pathname
       : '/shop/products';
       
     router.push(`${currentPath}?${params.toString()}`);
+    setIsMenuOpen(false);
   };
 
   return (
@@ -89,13 +88,13 @@ export default function ShopHeader() {
           <PawPrint className="h-6 w-6 text-primary" />
           PetShop
         </Link>
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav className="hidden items-center gap-6 text-sm md:flex">
           {navLinks.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
               className={cn(
-                "relative text-sm font-medium transition-colors hover:text-foreground",
+                "relative font-medium transition-colors hover:text-foreground",
                 "after:absolute after:bottom-[-4px] after:left-0 after:h-[2px] after:w-full after:bg-primary after:scale-x-0 after:origin-left after:transition-transform after:duration-300 hover:after:scale-x-100",
                 isClient && pathname === href
                   ? "text-foreground after:scale-x-100"
@@ -244,7 +243,7 @@ export default function ShopHeader() {
               <X className="h-6 w-6" />
             </Button>
           </div>
-          <div className="flex flex-col items-center gap-6 p-8">
+          <div className="flex flex-col items-center gap-6 p-4">
             <form onSubmit={handleSearch} className="w-full relative">
                 <Input 
                   name="q"
@@ -267,11 +266,19 @@ export default function ShopHeader() {
                 {label}
               </Link>
             ))}
-            <div className="mt-6 flex flex-col gap-4 w-full">
+            <div className="mt-6 flex flex-col gap-4 w-full max-w-xs">
               {user ? (
-                 <Button variant="outline" size="lg" onClick={handleLogout}>
-                    Log Out
-                </Button>
+                <>
+                  <Button asChild size="lg" variant="outline">
+                    <Link href="/profile" onClick={() => setIsMenuOpen(false)}>
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </Button>
+                  <Button variant="ghost" size="lg" onClick={handleLogout}>
+                      Log Out
+                  </Button>
+                </>
               ) : (
                 <>
                   <Button variant="outline" asChild size="lg">
