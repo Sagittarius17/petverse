@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, PawPrint, Sun, Moon, Trees, Flower, Monitor, User as UserIcon } from 'lucide-react';
+import { Menu, X, PawPrint, Sun, Moon, Trees, Flower, Monitor, User as UserIcon, Home, Search, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUser, useAuth } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -26,10 +26,10 @@ import { Switch } from './ui/switch';
 import { useTheme } from 'next-themes';
 
 const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/adopt', label: 'Adoption' },
-  { href: '/lost-and-found', label: 'Lost & Found' },
-  { href: '/know-your-pet', label: 'Know Your Pet' },
+  { href: '/', label: 'Home', icon: Home },
+  { href: '/adopt', label: 'Adoption', icon: PawPrint },
+  { href: '/lost-and-found', label: 'Lost & Found', icon: Search },
+  { href: '/know-your-pet', label: 'Know Your Pet', icon: Heart },
 ];
 
 export default function AdoptionHeader() {
@@ -185,46 +185,49 @@ export default function AdoptionHeader() {
               <X className="h-6 w-6" />
             </Button>
           </div>
-          <div className="flex flex-col items-end gap-6 p-4 pt-16 text-right">
-            {navLinks.map(({ href, label }) => (
+          <div className="flex flex-col bg-background items-start gap-2 p-4 text-left">
+            {navLinks.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}
                 className={cn(
-                  "text-xl font-medium",
-                  pathname === href ? "text-foreground" : "text-muted-foreground"
+                  "flex items-center gap-4 text-xl w-full p-4 rounded-md font-medium",
+                  pathname === href ? "text-foreground bg-muted" : "text-muted-foreground hover:bg-muted/50"
                 )}
                 onClick={() => setIsMenuOpen(false)}
               >
-                {label}
+                <Icon className="h-6 w-6" />
+                <span>{label}</span>
               </Link>
             ))}
              <Link
                 href="#"
-                className="text-xl font-medium text-muted-foreground"
+                className="flex items-center gap-4 text-xl w-full p-4 rounded-md font-medium text-muted-foreground hover:bg-muted/50"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Services
+                 <X className="h-6 w-6" />
+                <span>Services</span>
               </Link>
-            <div className="mt-8 flex w-full max-w-xs flex-col items-end gap-4">
+            <div className="mt-8 flex w-full flex-col items-start gap-4">
               {user ? (
                 <>
-                    <Button asChild size="lg" className="w-auto">
+                    <Button asChild size="lg" className="w-full justify-start text-lg p-8">
                         <Link href="/profile" onClick={() => setIsMenuOpen(false)}>
-                            <UserIcon className="mr-2 h-4 w-4" />
+                            <UserIcon className="mr-4 h-6 w-6" />
                             Profile
                         </Link>
                     </Button>
-                    <Button variant="ghost" size="lg" onClick={handleLogout} className="w-auto">
+                    <Button variant="ghost" size="lg" onClick={handleLogout} className="w-full justify-start text-lg p-8 text-destructive hover:text-destructive">
+                         <X className="mr-4 h-6 w-6 text-destructive" />
                         Log Out
                     </Button>
                 </>
               ) : (
                 <>
-                  <Button asChild size="lg" className="w-auto">
+                  <Button asChild size="lg" className="w-full">
                       <Link href="/login" onClick={() => setIsMenuOpen(false)}>Log In</Link>
                   </Button>
-                  <Button variant="outline" asChild size="lg" className="w-auto">
+                  <Button variant="outline" asChild size="lg" className="w-full">
                       <Link href="/register" onClick={() => setIsMenuOpen(false)}>Register</Link>
                   </Button>
                 </>

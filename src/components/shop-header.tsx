@@ -26,8 +26,8 @@ import { Switch } from './ui/switch';
 import { useTheme } from 'next-themes';
 
 const navLinks = [
-  { href: '/shop', label: 'Home' },
-  { href: '/shop/products', label: 'Products' },
+  { href: '/shop', label: 'Home', icon: Home },
+  { href: '/shop/products', label: 'Products', icon: ShoppingCart },
 ];
 
 export default function ShopHeader() {
@@ -243,8 +243,8 @@ export default function ShopHeader() {
               <X className="h-6 w-6" />
             </Button>
           </div>
-          <div className="flex flex-col items-end gap-6 p-4 pt-16 text-right">
-            <form onSubmit={handleSearch} className="relative w-full max-w-sm">
+          <div className="flex flex-col gap-4 p-4 pt-8">
+            <form onSubmit={handleSearch} className="relative w-full">
                 <Input 
                   name="q"
                   placeholder="Search..." 
@@ -253,38 +253,42 @@ export default function ShopHeader() {
                 />
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             </form>
-            {navLinks.map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  "text-xl font-medium",
-                  pathname === href ? "text-foreground" : "text-muted-foreground"
-                )}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {label}
-              </Link>
-            ))}
-            <div className="mt-8 flex w-full max-w-xs flex-col items-end gap-4">
+             <div className="flex flex-col items-start gap-2 w-full text-left">
+                {navLinks.map(({ href, label, icon: Icon }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={cn(
+                      "flex items-center gap-4 text-xl w-full p-4 rounded-md font-medium",
+                      pathname === href ? "text-foreground bg-muted" : "text-muted-foreground hover:bg-muted/50"
+                    )}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Icon className="h-6 w-6" />
+                    <span>{label}</span>
+                  </Link>
+                ))}
+            </div>
+            <div className="mt-8 flex w-full flex-col items-start gap-4">
               {user ? (
                 <>
-                  <Button asChild size="lg" className="w-auto">
+                  <Button asChild size="lg" className="w-full justify-start text-lg p-8">
                     <Link href="/profile" onClick={() => setIsMenuOpen(false)}>
-                      <User className="mr-2 h-4 w-4" />
+                      <User className="mr-4 h-6 w-6" />
                       <span>Profile</span>
                     </Link>
                   </Button>
-                  <Button variant="ghost" size="lg" onClick={handleLogout} className="w-auto">
-                      Log Out
+                  <Button variant="ghost" size="lg" onClick={handleLogout} className="w-full justify-start text-lg p-8 text-destructive hover:text-destructive">
+                      <LogOut className="mr-4 h-6 w-6 text-destructive" />
+                      <span>Log Out</span>
                   </Button>
                 </>
               ) : (
                 <>
-                  <Button asChild size="lg" className="w-auto">
+                  <Button asChild size="lg" className="w-full">
                       <Link href="/login" onClick={() => setIsMenuOpen(false)}>Log In</Link>
                   </Button>
-                  <Button variant="outline" asChild size="lg" className="w-auto">
+                  <Button variant="outline" asChild size="lg" className="w-full">
                       <Link href="/register" onClick={() => setIsMenuOpen(false)}>Register</Link>
                   </Button>
                 </>
