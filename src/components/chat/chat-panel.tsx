@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { collection, query, where, onSnapshot, doc, getDoc, addDoc, serverTimestamp, updateDoc, Timestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, getDoc, addDoc, serverTimestamp, updateDoc, Timestamp, orderBy } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { User } from 'firebase/auth';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -69,7 +69,6 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     const q = query(
         collection(firestore, 'conversations'), 
         where('participants', 'array-contains', currentUser.uid)
-        // Removed orderBy to prevent indexing error. Sorting will be done on the client.
     );
 
     const unsubscribe = onSnapshot(q, async (querySnapshot) => {
