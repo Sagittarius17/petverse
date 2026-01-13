@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { collection, query, where, orderBy, onSnapshot, doc, getDoc, addDoc, serverTimestamp, updateDoc, Timestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, getDoc, addDoc, serverTimestamp, updateDoc, Timestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { User } from 'firebase/auth';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -67,8 +68,8 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     setIsLoadingConvos(true);
     const q = query(
         collection(firestore, 'conversations'), 
-        where('participants', 'array-contains', currentUser.uid),
-        orderBy('lastMessage.timestamp', 'desc')
+        where('participants', 'array-contains', currentUser.uid)
+        // Removed orderBy to prevent indexing error. Sorting will be done on the client.
     );
 
     const unsubscribe = onSnapshot(q, async (querySnapshot) => {
@@ -98,6 +99,14 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
       });
 
       const resolvedConvos = await Promise.all(convosPromises);
+      
+      // Sort conversations on the client side
+      resolvedConvos.sort((a, b) => {
+        const timeA = a.lastMessage?.timestamp?.toMillis() || 0;
+        const timeB = b.lastMessage?.timestamp?.toMillis() || 0;
+        return timeB - timeA;
+      });
+
       setConversations(resolvedConvos);
       setIsLoadingConvos(false);
     });
