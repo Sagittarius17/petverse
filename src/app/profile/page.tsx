@@ -274,10 +274,7 @@ export default function ProfilePage() {
                   pet={pet} 
                   onPetSelect={() => setSelectedPet(pet)}
                   actions={
-                    <div className="flex justify-between items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => setSelectedPet(pet)}>
-                        <Eye className="mr-2 h-4 w-4" /> View
-                      </Button>
+                    <div className="flex justify-end items-center gap-2">
                       <Button variant="secondary" size="sm" onClick={() => handleEditPet(pet)}>
                         <Edit className="mr-2 h-4 w-4" /> Edit
                       </Button>
