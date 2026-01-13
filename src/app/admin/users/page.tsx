@@ -1,6 +1,6 @@
 'use client';
 
-import { MoreHorizontal, ShieldCheck, ShieldOff, Crown, User as UserIcon, UserCheck } from 'lucide-react';
+import { MoreHorizontal, ShieldCheck, ShieldOff, Crown, User as UserIcon, UserCheck, ArrowUp, ArrowDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,7 +28,7 @@ import {
 import { useCollection, useFirestore, useMemoFirebase, updateDocumentNonBlocking, useUser, useDoc } from '@/firebase';
 import { collection, doc, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -77,6 +77,11 @@ function RoleDisplay({ role }: { role: Role }) {
   );
 }
 
+type SortConfig = {
+  key: keyof UserProfile | 'displayName';
+  direction: 'ascending' | 'descending';
+} | null;
+
 
 export default function AdminUsersPage() {
   const firestore = useFirestore();
@@ -94,12 +99,48 @@ export default function AdminUsersPage() {
   const [userToEdit, setUserToEdit] = useState<UserProfile | null>(null);
   const [userToToggleStatus, setUserToToggleStatus] = useState<UserProfile | null>(null);
   const [newRole, setNewRole] = useState<Role>('User');
+  const [sortConfig, setSortConfig] = useState<SortConfig>(null);
 
   const getDisplayName = (user: UserProfile) => {
     if (user.firstName && user.lastName) {
       return `${user.firstName} ${user.lastName}`;
     }
     return user.username || user.email;
+  };
+  
+  const sortedUsers = useMemo(() => {
+    let sortableUsers = users ? [...users] : [];
+    if (sortConfig !== null) {
+      sortableUsers.sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
+
+        if (sortConfig.key === 'displayName') {
+          aValue = getDisplayName(a);
+          bValue = getDisplayName(b);
+        } else {
+          aValue = a[sortConfig.key as keyof UserProfile];
+          bValue = b[sortConfig.key as keyof UserProfile];
+        }
+        
+        if (aValue < bValue) {
+          return sortConfig.direction === 'ascending' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableUsers;
+  }, [users, sortConfig]);
+
+  const requestSort = (key: keyof UserProfile | 'displayName') => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
   };
 
   const formatDate = (timestamp?: Timestamp) => {
@@ -187,6 +228,16 @@ export default function AdminUsersPage() {
     }
   };
 
+  const getSortIcon = (key: keyof UserProfile | 'displayName') => {
+    if (!sortConfig || sortConfig.key !== key) {
+      return null;
+    }
+    if (sortConfig.direction === 'ascending') {
+      return <ArrowUp className="ml-2 h-4 w-4" />;
+    }
+    return <ArrowDown className="ml-2 h-4 w-4" />;
+  };
+
   return (
     <>
       <Card>
@@ -200,11 +251,31 @@ export default function AdminUsersPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Joined</TableHead>
+                <TableHead>
+                  <Button variant="ghost" onClick={() => requestSort('displayName')}>
+                    Name {getSortIcon('displayName')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button variant="ghost" onClick={() => requestSort('email')}>
+                    Email {getSortIcon('email')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button variant="ghost" onClick={() => requestSort('role')}>
+                    Role {getSortIcon('role')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button variant="ghost" onClick={() => requestSort('status')}>
+                    Status {getSortIcon('status')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button variant="ghost" onClick={() => requestSort('createdAt')}>
+                    Joined {getSortIcon('createdAt')}
+                  </Button>
+                </TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
@@ -222,8 +293,8 @@ export default function AdminUsersPage() {
                     <TableCell><Skeleton className="h-8 w-8" /></TableCell>
                   </TableRow>
                 ))
-              ) : users && users.length > 0 ? (
-                users.map((user) => (
+              ) : sortedUsers && sortedUsers.length > 0 ? (
+                sortedUsers.map((user) => (
                   <TableRow key={user.id} className={cn(user.status === 'Inactive' && 'bg-muted/50 text-muted-foreground')}>
                     <TableCell className="font-medium">{getDisplayName(user)}</TableCell>
                     <TableCell>{user.email}</TableCell>
