@@ -62,7 +62,7 @@ export default function AdoptPage() {
   );
   
   const petsQuery = useMemoFirebase(
-    () => petsCollection ? query(petsCollection, where('isAdoptable', '==', true)) : null,
+    () => petsCollection ? query(petsCollection) : null,
     [petsCollection]
   );
 
