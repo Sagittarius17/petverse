@@ -66,7 +66,7 @@ const services = [
     items: [
       {
         title: 'Online Pet Shop',
-        href: '#',
+        href: '/shop',
         description: 'Shop for food, toys, and accessories from the comfort of home.',
         icon: ShoppingCart,
       },
@@ -110,6 +110,19 @@ const services = [
 ];
 
 export function ServicesMenu() {
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    // Render a placeholder or null on the server and initial client render
+    return (
+        <div className="relative text-sm font-medium transition-colors text-muted-foreground p-0 h-10 w-24" />
+    );
+  }
+
   return (
     <NavigationMenu>
       <NavigationMenuList>
