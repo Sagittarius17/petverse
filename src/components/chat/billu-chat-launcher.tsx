@@ -29,10 +29,18 @@ export default function BilluChatLauncher() {
         didMove.current = true;
         const dx = e.clientX - dragStartPos.current.x;
         const dy = e.clientY - dragStartPos.current.y;
-        setPosition({
-          x: initialPos.current.x + dx,
-          y: initialPos.current.y + dy,
-        });
+        
+        let newX = initialPos.current.x - dx;
+        let newY = initialPos.current.y - dy;
+
+        // Prevent dragging off-screen
+        const rect = dragRef.current.getBoundingClientRect();
+        if (newX < 0) newX = 0;
+        if (newY < 0) newY = 0;
+        if (newX > window.innerWidth - rect.width) newX = window.innerWidth - rect.width;
+        if (newY > window.innerHeight - rect.height) newY = window.innerHeight - rect.height;
+
+        setPosition({ x: newX, y: newY });
       }
     };
 
@@ -54,13 +62,7 @@ export default function BilluChatLauncher() {
     setIsDragging(true);
     didMove.current = false;
     dragStartPos.current = { x: e.clientX, y: e.clientY };
-    if (dragRef.current) {
-        const rect = dragRef.current.getBoundingClientRect();
-        initialPos.current = { 
-            x: rect.right - rect.width, 
-            y: rect.bottom - rect.height 
-        };
-    }
+    initialPos.current = { x: position.x, y: position.y };
   };
 
   const handleClick = () => {
