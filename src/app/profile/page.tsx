@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase, useDoc, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
+import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase, useDoc, updateDocumentNonBlocking, addDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -130,27 +130,30 @@ export default function ProfilePage() {
         setIsFavoritesLoading(false);
         return;
       }
+      
+      const breedsCollectionRef = collection(firestore, 'animalBreeds');
+      const breedsQuery = query(breedsCollectionRef, where('__name__', 'in', breedIds));
 
-      try {
-        const breedsQuery = query(collection(firestore, 'animalBreeds'), where('__name__', 'in', breedIds));
-        const breedSnapshots = await getDocs(breedsQuery);
-        const breeds = breedSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as PetBreed));
-        setFavoritedBreeds(breeds);
-      } catch (e) {
-        console.error("Error fetching favorited breeds:", e);
-        toast({
-          variant: 'destructive',
-          title: 'Error Fetching Favorites',
-          description: 'Could not load your favorite breeds. Please try again later.'
+      getDocs(breedsQuery)
+        .then(breedSnapshots => {
+          const breeds = breedSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as PetBreed));
+          setFavoritedBreeds(breeds);
+          setIsFavoritesLoading(false);
+        })
+        .catch(error => {
+          console.error("Error fetching favorited breeds:", error);
+          const contextualError = new FirestorePermissionError({
+            operation: 'list',
+            path: breedsCollectionRef.path,
+          });
+          errorEmitter.emit('permission-error', contextualError);
+          setFavoritedBreeds([]);
+          setIsFavoritesLoading(false);
         });
-        setFavoritedBreeds([]);
-      } finally {
-        setIsFavoritesLoading(false);
-      }
     };
 
     fetchFavoritedBreeds();
-  }, [favoriteBreedDocs, firestore, toast]);
+  }, [favoriteBreedDocs, firestore]);
 
   const handleLogout = async () => {
     if (auth) {
@@ -403,5 +406,3 @@ export default function ProfilePage() {
     </>
   );
 }
-
-    
