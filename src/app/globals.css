@@ -111,3 +111,20 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .animate-meow-float {
+    animation: meow-float 3s ease-out forwards;
+  }
+
+  @keyframes meow-float {
+    0% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translateY(0) scale(0.8);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateY(-50px) scale(1.2);
+    }
+  }
+}

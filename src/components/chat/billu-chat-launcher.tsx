@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -11,6 +10,14 @@ import { useUser } from '@/firebase';
 import { cn } from '@/lib/utils';
 
 const BILLU_CONVERSATION_ID = 'ai-chatbot-billu';
+const CAT_SOUNDS = ['Meow!', 'Purrr...', 'Miu', 'Miaowww'];
+
+interface Meow {
+  id: number;
+  word: string;
+  x: number;
+  y: number;
+}
 
 export default function BilluChatLauncher() {
   const { isOpen, toggleChat, setActiveConversationId, closeChat } = useChatStore();
@@ -22,6 +29,31 @@ export default function BilluChatLauncher() {
   const dragStartPos = useRef({ x: 0, y: 0 });
   const initialPos = useRef({ x: 0, y: 0 });
   const didMove = useRef(false);
+  const [meows, setMeows] = useState<Meow[]>([]);
+  const meowIdCounter = useRef(0);
+
+  // Interval to create new meows
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const word = CAT_SOUNDS[Math.floor(Math.random() * CAT_SOUNDS.length)];
+      const id = meowIdCounter.current++;
+      const newMeow: Meow = {
+        id,
+        word,
+        x: Math.random() * 80 - 40, // Random horizontal position around avatar
+        y: -20 - Math.random() * 20, // Start just above the avatar
+      };
+      setMeows(prev => [...prev, newMeow]);
+    }, 5000 + Math.random() * 2000); // every 5-7 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+
+  const handleAnimationEnd = (id: number) => {
+    setMeows(prev => prev.filter(meow => meow.id !== id));
+  };
+
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -86,17 +118,34 @@ export default function BilluChatLauncher() {
           right: `${position.x}px`,
         }}
       >
-        <Button
-          variant="ghost"
-          className="rounded-full w-16 h-16 bg-primary hover:bg-primary/90 shadow-lg p-0 cursor-grab active:cursor-grabbing"
-          onClick={handleClick}
-          onMouseDown={handleMouseDown}
-        >
-          <Avatar className="w-full h-full pointer-events-none">
-            <AvatarImage src={billuAvatar.imageUrl} />
-            <AvatarFallback>B</AvatarFallback>
-          </Avatar>
-        </Button>
+        <div className="relative">
+          <Button
+            variant="ghost"
+            className="rounded-full w-16 h-16 bg-primary hover:bg-primary/90 shadow-lg p-0 cursor-grab active:cursor-grabbing"
+            onClick={handleClick}
+            onMouseDown={handleMouseDown}
+          >
+            <Avatar className="w-full h-full pointer-events-none">
+              <AvatarImage src={billuAvatar.imageUrl} />
+              <AvatarFallback>B</AvatarFallback>
+            </Avatar>
+          </Button>
+          {meows.map(meow => (
+            <span
+              key={meow.id}
+              className="absolute text-lg font-bold text-primary-foreground pointer-events-none whitespace-nowrap animate-meow-float"
+              style={{
+                left: `calc(50% + ${meow.x}px)`,
+                top: `calc(50% + ${meow.y}px)`,
+                transform: 'translate(-50%, -50%)',
+                textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+              }}
+              onAnimationEnd={() => handleAnimationEnd(meow.id)}
+            >
+              {meow.word}
+            </span>
+          ))}
+        </div>
       </div>
       <ChatPanel
         isOpen={isOpen}
