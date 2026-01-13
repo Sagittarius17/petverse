@@ -148,7 +148,7 @@ export default function ShopHeader() {
                         <Label htmlFor="view-mode-desktop-shop" className="font-bold cursor-pointer">PetVerse</Label>
                         <Switch
                             id="view-mode-desktop-shop"
-                            checked={isShop}
+                            checked={isClient && isShop}
                             onCheckedChange={handleToggle}
                         />
                         <Label htmlFor="view-mode-desktop-shop" className="font-bold cursor-pointer">PetShop</Label>
@@ -260,7 +260,7 @@ export default function ShopHeader() {
                     href={href}
                     className={cn(
                       "flex items-center gap-4 text-lg w-full p-4 rounded-md font-medium",
-                      pathname === href ? "text-foreground bg-muted" : "text-muted-foreground hover:bg-muted/50"
+                      isClient && pathname === href ? "text-foreground bg-muted" : "text-muted-foreground hover:bg-muted/50"
                     )}
                     onClick={() => setIsMenuOpen(false)}
                   >
@@ -274,7 +274,7 @@ export default function ShopHeader() {
                     <Label htmlFor="view-mode-mobile-shop" className="font-bold cursor-pointer">PetVerse</Label>
                     <Switch
                         id="view-mode-mobile-shop"
-                        checked={isShop}
+                        checked={isClient && isShop}
                         onCheckedChange={handleToggle}
                     />
                     <Label htmlFor="view-mode-mobile-shop" className="font-bold cursor-pointer">PetShop</Label>

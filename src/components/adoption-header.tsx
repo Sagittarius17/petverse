@@ -200,7 +200,7 @@ export default function AdoptionHeader() {
                         <Label htmlFor="view-mode-desktop" className="text-sm font-bold cursor-pointer pr-2">PetVerse</Label>
                         <Switch
                             id="view-mode-desktop"
-                            checked={isShop}
+                            checked={isClient && isShop}
                             onCheckedChange={handleToggle}
                         />
                         <Label htmlFor="view-mode-desktop" className="text-sm font-bold cursor-pointer pl-2">PetShop</Label>
@@ -280,7 +280,7 @@ export default function AdoptionHeader() {
                     href={href}
                     className={cn(
                     "flex items-center gap-4 text-lg w-full p-4 rounded-md font-medium",
-                    pathname === href ? "text-foreground bg-muted" : "text-muted-foreground hover:bg-muted/50"
+                    isClient && pathname === href ? "text-foreground bg-muted" : "text-muted-foreground hover:bg-muted/50"
                     )}
                     onClick={closeAllMenus}
                 >
@@ -301,7 +301,7 @@ export default function AdoptionHeader() {
                         <Label htmlFor="view-mode-mobile" className="font-bold cursor-pointer">PetVerse</Label>
                         <Switch
                             id="view-mode-mobile"
-                            checked={isShop}
+                            checked={isClient && isShop}
                             onCheckedChange={handleToggle}
                         />
                         <Label htmlFor="view-mode-mobile" className="font-bold cursor-pointer">PetShop</Label>
@@ -376,4 +376,3 @@ export default function AdoptionHeader() {
     </header>
   );
 }
-
