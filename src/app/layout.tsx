@@ -1,21 +1,23 @@
-import type { Metadata } from 'next';
+
+'use client';
+
+import { usePathname } from 'next/navigation';
 import { Toaster } from "@/components/ui/toaster"
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase';
 import { ThemeProvider } from '@/components/theme-provider';
 import MainLayout from '@/components/main-layout';
 import Chat from '@/components/chat/chat';
-
-export const metadata: Metadata = {
-  title: 'PetVerse - Your Universe for Pets',
-  description: 'Find your new best friend, get expert pet care advice, and connect with a community of pet lovers.',
-};
+import BilluChatLauncher from '@/components/chat/billu-chat-launcher';
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+  const isShopPage = pathname.startsWith('/shop');
+
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <head>
@@ -35,7 +37,7 @@ export default function RootLayout({
             <MainLayout>
               {children}
             </MainLayout>
-            <Chat />
+            {isShopPage ? <BilluChatLauncher /> : <Chat />}
             <Toaster />
           </FirebaseClientProvider>
         </ThemeProvider>

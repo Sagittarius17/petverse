@@ -9,7 +9,7 @@ import ChatLauncher from './chat-launcher';
 import ChatPanel from './chat-panel';
 
 export default function Chat() {
-  const { isOpen, closeChat, activeConversationId } = useChatStore();
+  const { isOpen, closeChat } = useChatStore();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
@@ -18,18 +18,30 @@ export default function Chat() {
 
     const userStatusRef = doc(firestore, 'users', user.uid);
 
-    if (isOpen) {
-      updateDoc(userStatusRef, { isOnline: true });
-    } else {
-      // User has closed the chat panel, update their status to offline.
+    // This effect runs when the component mounts and before it unmounts.
+    // Set user online when they are on the site (and this component is mounted)
+    updateDoc(userStatusRef, { isOnline: true });
+
+    // Use onbeforeunload to catch browser tab closures
+    const handleBeforeUnload = () => {
+        // This is a synchronous operation
+        updateDoc(userStatusRef, {
+            isOnline: false,
+            lastSeen: serverTimestamp(),
+        });
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      // This cleanup function runs when the component unmounts
+      window.removeEventListener('beforeunload', handleBeforeUnload);
       updateDoc(userStatusRef, {
         isOnline: false,
         lastSeen: serverTimestamp(),
       });
-    }
-
-    // This effect should re-run whenever the user's panel state changes.
-  }, [isOpen, user, firestore]);
+    };
+  }, [user, firestore]);
 
   // Don't render the chat components if the user is not logged in or still loading
   if (isUserLoading || !user) {
