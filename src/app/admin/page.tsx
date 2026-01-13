@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Dog, Users, FileText, Heart } from 'lucide-react';
 import StatsCard from '@/components/stats-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where, Timestamp } from 'firebase/firestore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { subDays } from 'date-fns';
+import type { Pet } from '@/lib/data';
 
 const data = [
     { name: 'Jan', adoptions: 4, signups: 24 },
@@ -49,20 +50,23 @@ export default function AdminDashboardPage() {
     return blogsCollection;
   }, [firestore, filterDate]);
 
-  // Note: Pets are in a subcollection, so we query all users and their pets.
-  // This is not efficient for large datasets, but works for this structure.
-  // For simplicity, we'll just count all pets for now regardless of filter.
-  // A better structure would be a top-level 'pets' collection.
-  const allUsersQuery = useMemoFirebase(() => firestore ? collection(firestore, 'users') : null, [firestore]);
+  const petsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    const petsCollectionRef = collection(firestore, 'pets');
+    if (filterDate) {
+      // Note: This requires a composite index on createdAt and isAdoptable
+      // For simplicity, we filter adoptions client-side for now.
+      return query(petsCollectionRef, where('createdAt', '>=', filterDate));
+    }
+    return petsCollectionRef;
+  }, [firestore, filterDate]);
+
   const { data: usersData, isLoading: usersLoading } = useCollection(usersQuery);
   const { data: blogsData, isLoading: blogsLoading } = useCollection(blogsQuery);
-  const { data: allUsers, isLoading: allUsersLoading } = useCollection(allUsersQuery);
+  const { data: petsData, isLoading: petsLoading } = useCollection<Pet>(petsQuery);
 
-  // We can't query subcollections directly for a total count efficiently.
-  // We are also missing a top level 'pets' collection.
-  // For now, let's keep pets count static as it was.
-  const totalPetsCount = '132';
-  const totalAdoptions = '23';
+  const totalPetsCount = useMemo(() => petsData?.length ?? 0, [petsData]);
+  const totalAdoptions = useMemo(() => petsData?.filter(p => !p.isAdoptable).length ?? 0, [petsData]);
 
   return (
     <div className="space-y-6 md:space-y-8">
@@ -89,10 +93,10 @@ export default function AdminDashboardPage() {
       <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard 
           title="Total Pets" 
-          value={totalPetsCount}
+          value={totalPetsCount.toString()}
           icon={Dog}
-          description="All pets registered" 
-          isLoading={allUsersLoading}
+          description={timeFilter === '-1' ? 'All pets registered' : `New in last ${timeFilter} days`}
+          isLoading={petsLoading}
         />
         <StatsCard 
           title="New Users" 
@@ -110,9 +114,10 @@ export default function AdminDashboardPage() {
         />
         <StatsCard 
           title="Adoptions" 
-          value={totalAdoptions} 
+          value={totalAdoptions.toString()} 
           icon={Heart} 
-          description="In the last 30 days" 
+          description={timeFilter === '-1' ? 'All time' : `In the last ${timeFilter} days`}
+          isLoading={petsLoading}
         />
       </div>
 
