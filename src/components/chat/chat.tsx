@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect } from 'react';
@@ -18,13 +17,20 @@ export default function Chat() {
 
     const userStatusRef = doc(firestore, 'users', user.uid);
 
-    // This effect runs when the component mounts and before it unmounts.
-    // Set user online when they are on the site (and this component is mounted)
-    updateDoc(userStatusRef, { isOnline: true });
+    if (isOpen) {
+      updateDoc(userStatusRef, { isOnline: true });
+    } else {
+      // When chat is not open, ensure user is marked offline.
+      // This will trigger when the component mounts with chat closed,
+      // or when the isOpen state changes to false.
+      updateDoc(userStatusRef, {
+        isOnline: false,
+        lastSeen: serverTimestamp(),
+      });
+    }
 
-    // Use onbeforeunload to catch browser tab closures
+    // This handles the case where the user closes the browser tab/window
     const handleBeforeUnload = () => {
-        // This is a synchronous operation
         updateDoc(userStatusRef, {
             isOnline: false,
             lastSeen: serverTimestamp(),
@@ -41,7 +47,7 @@ export default function Chat() {
         lastSeen: serverTimestamp(),
       });
     };
-  }, [user, firestore]);
+  }, [user, firestore, isOpen]); // Add isOpen to the dependency array
 
   // Don't render the chat components if the user is not logged in or still loading
   if (isUserLoading || !user) {
