@@ -1,3 +1,4 @@
+
 /**
  * Core Philosophy:
  * This ruleset enforces a strict, user-centric security model combined with
@@ -125,16 +126,10 @@ service cloud.firestore {
 
     match /users/{userId} {
 
-      // Owner + Admins can read
-      allow get: if
-        isSignedIn() &&
-        isActive(request.auth.uid) &&
-        (
-          isOwner(userId) ||
-          isAdmin(request.auth.uid)
-        );
+      // Anyone can read a user's public profile data (for usernames, etc.)
+      allow get: if true;
 
-      // Only Admins & above can list users
+      // Only Admins & above can list all users
       allow list: if
         isSignedIn() &&
         isActive(request.auth.uid) &&
@@ -338,3 +333,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
