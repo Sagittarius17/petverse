@@ -1,6 +1,12 @@
 {
   "placeholderImages": [
     {
+      "id": "billu-avatar",
+      "description": "A cute, cartoonish cat avatar for Billu the chatbot.",
+      "imageUrl": "https://images.unsplash.com/photo-1596854407944-bf87f6fdd49e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjdXRlJTIwY2F0fGVufDB8fHx8MTc2Nzc0MDIyMnww&ixlib=rb-4.1.0&q=80&w=200",
+      "imageHint": "cute cat"
+    },
+    {
       "id": "hero-1",
       "description": "A happy golden retriever playing in a sunny field.",
       "imageUrl": "https://images.unsplash.com/photo-1641004217215-7955d4a92b7a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxkb2clMjBmaWVsZHxlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib=rb-4.1.0&q=80&w=1080",

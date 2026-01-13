@@ -9,13 +9,15 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, ArrowLeft, Loader2 } from 'lucide-react';
+import { Send, ArrowLeft, Loader2, Sparkles } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import MessageBubble from './message-bubble';
 import { useChatStore } from '@/lib/chat-store';
 import { cn } from '@/lib/utils';
 import { format, formatDistanceToNow, isToday, isYesterday, isThisWeek, parseISO } from 'date-fns';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { billuChatbot } from '@/ai/flows/billu-chatbot';
 
 interface Conversation {
   id: string;
@@ -56,6 +58,9 @@ interface ChatPanelProps {
   onClose: () => void;
   currentUser: User;
 }
+
+const BILLU_CONVERSATION_ID = 'ai-chatbot-billu';
+const billuAvatar = PlaceHolderImages.find(p => p.id === 'billu-avatar') || { imageUrl: '', imageHint: 'cat' };
 
 function formatRelativeTime(timestamp?: Timestamp): string {
     if (!timestamp) return '';
@@ -114,6 +119,10 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
+  
+  const [billuChatHistory, setBilluChatHistory] = useState<Message[]>([]);
+  const [isBilluThinking, setIsBilluThinking] = useState(false);
+
 
   // Fetch conversations where the current user is a participant
   useEffect(() => {
@@ -204,7 +213,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   
   // Fetch messages for the active conversation
   useEffect(() => {
-    if (!firestore || !activeConversationId) {
+    if (!firestore || !activeConversationId || activeConversationId === BILLU_CONVERSATION_ID) {
       setMessages([]);
       return;
     }
@@ -226,7 +235,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, billuChatHistory, isBilluThinking]);
 
   const updateTypingStatus = (isTyping: boolean) => {
     if (!firestore || !activeConversationId || !currentUser) return;
@@ -239,6 +248,8 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value);
     
+    if (activeConversationId === BILLU_CONVERSATION_ID) return;
+
     if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
     } else {
@@ -250,9 +261,53 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
         typingTimeoutRef.current = null;
     }, 3000);
   };
+  
+  const handleBilluSubmit = async () => {
+    if (!newMessage.trim()) return;
+
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      senderId: currentUser.uid,
+      text: newMessage,
+      timestamp: Timestamp.now(),
+    };
+    
+    setBilluChatHistory(prev => [...prev, userMessage]);
+    setIsBilluThinking(true);
+    const currentMessage = newMessage;
+    setNewMessage('');
+    
+    try {
+      const { response } = await billuChatbot({ message: currentMessage });
+      const billuMessage: Message = {
+        id: `billu-${Date.now()}`,
+        senderId: BILLU_CONVERSATION_ID,
+        text: response,
+        timestamp: Timestamp.now(),
+      };
+      setBilluChatHistory(prev => [...prev, billuMessage]);
+    } catch (e) {
+      console.error("Billu chatbot failed:", e);
+      const errorMessage: Message = {
+        id: `billu-error-${Date.now()}`,
+        senderId: BILLU_CONVERSATION_ID,
+        text: "Meow! I'm having a little trouble thinking right now. Please try again later. 😿",
+        timestamp: Timestamp.now(),
+      };
+      setBilluChatHistory(prev => [...prev, errorMessage]);
+    } finally {
+      setIsBilluThinking(false);
+    }
+  }
+
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (activeConversationId === BILLU_CONVERSATION_ID) {
+        handleBilluSubmit();
+        return;
+    }
+    
     if (!newMessage.trim() || !firestore || !activeConversationId) return;
 
     if (typingTimeoutRef.current) {
@@ -281,6 +336,23 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   };
 
   const selectedConversation = conversations.find(c => c.id === activeConversationId);
+  const pinnedBilluConversation: Conversation = {
+    id: BILLU_CONVERSATION_ID,
+    participants: [currentUser.uid, BILLU_CONVERSATION_ID],
+    otherParticipant: {
+      id: BILLU_CONVERSATION_ID,
+      displayName: 'Ask Billu!',
+      photoURL: billuAvatar.imageUrl,
+      isOnline: true,
+    },
+    lastMessage: {
+      text: "Your AI companion for anything pet-related!",
+      timestamp: Timestamp.now(),
+    },
+  };
+
+  const allConversations = [pinnedBilluConversation, ...conversations];
+
 
   const renderConversationList = () => (
     <div className="flex flex-col h-full">
@@ -298,8 +370,8 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
               </div>
             </div>
           ))
-        ) : conversations.length > 0 ? (
-          conversations.map(convo => (
+        ) : allConversations.length > 0 ? (
+          allConversations.map(convo => (
             <div
               key={convo.id}
               className="flex items-start gap-4 p-4 cursor-pointer hover:bg-muted"
@@ -310,17 +382,24 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                   <AvatarImage src={convo.otherParticipant?.photoURL} />
                   <AvatarFallback>{convo.otherParticipant?.displayName[0] || 'U'}</AvatarFallback>
                 </Avatar>
-                {convo.otherParticipant?.isOnline && (
+                {convo.otherParticipant?.isOnline && convo.id !== BILLU_CONVERSATION_ID && (
                   <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-green-500 ring-2 ring-background" />
+                )}
+                {convo.id === BILLU_CONVERSATION_ID && (
+                    <div className="absolute bottom-0 right-0 block p-0.5 rounded-full bg-primary ring-2 ring-background">
+                        <Sparkles className="h-2 w-2 text-primary-foreground" />
+                    </div>
                 )}
               </div>
               <div className="flex-1 overflow-hidden">
                 <p className="font-semibold truncate">{convo.otherParticipant?.displayName || 'Unknown User'}</p>
                 <p className="text-sm text-muted-foreground truncate">{convo.lastMessage?.text}</p>
               </div>
-              <div className="text-xs text-muted-foreground whitespace-nowrap">
-                {formatRelativeTime(convo.lastMessage?.timestamp)}
-              </div>
+              {convo.id !== BILLU_CONVERSATION_ID && (
+                <div className="text-xs text-muted-foreground whitespace-nowrap">
+                    {formatRelativeTime(convo.lastMessage?.timestamp)}
+                </div>
+              )}
             </div>
           ))
         ) : (
@@ -333,77 +412,133 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     </div>
   );
 
-  const renderMessageView = () => (
-    <div className="flex flex-col h-full">
-        {selectedConversation && selectedConversation.otherParticipant ? (
-            <>
-            <SheetHeader className="p-4 border-b flex-row items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => setActiveConversationId(null)}>
-                    <ArrowLeft />
-                </Button>
-                <Avatar>
-                    <AvatarImage src={selectedConversation.otherParticipant.photoURL} />
-                    <AvatarFallback>{selectedConversation.otherParticipant.displayName[0] || 'U'}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 overflow-hidden">
-                    <SheetTitle className="truncate">{selectedConversation.otherParticipant.displayName || 'Chat'}</SheetTitle>
-                    <SheetDescription asChild>
-                         <OtherParticipantStatus 
-                            otherParticipantId={selectedConversation.otherParticipant.id} 
-                            typingStatus={selectedConversation.typing?.[selectedConversation.otherParticipant.id]}
-                        />
-                    </SheetDescription>
-                </div>
-            </SheetHeader>
-            <ScrollArea className="flex-1 bg-secondary/50 p-4">
-                {isLoadingMessages ? (
-                    <div className="flex justify-center items-center h-full">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  const renderMessageView = () => {
+    if (activeConversationId === BILLU_CONVERSATION_ID) return renderBilluChatView();
+    
+    return (
+        <div className="flex flex-col h-full">
+            {selectedConversation && selectedConversation.otherParticipant ? (
+                <>
+                <SheetHeader className="p-4 border-b flex-row items-center gap-4">
+                    <Button variant="ghost" size="icon" onClick={() => setActiveConversationId(null)}>
+                        <ArrowLeft />
+                    </Button>
+                    <Avatar>
+                        <AvatarImage src={selectedConversation.otherParticipant.photoURL} />
+                        <AvatarFallback>{selectedConversation.otherParticipant.displayName[0] || 'U'}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 overflow-hidden">
+                        <SheetTitle className="truncate">{selectedConversation.otherParticipant.displayName || 'Chat'}</SheetTitle>
+                        <SheetDescription asChild>
+                             <OtherParticipantStatus 
+                                otherParticipantId={selectedConversation.otherParticipant.id} 
+                                typingStatus={selectedConversation.typing?.[selectedConversation.otherParticipant.id]}
+                            />
+                        </SheetDescription>
                     </div>
-                ) : (
-                    <div className="space-y-2">
-                        {messages.map((msg, index) => {
-                            const prevMsg = messages[index - 1];
-                            const showDateSeparator = !prevMsg || !msg.timestamp || !prevMsg.timestamp || !isSameDay(msg.timestamp.toDate(), prevMsg.timestamp.toDate());
-                            return (
-                                <React.Fragment key={msg.id}>
-                                    {showDateSeparator && msg.timestamp && (
-                                        <div className="text-center text-xs text-muted-foreground my-4">
-                                            {formatDateSeparator(msg.timestamp)}
-                                        </div>
-                                    )}
-                                    <MessageBubble message={msg} isCurrentUser={msg.senderId === currentUser.uid} />
-                                </React.Fragment>
-                            )
-                        })}
-                        <div ref={messagesEndRef} />
+                </SheetHeader>
+                <ScrollArea className="flex-1 bg-secondary/50 p-4">
+                    {isLoadingMessages ? (
+                        <div className="flex justify-center items-center h-full">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        </div>
+                    ) : (
+                        <div className="space-y-2">
+                            {messages.map((msg, index) => {
+                                const prevMsg = messages[index - 1];
+                                const showDateSeparator = !prevMsg || !msg.timestamp || !prevMsg.timestamp || !isSameDay(msg.timestamp.toDate(), prevMsg.timestamp.toDate());
+                                return (
+                                    <React.Fragment key={msg.id}>
+                                        {showDateSeparator && msg.timestamp && (
+                                            <div className="text-center text-xs text-muted-foreground my-4">
+                                                {formatDateSeparator(msg.timestamp)}
+                                            </div>
+                                        )}
+                                        <MessageBubble message={msg} isCurrentUser={msg.senderId === currentUser.uid} />
+                                    </React.Fragment>
+                                )
+                            })}
+                            <div ref={messagesEndRef} />
+                        </div>
+                    )}
+                </ScrollArea>
+                <form onSubmit={handleSendMessage} className="p-4 border-t flex items-center gap-2">
+                    <Input
+                        value={newMessage}
+                        onChange={handleTyping}
+                        placeholder="Type a message..."
+                        autoComplete="off"
+                    />
+                    <Button type="submit" size="icon" disabled={!newMessage.trim()}>
+                        <Send className="h-5 w-5" />
+                    </Button>
+                </form>
+                </>
+            ) : (
+                <div className="h-full flex flex-col">
+                     <SheetHeader className="p-4 border-b">
+                        <SheetTitle>Error</SheetTitle>
+                    </SheetHeader>
+                    <div className="flex-1 flex flex-col items-center justify-center text-center text-muted-foreground p-8">
+                        <p className="text-lg font-semibold">Conversation Not Found</p>
+                        <p className="text-sm">Could not find the selected conversation.</p>
+                        <Button variant="link" onClick={() => setActiveConversationId(null)}>Back to conversations</Button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+  }
+
+  const renderBilluChatView = () => (
+    <div className="flex flex-col h-full">
+        <SheetHeader className="p-4 border-b flex-row items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => setActiveConversationId(null)}>
+                <ArrowLeft />
+            </Button>
+            <Avatar>
+                <AvatarImage src={billuAvatar.imageUrl} />
+                <AvatarFallback>B</AvatarFallback>
+            </Avatar>
+            <div className="flex-1 overflow-hidden">
+                <SheetTitle className="truncate">Ask Billu!</SheetTitle>
+                 <SheetDescription>Your AI companion</SheetDescription>
+            </div>
+        </SheetHeader>
+        <ScrollArea className="flex-1 bg-secondary/50 p-4">
+            <div className="text-center my-8">
+                <Avatar className="h-16 w-16 mx-auto mb-4">
+                    <AvatarImage src={billuAvatar.imageUrl} />
+                    <AvatarFallback>B</AvatarFallback>
+                </Avatar>
+                <p className="font-semibold">Ask Billu anything!</p>
+                <p className="text-sm text-muted-foreground">Your purr-fect AI companion. 🐾</p>
+            </div>
+            <div className="space-y-2">
+                {billuChatHistory.map((msg) => (
+                     <MessageBubble key={msg.id} message={msg} isCurrentUser={msg.senderId === currentUser.uid} />
+                ))}
+                {isBilluThinking && (
+                    <div className="flex items-end gap-2 justify-start">
+                        <div className="max-w-xs md:max-w-md rounded-2xl px-3 py-2 relative bg-background border rounded-bl-none">
+                            <p className="text-sm break-words animate-pulse">Billu is thinking...</p>
+                        </div>
                     </div>
                 )}
-            </ScrollArea>
-            <form onSubmit={handleSendMessage} className="p-4 border-t flex items-center gap-2">
-                <Input
-                    value={newMessage}
-                    onChange={handleTyping}
-                    placeholder="Type a message..."
-                    autoComplete="off"
-                />
-                <Button type="submit" size="icon" disabled={!newMessage.trim()}>
-                    <Send className="h-5 w-5" />
-                </Button>
-            </form>
-            </>
-        ) : (
-            <div className="h-full flex flex-col">
-                 <SheetHeader className="p-4 border-b">
-                    <SheetTitle>Error</SheetTitle>
-                </SheetHeader>
-                <div className="flex-1 flex flex-col items-center justify-center text-center text-muted-foreground p-8">
-                    <p className="text-lg font-semibold">Conversation Not Found</p>
-                    <p className="text-sm">Could not find the selected conversation.</p>
-                    <Button variant="link" onClick={() => setActiveConversationId(null)}>Back to conversations</Button>
-                </div>
+                <div ref={messagesEndRef} />
             </div>
-        )}
+        </ScrollArea>
+        <form onSubmit={handleSendMessage} className="p-4 border-t flex items-center gap-2">
+            <Input
+                value={newMessage}
+                onChange={handleTyping}
+                placeholder="Ask Billu something..."
+                autoComplete="off"
+            />
+            <Button type="submit" size="icon" disabled={!newMessage.trim() || isBilluThinking}>
+                <Send className="h-5 w-5" />
+            </Button>
+        </form>
     </div>
   );
 
@@ -422,7 +557,3 @@ function isSameDay(date1: Date, date2: Date) {
          date1.getMonth() === date2.getMonth() &&
          date1.getDate() === date2.getDate();
 }
-
-    
-
-    
