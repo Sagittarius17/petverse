@@ -39,6 +39,7 @@ export interface Pet {
   gender: 'Male' | 'Female';
   imageId: string;
   description: string;
+  isAdoptable?: boolean;
   viewCount?: number;
   userId?: string;
   createdAt?: Timestamp;
@@ -70,16 +71,16 @@ export const petCategories = initialPetCategories;
 
 
 export const allPets: Pet[] = [
-  { id: 'p1', name: 'Buddy', species: 'Dog', breed: 'Golden Retriever', age: '2 years', gender: 'Male', imageId: 'dog-golden-retriever-1', description: 'A very good boy who loves to play fetch.' },
-  { id: 'p2', name: 'Lucy', species: 'Dog', breed: 'German Shepherd', age: '3 years', gender: 'Female', imageId: 'dog-german-shepherd-1', description: 'Loyal and intelligent, great with families.' },
-  { id: 'p3', name: 'Mochi', species: 'Cat', breed: 'Siamese', age: '1 year', gender: 'Female', imageId: 'cat-siamese-1', description: 'A curious and vocal cat who loves attention.' },
-  { id: 'p4', name: 'Oliver', species: 'Cat', breed: 'Persian', age: '6 months', gender: 'Male', imageId: 'cat-persian-2', description: 'A fluffy kitten who loves to cuddle.' },
-  { id: 'p5', name: 'Charlie', species: 'Dog', breed: 'Poodle', age: '5 years', gender: 'Male', imageId: 'dog-poodle-1', description: 'Hypoallergenic and very smart.' },
-  { id: 'p6', name: 'Max', species: 'Dog', breed: 'Beagle', age: '4 years', gender: 'Male', imageId: 'dog-beagle-1', description: 'A happy-go-lucky dog with a great sense of smell.' },
-  { id: 'p7', name: 'Luna', species: 'Cat', breed: 'Domestic Shorthair', age: '2 years', gender: 'Female', imageId: 'cat-3', description: 'A sleek black cat, independent but affectionate.' },
-  { id: 'p8', name: 'Simba', species: 'Cat', breed: 'Tabby', age: '1.5 years', gender: 'Male', imageId: 'cat-4', description: 'Loves to sunbathe and watch the world go by.' },
-  { id: 'p9', name: 'Kiwi', species: 'Bird', breed: 'Parrot', age: '10 years', gender: 'Male', imageId: 'bird-1', description: 'A colorful parrot that can mimic some words.' },
-  { id: 'p10', name: 'Sunny', species: 'Bird', breed: 'Canary', age: '1 year', gender: 'Female', imageId: 'bird-2', description: 'A beautiful singer who will brighten your day.' },
+  { id: 'p1', name: 'Buddy', species: 'Dog', breed: 'Golden Retriever', age: '2 years', gender: 'Male', imageId: 'dog-golden-retriever-1', description: 'A very good boy who loves to play fetch.', isAdoptable: true },
+  { id: 'p2', name: 'Lucy', species: 'Dog', breed: 'German Shepherd', age: '3 years', gender: 'Female', imageId: 'dog-german-shepherd-1', description: 'Loyal and intelligent, great with families.', isAdoptable: true },
+  { id: 'p3', name: 'Mochi', species: 'Cat', breed: 'Siamese', age: '1 year', gender: 'Female', imageId: 'cat-siamese-1', description: 'A curious and vocal cat who loves attention.', isAdoptable: true },
+  { id: 'p4', name: 'Oliver', species: 'Cat', breed: 'Persian', age: '6 months', gender: 'Male', imageId: 'cat-persian-2', description: 'A fluffy kitten who loves to cuddle.', isAdoptable: false },
+  { id: 'p5', name: 'Charlie', species: 'Dog', breed: 'Poodle', age: '5 years', gender: 'Male', imageId: 'dog-poodle-1', description: 'Hypoallergenic and very smart.', isAdoptable: true },
+  { id: 'p6', name: 'Max', species: 'Dog', breed: 'Beagle', age: '4 years', gender: 'Male', imageId: 'dog-beagle-1', description: 'A happy-go-lucky dog with a great sense of smell.', isAdoptable: true },
+  { id: 'p7', name: 'Luna', species: 'Cat', breed: 'Domestic Shorthair', age: '2 years', gender: 'Female', imageId: 'cat-3', description: 'A sleek black cat, independent but affectionate.', isAdoptable: false },
+  { id: 'p8', name: 'Simba', species: 'Cat', breed: 'Tabby', age: '1.5 years', gender: 'Male', imageId: 'cat-4', description: 'Loves to sunbathe and watch the world go by.', isAdoptable: true },
+  { id: 'p9', name: 'Kiwi', species: 'Bird', breed: 'Parrot', age: '10 years', gender: 'Male', imageId: 'bird-1', description: 'A colorful parrot that can mimic some words.', isAdoptable: true },
+  { id: 'p10', name: 'Sunny', species: 'Bird', breed: 'Canary', age: '1 year', gender: 'Female', imageId: 'bird-2', description: 'A beautiful singer who will brighten your day.', isAdoptable: true },
 ];
 
 export const allCareGuides: CareGuide[] = [

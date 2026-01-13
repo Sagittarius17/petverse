@@ -11,6 +11,7 @@ import { Eye, AtSign } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, DocumentData } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
+import { cn } from '@/lib/utils';
 
 interface PetCardProps {
   pet: Pet;
@@ -54,6 +55,7 @@ function PetOwnerUsername({ userId }: { userId: string }) {
 
 export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
   const image = PlaceHolderImages.find(p => p.id === pet.imageId);
+  const isAvailable = pet.isAdoptable !== false;
   
   return (
     <Card 
@@ -76,7 +78,13 @@ export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
             )}
           </div>
           {pet.userId && <PetOwnerUsername userId={pet.userId} />}
-          <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
+          <Badge className={cn(
+            "absolute top-2 right-2",
+            isAvailable ? "bg-green-600" : "bg-destructive"
+          )}>
+            {isAvailable ? 'Available' : 'Adopted'}
+          </Badge>
+          <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
             <Eye className="h-3 w-3" />
             <span className="font-semibold">{pet.viewCount || 0}</span>
           </div>
@@ -99,8 +107,8 @@ export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
         {actions ? (
           <div className="w-full">{actions}</div>
         ) : (
-          <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" onClick={() => onPetSelect?.(pet)} disabled={!onPetSelect}>
-            Meet {pet.name}
+          <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" onClick={() => onPetSelect?.(pet)} disabled={!onPetSelect || !isAvailable}>
+            {isAvailable ? `Meet ${pet.name}` : 'Already Adopted'}
           </Button>
         )}
       </CardFooter>

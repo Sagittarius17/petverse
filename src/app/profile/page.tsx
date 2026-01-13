@@ -1,14 +1,13 @@
-
 'use client';
 
 import Image from 'next/image';
-import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase, useDoc, updateDocumentNonBlocking } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Edit, LogOut, Trash2, Eye, PlusCircle, Heart } from 'lucide-react';
+import { Edit, LogOut, Trash2, Eye, PlusCircle, Heart, Tag } from 'lucide-react';
 import PetCard from '@/components/pet-card';
 import { type Pet, type PetBreed } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -159,6 +158,17 @@ export default function ProfilePage() {
       router.push('/');
     }
   };
+  
+  const handleToggleAdoptionStatus = (pet: Pet) => {
+    if (!firestore) return;
+    const petDocRef = doc(firestore, 'pets', pet.id);
+    const newStatus = !pet.isAdoptable;
+    updateDocumentNonBlocking(petDocRef, { isAdoptable: newStatus });
+    toast({
+      title: 'Status Updated',
+      description: `${pet.name} is now marked as ${newStatus ? 'Available' : 'Adopted'}.`
+    });
+  };
 
   const handleDeletePet = async () => {
     if (!petToDelete || !firestore) return;
@@ -274,13 +284,22 @@ export default function ProfilePage() {
                   pet={pet} 
                   onPetSelect={() => setSelectedPet(pet)}
                   actions={
-                    <div className="flex justify-end items-center gap-2">
-                      <Button variant="secondary" size="sm" onClick={() => handleEditPet(pet)}>
-                        <Edit className="mr-2 h-4 w-4" /> Edit
-                      </Button>
-                      <Button variant="destructive" size="sm" onClick={() => setPetToDelete(pet)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    <div className="flex flex-col gap-2">
+                       <Button 
+                          variant={pet.isAdoptable ? 'outline' : 'default'}
+                          onClick={() => handleToggleAdoptionStatus(pet)}
+                        >
+                          <Tag className="mr-2 h-4 w-4" />
+                          {pet.isAdoptable ? 'Show as Adopted' : 'Show for Adoption'}
+                       </Button>
+                       <div className="flex justify-end items-center gap-2">
+                          <Button variant="secondary" size="sm" onClick={() => handleEditPet(pet)} className="flex-grow">
+                            <Edit className="mr-2 h-4 w-4" /> Edit
+                          </Button>
+                          <Button variant="destructive" size="icon" onClick={() => setPetToDelete(pet)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                       </div>
                     </div>
                   }
                 />

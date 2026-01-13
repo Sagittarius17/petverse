@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Skeleton } from './ui/skeleton';
 import { useChatStore } from '@/lib/chat-store';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 
 const viewedPets = new Set<string>();
@@ -170,6 +171,7 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
   }
   
   const isOwner = currentUser?.uid === pet.userId;
+  const isAvailable = pet.isAdoptable !== false;
 
   const image = PlaceHolderImages.find(p => p.id === pet.imageId);
 
@@ -194,7 +196,13 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
                         <span className="font-semibold">@{ownerProfile.username}</span>
                     </div>
                 )}
-                <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
+                 <Badge className={cn(
+                    "absolute top-2 right-2",
+                    isAvailable ? "bg-green-600" : "bg-destructive"
+                  )}>
+                    {isAvailable ? 'Available' : 'Adopted'}
+                </Badge>
+                <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
                     <Eye className="h-3 w-3" />
                     <span className="font-semibold">{pet.viewCount || 0}</span>
                 </div>
@@ -223,18 +231,18 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
                     <CardContent>
                        {ownerId ? <PetOwnerInfo ownerId={ownerId} /> : <Skeleton className="h-12 w-full" />}
                         <p className="my-4 text-sm text-muted-foreground">
-                            {isOwner ? "This is your pet's listing." : "Ready to take the next step? Get in touch with the owner to ask questions or arrange a meet-and-greet."}
+                            {isOwner ? "This is your pet's listing." : isAvailable ? "Ready to take the next step? Get in touch with the owner to ask questions or arrange a meet-and-greet." : "This pet has already found a loving home."}
                         </p>
                         <div className="space-y-3">
-                            <Button variant="outline" className="w-full justify-start" onClick={() => handleStartChat(`Hi! I'd like to inquire about getting your email for ${pet.name}.`)} disabled={isOwner}>
+                            <Button variant="outline" className="w-full justify-start" onClick={() => handleStartChat(`Hi! I'd like to inquire about getting your email for ${pet.name}.`)} disabled={isOwner || !isAvailable}>
                                 <Mail className="mr-2 h-4 w-4" /> Ask for email
                             </Button>
-                             <Button variant="outline" className="w-full justify-start" onClick={() => handleStartChat(`Hi! Could I get your phone number to discuss ${pet.name}?`)} disabled={isOwner}>
+                             <Button variant="outline" className="w-full justify-start" onClick={() => handleStartChat(`Hi! Could I get your phone number to discuss ${pet.name}?`)} disabled={isOwner || !isAvailable}>
                                 <Phone className="mr-2 h-4 w-4" /> Ask for phone number
                             </Button>
                         </div>
-                        <Button className="mt-6 w-full text-lg" size="lg" onClick={() => handleStartChat()} disabled={isOwner}>
-                            <MessageSquare className="mr-2" /> Chat With The Owner
+                        <Button className="mt-6 w-full text-lg" size="lg" onClick={() => handleStartChat()} disabled={isOwner || !isAvailable}>
+                            <MessageSquare className="mr-2" /> {isAvailable ? 'Chat With The Owner' : 'Already Adopted'}
                         </Button>
                     </CardContent>
                 </Card>

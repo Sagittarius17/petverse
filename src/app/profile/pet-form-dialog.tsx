@@ -103,6 +103,7 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
           imageId: `${data.species.toLowerCase()}-1`, // Generic placeholder
           viewCount: 0,
           createdAt: serverTimestamp(),
+          isAdoptable: true,
         });
         onSuccess('created');
       }

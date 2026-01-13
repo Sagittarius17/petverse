@@ -2,7 +2,7 @@
 'use client';
 import { useState, useMemo } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import type { Pet } from '@/lib/data';
 import AdoptionList from '@/components/adoption-list';
 import PetFilters from '@/components/pet-filters';
@@ -62,7 +62,7 @@ export default function AdoptPage() {
   );
   
   const petsQuery = useMemoFirebase(
-    () => petsCollection ? query(petsCollection, orderBy('name')) : null,
+    () => petsCollection ? query(petsCollection, where('isAdoptable', '==', true)) : null,
     [petsCollection]
   );
 
