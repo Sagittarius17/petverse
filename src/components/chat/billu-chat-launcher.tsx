@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -10,7 +11,7 @@ import { useUser } from '@/firebase';
 import { cn } from '@/lib/utils';
 
 const BILLU_CONVERSATION_ID = 'ai-chatbot-billu';
-const CAT_SOUNDS = ['Meow!', 'Purrr...', 'Miu', 'Miaowww'];
+const CAT_SOUNDS = ['Meow! 🐾', 'Purrr...', 'Miu 😺', 'Miaowww', '😻', '😽', '😹', '... purr ...'];
 
 interface Meow {
   id: number;
