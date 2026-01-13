@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import LostPetForm from "@/components/lost-pet-form";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ClientTabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/client-tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PawPrint, Search } from "lucide-react";
 import type { LostPetReport } from '@/lib/data';
@@ -58,7 +58,7 @@ export default function LostAndFoundPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="search" className="w-full max-w-4xl mx-auto">
+      <ClientTabs defaultValue="search" className="w-full max-w-4xl mx-auto">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="report">
             <PawPrint className="mr-2 h-4 w-4"/> Report a Pet
@@ -102,7 +102,7 @@ export default function LostAndFoundPage() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
+      </ClientTabs>
     </div>
   );
 }
