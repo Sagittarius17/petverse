@@ -9,7 +9,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, ArrowLeft, Loader2, Dot } from 'lucide-react';
+import { Send, ArrowLeft, Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import MessageBubble from './message-bubble';
@@ -24,6 +24,7 @@ interface Conversation {
     id: string;
     displayName: string;
     photoURL?: string;
+    isOnline?: boolean;
   } | null;
   lastMessage?: {
     text: string;
@@ -91,7 +92,7 @@ function OtherParticipantStatus({ otherParticipantId, typingStatus }: { otherPar
   }
 
   if (userProfile?.isOnline) {
-    return <p className="text-sm text-green-400 flex items-center"><Dot className="h-6 w-6 -ml-1"/>online</p>;
+    return <p className="text-sm text-green-400">Online</p>;
   }
 
   if (userProfile?.lastSeen) {
@@ -137,7 +138,8 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                 otherParticipant = {
                     id: userDoc.id,
                     displayName: userData.displayName || userData.username || 'User',
-                    photoURL: userData.profilePicture || ''
+                    photoURL: userData.profilePicture || '',
+                    isOnline: userData.isOnline || false,
                 };
             }
         }
@@ -269,10 +271,15 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
               className="flex items-start gap-4 p-4 cursor-pointer hover:bg-muted"
               onClick={() => setActiveConversationId(convo.id)}
             >
-              <Avatar>
-                <AvatarImage src={convo.otherParticipant?.photoURL} />
-                <AvatarFallback>{convo.otherParticipant?.displayName[0] || 'U'}</AvatarFallback>
-              </Avatar>
+              <div className="relative">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage src={convo.otherParticipant?.photoURL} />
+                  <AvatarFallback>{convo.otherParticipant?.displayName[0] || 'U'}</AvatarFallback>
+                </Avatar>
+                {convo.otherParticipant?.isOnline && (
+                  <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-green-500 ring-2 ring-background" />
+                )}
+              </div>
               <div className="flex-1 overflow-hidden">
                 <p className="font-semibold truncate">{convo.otherParticipant?.displayName || 'Unknown User'}</p>
                 <p className="text-sm text-muted-foreground truncate">{convo.lastMessage?.text}</p>
