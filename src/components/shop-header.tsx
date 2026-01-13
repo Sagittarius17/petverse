@@ -61,16 +61,25 @@ export default function ShopHeader() {
     setIsMenuOpen(false);
   };
   
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const searchQuery = formData.get('q') as string;
+    
     const params = new URLSearchParams(searchParams);
-    const value = e.target.value;
-    if (value) {
-      params.set('q', value);
+    if (searchQuery) {
+      params.set('q', searchQuery);
     } else {
       params.delete('q');
     }
-    const currentPath = pathname.startsWith('/shop/products') ? pathname : '/shop/products';
-    router.replace(`${currentPath}?${params.toString()}`);
+
+    // Determine the most appropriate path to apply the search.
+    // If we're already on a category page, stay there. Otherwise, go to the main products page.
+    const currentPath = ['/shop/food', '/shop/toys', '/shop/accessories'].includes(pathname)
+      ? pathname
+      : '/shop/products';
+      
+    router.push(`${currentPath}?${params.toString()}`);
   };
 
   return (
@@ -99,15 +108,15 @@ export default function ShopHeader() {
         </nav>
         
         <div className="hidden md:flex flex-1 max-w-md">
-           <div className="w-full relative">
+           <form onSubmit={handleSearch} className="w-full relative">
             <Input 
+              name="q"
               placeholder="Search for food, toys, accessories..." 
               className="w-full pl-10"
               defaultValue={searchParams.get('q') || ''}
-              onChange={handleSearch}
             />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          </div>
+          </form>
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
@@ -236,15 +245,15 @@ export default function ShopHeader() {
             </Button>
           </div>
           <div className="flex flex-col items-center gap-6 p-8">
-            <div className="w-full relative">
+            <form onSubmit={handleSearch} className="w-full relative">
                 <Input 
+                  name="q"
                   placeholder="Search..." 
                   className="w-full pl-10" 
                   defaultValue={searchParams.get('q') || ''}
-                  onChange={handleSearch}
                 />
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            </div>
+            </form>
             {navLinks.map(({ href, label }) => (
               <Link
                 key={href}

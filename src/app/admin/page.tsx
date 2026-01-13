@@ -66,9 +66,9 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-bold font-headline">Admin Dashboard</h1>
-        <div className="w-[180px]">
+        <div className="w-full sm:w-[180px]">
           <Select value={timeFilter} onValueChange={setTimeFilter}>
             <SelectTrigger>
               <SelectValue placeholder="Select a time range" />

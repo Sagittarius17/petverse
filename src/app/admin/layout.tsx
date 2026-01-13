@@ -15,6 +15,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   SidebarSeparator,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import {
   LayoutDashboard,
@@ -184,6 +185,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Sidebar>
 
           <main className="flex-1 overflow-y-auto">
+            <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between gap-x-4 border-b bg-background px-4 shadow-sm sm:px-6 md:hidden">
+                <SidebarTrigger />
+                <h1 className="text-lg font-semibold">Admin</h1>
+            </header>
             <div className="p-4 sm:p-6 lg:p-8">
               {children}
             </div>

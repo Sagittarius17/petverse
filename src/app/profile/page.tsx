@@ -232,30 +232,30 @@ export default function ProfilePage() {
   return (
     <>
     <div className="container mx-auto max-w-5xl px-4 py-8">
-      <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-12">
-        <Avatar className="h-32 w-32 border-4 border-primary">
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-12">
+        <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-primary">
           {user.photoURL && <AvatarImage src={user.photoURL} alt="User Avatar" />}
           <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
         </Avatar>
-        <div className="text-center md:text-left flex-grow">
-          <h1 className="text-4xl font-bold font-headline">{userProfile?.displayName || user.displayName || 'Anonymous User'}</h1>
+        <div className="text-center sm:text-left flex-grow">
+          <h1 className="text-3xl sm:text-4xl font-bold font-headline">{userProfile?.displayName || user.displayName || 'Anonymous User'}</h1>
           <p className="text-muted-foreground mt-1">@{userProfile?.username || user.email?.split('@')[0]}</p>
           <p className="mt-4 max-w-prose">
             {userProfile?.bio || 'A passionate animal lover and advocate for pet adoption. In my free time, I volunteer at the local shelter and enjoy long walks with my two rescue dogs.'}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setIsProfileFormOpen(true)}>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button variant="outline" onClick={() => setIsProfileFormOpen(true)} className="w-full">
             <Edit className="mr-2 h-4 w-4" /> Edit Profile
           </Button>
-          <Button variant="destructive" onClick={handleLogout}>
+          <Button variant="destructive" onClick={handleLogout} className="w-full">
             <LogOut className="mr-2 h-4 w-4" /> Logout
           </Button>
         </div>
       </div>
 
       <Tabs defaultValue="submitted">
-        <TabsList className="grid w-full grid-cols-2 max-w-xl">
+        <TabsList className="grid w-full grid-cols-2 max-w-xl mx-auto sm:mx-0">
           <TabsTrigger value="submitted">My Submitted Pets</TabsTrigger>
           <TabsTrigger value="favorites">My Favorite Breeds</TabsTrigger>
         </TabsList>
