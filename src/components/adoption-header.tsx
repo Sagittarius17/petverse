@@ -185,13 +185,13 @@ export default function AdoptionHeader() {
               <X className="h-6 w-6" />
             </Button>
           </div>
-          <div className="flex flex-col items-center gap-6 p-4">
+          <div className="flex flex-col items-center justify-center gap-6 p-4 pt-16 text-center">
             {navLinks.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}
                 className={cn(
-                  "text-lg font-medium",
+                  "text-xl font-medium",
                   pathname === href ? "text-foreground" : "text-muted-foreground"
                 )}
                 onClick={() => setIsMenuOpen(false)}
@@ -201,15 +201,15 @@ export default function AdoptionHeader() {
             ))}
              <Link
                 href="#"
-                className="text-lg font-medium text-muted-foreground"
+                className="text-xl font-medium text-muted-foreground"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Services
               </Link>
-            <div className="mt-6 flex flex-col gap-4 w-full max-w-xs">
+            <div className="mt-8 flex flex-col gap-4 w-full max-w-xs">
               {user ? (
                 <>
-                    <Button asChild size="lg" variant="outline">
+                    <Button asChild size="lg">
                         <Link href="/profile" onClick={() => setIsMenuOpen(false)}>
                             <UserIcon className="mr-2 h-4 w-4" />
                             Profile
@@ -221,10 +221,10 @@ export default function AdoptionHeader() {
                 </>
               ) : (
                 <>
-                  <Button variant="outline" asChild size="lg">
+                  <Button asChild size="lg">
                       <Link href="/login" onClick={() => setIsMenuOpen(false)}>Log In</Link>
                   </Button>
-                  <Button asChild size="lg">
+                  <Button variant="outline" asChild size="lg">
                       <Link href="/register" onClick={() => setIsMenuOpen(false)}>Register</Link>
                   </Button>
                 </>

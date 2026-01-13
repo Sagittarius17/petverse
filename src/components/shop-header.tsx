@@ -243,8 +243,8 @@ export default function ShopHeader() {
               <X className="h-6 w-6" />
             </Button>
           </div>
-          <div className="flex flex-col items-center gap-6 p-4">
-            <form onSubmit={handleSearch} className="w-full relative">
+          <div className="flex flex-col items-center justify-center gap-6 p-4 pt-16 text-center">
+            <form onSubmit={handleSearch} className="w-full relative max-w-sm">
                 <Input 
                   name="q"
                   placeholder="Search..." 
@@ -258,7 +258,7 @@ export default function ShopHeader() {
                 key={href}
                 href={href}
                 className={cn(
-                  "text-lg font-medium",
+                  "text-xl font-medium",
                   pathname === href ? "text-foreground" : "text-muted-foreground"
                 )}
                 onClick={() => setIsMenuOpen(false)}
@@ -266,10 +266,10 @@ export default function ShopHeader() {
                 {label}
               </Link>
             ))}
-            <div className="mt-6 flex flex-col gap-4 w-full max-w-xs">
+            <div className="mt-8 flex flex-col gap-4 w-full max-w-xs">
               {user ? (
                 <>
-                  <Button asChild size="lg" variant="outline">
+                  <Button asChild size="lg">
                     <Link href="/profile" onClick={() => setIsMenuOpen(false)}>
                       <User className="mr-2 h-4 w-4" />
                       <span>Profile</span>
@@ -281,10 +281,10 @@ export default function ShopHeader() {
                 </>
               ) : (
                 <>
-                  <Button variant="outline" asChild size="lg">
+                  <Button asChild size="lg">
                       <Link href="/login" onClick={() => setIsMenuOpen(false)}>Log In</Link>
                   </Button>
-                  <Button asChild size="lg">
+                  <Button variant="outline" asChild size="lg">
                       <Link href="/register" onClick={() => setIsMenuOpen(false)}>Register</Link>
                   </Button>
                 </>
