@@ -120,28 +120,26 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     if (!firestore || !currentUser) return;
 
     setIsLoadingConvos(true);
-    const q = query(
-        collection(firestore, 'conversations'), 
-        where('participants', 'array-contains', currentUser.uid)
-    );
+    const q = query(collection(firestore, 'conversations'), where('participants', 'array-contains', currentUser.uid));
 
     const unsubscribe = onSnapshot(q, async (querySnapshot) => {
       const convosPromises = querySnapshot.docs.map(async (docSnap) => {
         const data = docSnap.data();
         const otherParticipantId = data.participants.find((p: string) => p !== currentUser.uid);
-        let otherParticipant = null;
-
+        
+        let otherParticipant: Conversation['otherParticipant'] = null;
+        
         if (otherParticipantId) {
-            const userDoc = await getDoc(doc(firestore, 'users', otherParticipantId));
-            if (userDoc.exists()) {
-                const userData = userDoc.data();
-                otherParticipant = {
-                    id: userDoc.id,
-                    displayName: userData.displayName || userData.username || 'User',
-                    photoURL: userData.profilePicture || '',
-                    isOnline: userData.isOnline || false,
-                };
-            }
+          const userDoc = await getDoc(doc(firestore, 'users', otherParticipantId));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            otherParticipant = {
+              id: userDoc.id,
+              displayName: userData.displayName || userData.username || 'User',
+              photoURL: userData.profilePicture || '',
+              isOnline: userData.isOnline || false, // Get initial status
+            };
+          }
         }
         
         return {
@@ -149,7 +147,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
           participants: data.participants,
           lastMessage: data.lastMessage,
           typing: data.typing || {},
-          otherParticipant
+          otherParticipant,
         } as Conversation;
       });
 
@@ -168,6 +166,42 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     return () => unsubscribe();
   }, [firestore, currentUser]);
 
+  // Real-time listener for participant online status
+  useEffect(() => {
+      if (!firestore || conversations.length === 0) return;
+
+      const unsubscribers = conversations.map(convo => {
+          if (convo.otherParticipant) {
+              const userDocRef = doc(firestore, 'users', convo.otherParticipant.id);
+              return onSnapshot(userDocRef, (userDoc) => {
+                  if (userDoc.exists()) {
+                      const userData = userDoc.data() as UserProfile;
+                      setConversations(prevConvos => 
+                          prevConvos.map(p => {
+                              if (p.otherParticipant && p.otherParticipant.id === userData.id) {
+                                  return {
+                                      ...p,
+                                      otherParticipant: {
+                                          ...p.otherParticipant,
+                                          isOnline: userData.isOnline,
+                                      }
+                                  };
+                              }
+                              return p;
+                          })
+                      );
+                  }
+              });
+          }
+          return () => {}; // Return a no-op function for convos without other participants
+      });
+
+      return () => {
+          unsubscribers.forEach(unsub => unsub());
+      };
+
+  }, [firestore, conversations.length]); // Rerun when the number of conversations changes.
+  
   // Fetch messages for the active conversation
   useEffect(() => {
     if (!firestore || !activeConversationId) {
@@ -388,5 +422,7 @@ function isSameDay(date1: Date, date2: Date) {
          date1.getMonth() === date2.getMonth() &&
          date1.getDate() === date2.getDate();
 }
+
+    
 
     
