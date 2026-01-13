@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { collection, query, where, orderBy, onSnapshot, doc, getDoc, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, doc, getDoc, addDoc, serverTimestamp, updateDoc, Timestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { User } from 'firebase/auth';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import MessageBubble from './message-bubble';
 import { useChatStore } from '@/lib/chat-store';
 import { cn } from '@/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
 
 
 interface Conversation {
@@ -26,7 +27,7 @@ interface Conversation {
   } | null;
   lastMessage?: {
     text: string;
-    timestamp: any;
+    timestamp: Timestamp;
   };
 }
 
@@ -41,6 +42,11 @@ interface ChatPanelProps {
   isOpen: boolean;
   onClose: () => void;
   currentUser: User;
+}
+
+function formatRelativeTime(timestamp?: Timestamp): string {
+    if (!timestamp) return '';
+    return formatDistanceToNow(timestamp.toDate(), { addSuffix: true });
 }
 
 export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelProps) {
@@ -61,7 +67,8 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     setIsLoadingConvos(true);
     const q = query(
         collection(firestore, 'conversations'), 
-        where('participants', 'array-contains', currentUser.uid)
+        where('participants', 'array-contains', currentUser.uid),
+        orderBy('lastMessage.timestamp', 'desc')
     );
 
     const unsubscribe = onSnapshot(q, async (querySnapshot) => {
@@ -171,7 +178,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
           conversations.map(convo => (
             <div
               key={convo.id}
-              className="flex items-center gap-4 p-4 cursor-pointer hover:bg-muted"
+              className="flex items-start gap-4 p-4 cursor-pointer hover:bg-muted"
               onClick={() => setActiveConversationId(convo.id)}
             >
               <Avatar>
@@ -181,6 +188,9 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
               <div className="flex-1 overflow-hidden">
                 <p className="font-semibold truncate">{convo.otherParticipant?.displayName || 'Unknown User'}</p>
                 <p className="text-sm text-muted-foreground truncate">{convo.lastMessage?.text}</p>
+              </div>
+              <div className="text-xs text-muted-foreground whitespace-nowrap">
+                {formatRelativeTime(convo.lastMessage?.timestamp)}
               </div>
             </div>
           ))
