@@ -196,13 +196,7 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
                         <span className="font-semibold">@{ownerProfile.username}</span>
                     </div>
                 )}
-                 <Badge className={cn(
-                    "absolute top-2 right-2",
-                    isAvailable ? "bg-green-600" : "bg-destructive"
-                  )}>
-                    {isAvailable ? 'Available' : 'Adopted'}
-                </Badge>
-                <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
+                <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
                     <Eye className="h-3 w-3" />
                     <span className="font-semibold">{pet.viewCount || 0}</span>
                 </div>
@@ -210,7 +204,12 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
 
             <div className="flex flex-col space-y-6 p-6 overflow-y-auto max-h-[90vh]">
                 <DialogHeader>
-                    <DialogTitle className="text-4xl font-bold font-headline tracking-tight">{pet.name}</DialogTitle>
+                    <div className="flex items-center gap-4">
+                        <DialogTitle className="text-4xl font-bold font-headline tracking-tight">{pet.name}</DialogTitle>
+                        <Badge className={cn(!isAvailable ? "bg-green-600 hover:bg-green-700" : "bg-secondary text-secondary-foreground")}>
+                            {isAvailable ? 'Available' : 'Adopted'}
+                        </Badge>
+                    </div>
                      <DialogDescription className="sr-only">Detailed information about {pet.name}, a {pet.breed} available for adoption.</DialogDescription>
                     <div className="pt-4 flex flex-wrap gap-2">
                         <Badge variant="default" className="text-md">{pet.breed}</Badge>
