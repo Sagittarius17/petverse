@@ -82,6 +82,12 @@ type SortConfig = {
   direction: 'ascending' | 'descending';
 } | null;
 
+const roleOrder: Record<Role, number> = {
+  Superadmin: 0,
+  Admin: 1,
+  Superuser: 2,
+  User: 3,
+};
 
 export default function AdminUsersPage() {
   const firestore = useFirestore();
@@ -112,6 +118,13 @@ export default function AdminUsersPage() {
     let sortableUsers = users ? [...users] : [];
     if (sortConfig !== null) {
       sortableUsers.sort((a, b) => {
+        if (sortConfig.key === 'role') {
+          const roleA = a.role || 'User';
+          const roleB = b.role || 'User';
+          const comparison = roleOrder[roleA] - roleOrder[roleB];
+          return sortConfig.direction === 'ascending' ? comparison : -comparison;
+        }
+
         let aValue: any;
         let bValue: any;
 
