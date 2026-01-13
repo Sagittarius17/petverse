@@ -78,12 +78,6 @@ export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
             )}
           </div>
           {pet.userId && <PetOwnerUsername userId={pet.userId} />}
-          <Badge className={cn(
-            "absolute top-2 right-2",
-            isAvailable ? "bg-green-600" : "bg-destructive"
-          )}>
-            {isAvailable ? 'Available' : 'Adopted'}
-          </Badge>
           <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
             <Eye className="h-3 w-3" />
             <span className="font-semibold">{pet.viewCount || 0}</span>
@@ -93,9 +87,14 @@ export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
             className="flex-grow p-4 cursor-pointer"
             onClick={() => onPetSelect?.(pet)}
         >
-          <CardTitle className="mb-2 text-xl font-headline group-hover:underline">
-            {pet.name}
-          </CardTitle>
+          <div className="flex items-center justify-between mb-2">
+            <CardTitle className="text-xl font-headline group-hover:underline">
+              {pet.name}
+            </CardTitle>
+             <Badge className={cn(isAvailable ? "bg-green-600" : "bg-destructive")}>
+                {isAvailable ? 'Available' : 'Adopted'}
+            </Badge>
+          </div>
           <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
             <Badge variant="secondary">{pet.breed}</Badge>
             <Badge variant="secondary">{pet.age}</Badge>
