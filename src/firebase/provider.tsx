@@ -1,10 +1,10 @@
+
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
-import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp as rtdbServerTimestamp } from 'firebase/database';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 
 interface FirebaseProviderProps {
@@ -81,9 +81,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       auth,
       (firebaseUser) => { // Auth state determined
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
-        if (firebaseUser) {
-           setupPresence(firebaseUser, firestore);
-        }
       },
       (error) => { // Auth listener error
         console.error("FirebaseProvider: onAuthStateChanged error:", error);
@@ -114,43 +111,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     </FirebaseContext.Provider>
   );
 };
-
-function setupPresence(user: User, firestore: Firestore) {
-  const database = getDatabase();
-  const uid = user.uid;
-  
-  const userStatusDatabaseRef = ref(database, `/status/${uid}`);
-  const userStatusFirestoreRef = doc(firestore, 'users', uid);
-
-  const connectedRef = ref(database, '.info/connected');
-
-  onValue(connectedRef, (snap) => {
-    if (snap.val() === true) {
-      // We're connected (or reconnected).
-      // Set the Realtime Database status to 'online'.
-      set(userStatusDatabaseRef, {
-        isOnline: true,
-        last_changed: rtdbServerTimestamp(),
-      });
-
-      // Update Firestore to reflect online status.
-      updateDoc(userStatusFirestoreRef, {
-        isOnline: true,
-        lastSeen: serverTimestamp(),
-      });
-
-      // When the client disconnects, update both RTDB and Firestore.
-      onDisconnect(userStatusDatabaseRef).set({
-        isOnline: false,
-        last_changed: rtdbServerTimestamp(),
-      });
-      onDisconnect(userStatusFirestoreRef).update({
-        isOnline: false,
-        lastSeen: serverTimestamp(),
-      });
-    }
-  });
-}
 
 
 /**

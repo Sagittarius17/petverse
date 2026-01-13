@@ -151,7 +151,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
         } as Conversation;
       });
 
-      const resolvedConvos = await Promise.all(convosPromises);
+      let resolvedConvos = await Promise.all(convosPromises);
       
       resolvedConvos.sort((a, b) => {
         const timeA = a.lastMessage?.timestamp?.toMillis() || 0;
@@ -323,7 +323,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                     <div className="space-y-2">
                         {messages.map((msg, index) => {
                             const prevMsg = messages[index - 1];
-                            const showDateSeparator = !prevMsg || !msg.timestamp || !prevMsg.timestamp || !isToday(msg.timestamp.toDate()) || !isSameDay(msg.timestamp.toDate(), prevMsg.timestamp.toDate());
+                            const showDateSeparator = !prevMsg || !msg.timestamp || !prevMsg.timestamp || !isSameDay(msg.timestamp.toDate(), prevMsg.timestamp.toDate());
                             return (
                                 <React.Fragment key={msg.id}>
                                     {showDateSeparator && msg.timestamp && (
