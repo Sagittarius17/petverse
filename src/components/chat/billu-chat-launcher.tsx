@@ -133,12 +133,12 @@ export default function BilluChatLauncher() {
           {meows.map(meow => (
             <span
               key={meow.id}
-              className="absolute text-lg font-bold text-primary-foreground pointer-events-none whitespace-nowrap animate-meow-float"
+              className="absolute text-lg font-bold text-primary pointer-events-none whitespace-nowrap animate-meow-float bg-background rounded-xl px-3 py-1 shadow-lg"
               style={{
                 left: `calc(50% + ${meow.x}px)`,
                 top: `calc(50% + ${meow.y}px)`,
                 transform: 'translate(-50%, -50%)',
-                textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                textShadow: '0 1px 1px hsl(var(--background) / 0.5)',
               }}
               onAnimationEnd={() => handleAnimationEnd(meow.id)}
             >
