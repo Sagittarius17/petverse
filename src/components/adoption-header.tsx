@@ -342,7 +342,7 @@ export default function AdoptionHeader() {
                         </Button>
                     </div>
                     <ScrollArea className="h-[calc(100vh-4rem)] p-4">
-                        <div className="space-y-6">
+                        <div className="bg-background space-y-6">
                             {services.map(category => (
                                 <div key={category.title}>
                                     <h3 className="mb-4 text-lg font-semibold text-primary">{category.title}</h3>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -192,12 +191,12 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
                 {ownerProfile?.username && (
                     <div className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
                         <AtSign className="h-3 w-3" />
-                        <span>@{ownerProfile.username}</span>
+                        <span className="font-semibold">@{ownerProfile.username}</span>
                     </div>
                 )}
                 <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
                     <Eye className="h-3 w-3" />
-                    <span>{pet.viewCount || 0}</span>
+                    <span className="font-semibold">{pet.viewCount || 0}</span>
                 </div>
             </div>
 
@@ -245,5 +244,3 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
     </Dialog>
   );
 }
-
-    

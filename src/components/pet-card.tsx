@@ -46,7 +46,7 @@ function PetOwnerUsername({ userId }: { userId: string }) {
     return (
         <div className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
             <AtSign className="h-3 w-3" />
-            <span>{userProfile.username}</span>
+            <span className="font-semibold">{userProfile.username}</span>
         </div>
     );
 }
@@ -78,7 +78,7 @@ export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
           {pet.userId && <PetOwnerUsername userId={pet.userId} />}
           <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
             <Eye className="h-3 w-3" />
-            <span>{pet.viewCount || 0}</span>
+            <span className="font-semibold">{pet.viewCount || 0}</span>
           </div>
         </CardHeader>
         <CardContent 
