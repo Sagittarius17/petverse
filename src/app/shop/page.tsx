@@ -29,7 +29,7 @@ function ShopContent() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="w-full bg-amber-100/50 dark:bg-amber-900/20 py-12 md:py-24 lg:py-32">
+      <section className="w-full bg-amber-100/50 dark:bg-amber-900/20 py-12 md:py-24">
         <div className="container mx-auto grid items-center gap-6 px-4 md:px-6 lg:grid-cols-2 lg:gap-10">
           <div className="space-y-4 text-center lg:text-left">
             <h1 className="font-headline text-3xl font-bold tracking-tighter text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
@@ -66,83 +66,87 @@ function ShopContent() {
         </div>
       </section>
 
-      {/* Interactive Toys Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32">
-        <div className="container mx-auto grid items-center gap-6 px-4 md:px-6 lg:grid-cols-2 lg:gap-10">
-          <div className="relative h-80 w-full overflow-hidden rounded-xl shadow-lg">
-            {toyImage && (
-              <Image
-                src={toyImage.imageUrl}
-                alt="Interactive Dog Puzzle Toy"
-                fill
-                style={{ objectFit: 'cover' }}
-                data-ai-hint="dog puzzle"
-              />
-            )}
-          </div>
-          <div className="space-y-4">
-            <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">Smarter Playtime</div>
-            <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">Keep Their Minds Sharp</h2>
-            <p className="text-muted-foreground md:text-xl/relaxed">
-              Our interactive puzzle toys are designed to challenge your pet, prevent boredom, and reward them with treats. It's a fantastic way to stimulate their brain and strengthen your bond.
-            </p>
-            <Button asChild size="lg">
-              <Link href="/shop/toys">Shop Interactive Toys</Link>
-            </Button>
+      {/* Sections */}
+      <section className="w-full py-12 md:py-20">
+        <div className="container px-4 md:px-6">
+          <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
+            <div className="space-y-4">
+              <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">Smarter Playtime</div>
+              <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">Keep Their Minds Sharp</h2>
+              <p className="text-muted-foreground md:text-xl/relaxed">
+                Our interactive puzzle toys are designed to challenge your pet, prevent boredom, and reward them with treats. It's a fantastic way to stimulate their brain and strengthen your bond.
+              </p>
+              <Button asChild size="lg">
+                <Link href="/shop/toys">Shop Interactive Toys</Link>
+              </Button>
+            </div>
+             <div className="relative h-80 w-full overflow-hidden rounded-xl shadow-lg">
+              {toyImage && (
+                <Image
+                  src={toyImage.imageUrl}
+                  alt="Interactive Dog Puzzle Toy"
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  data-ai-hint="dog puzzle"
+                />
+              )}
+            </div>
           </div>
         </div>
       </section>
       
-      {/* Premium Food Section */}
-      <section className="w-full bg-secondary py-12 md:py-24 lg:py-32">
-        <div className="container mx-auto grid items-center gap-6 px-4 md:px-6 lg:grid-cols-2 lg:gap-10">
-          <div className="space-y-4">
-            <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary-foreground">Nutrition First</div>
-            <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">Fuel Their Adventures</h2>
-            <p className="text-muted-foreground md:text-xl/relaxed">
-              Give your pet the best with our range of organic and grain-free foods. Packed with high-quality proteins and essential nutrients, our formulas support everything from puppy growth to senior vitality.
-            </p>
-            <Button asChild size="lg">
-              <Link href="/shop/food">Explore Pet Food</Link>
-            </Button>
-          </div>
-          <div className="relative h-80 w-full overflow-hidden rounded-xl shadow-lg">
-            {foodImage && (
-              <Image
-                src={foodImage.imageUrl}
-                alt="Organic Puppy Kibble"
-                fill
-                style={{ objectFit: 'cover' }}
-                data-ai-hint="dog food"
-              />
-            )}
+      <section className="w-full bg-secondary py-12 md:py-20">
+         <div className="container px-4 md:px-6">
+          <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
+            <div className="relative h-80 w-full overflow-hidden rounded-xl shadow-lg lg:order-last">
+              {foodImage && (
+                <Image
+                  src={foodImage.imageUrl}
+                  alt="Organic Puppy Kibble"
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  data-ai-hint="dog food"
+                />
+              )}
+            </div>
+            <div className="space-y-4">
+              <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary-foreground">Nutrition First</div>
+              <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">Fuel Their Adventures</h2>
+              <p className="text-muted-foreground md:text-xl/relaxed">
+                Give your pet the best with our range of organic and grain-free foods. Packed with high-quality proteins and essential nutrients, our formulas support everything from puppy growth to senior vitality.
+              </p>
+              <Button asChild size="lg">
+                <Link href="/shop/food">Explore Pet Food</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Cozy Bedding Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32">
-        <div className="container mx-auto grid items-center gap-6 px-4 md:px-6 lg:grid-cols-2 lg:gap-10">
-          <div className="relative h-80 w-full overflow-hidden rounded-xl shadow-lg">
-            {beddingImage && (
-              <Image
-                src={beddingImage.imageUrl}
-                alt="Orthopedic Dog Bed"
-                fill
-                style={{ objectFit: 'cover' }}
-                data-ai-hint="dog bed"
-              />
-            )}
-          </div>
-          <div className="space-y-4">
-            <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">Sweet Dreams</div>
-            <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">Ultimate Comfort Zone</h2>
-            <p className="text-muted-foreground md:text-xl/relaxed">
-              From plush orthopedic beds that support aging joints to cozy cat caves perfect for a quiet nap, our bedding provides the perfect spot for your pet to rest and recharge.
-            </p>
-            <Button asChild size="lg">
-              <Link href="/shop/bedding">Discover Cozy Beds</Link>
-            </Button>
+      <section className="w-full py-12 md:py-20">
+        <div className="container px-4 md:px-6">
+          <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
+            <div className="space-y-4">
+              <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">Sweet Dreams</div>
+              <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">Ultimate Comfort Zone</h2>
+              <p className="text-muted-foreground md:text-xl/relaxed">
+                From plush orthopedic beds that support aging joints to cozy cat caves perfect for a quiet nap, our bedding provides the perfect spot for your pet to rest and recharge.
+              </p>
+              <Button asChild size="lg">
+                <Link href="/shop/bedding">Discover Cozy Beds</Link>
+              </Button>
+            </div>
+             <div className="relative h-80 w-full overflow-hidden rounded-xl shadow-lg">
+              {beddingImage && (
+                <Image
+                  src={beddingImage.imageUrl}
+                  alt="Orthopedic Dog Bed"
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  data-ai-hint="dog bed"
+                />
+              )}
+            </div>
           </div>
         </div>
       </section>

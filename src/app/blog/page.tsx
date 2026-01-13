@@ -80,16 +80,16 @@ export default function BlogPage() {
     const { data: posts, isLoading } = useCollection<Blog>(publishedBlogsQuery);
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <div className="text-center mb-12">
-                <h1 className="text-4xl font-bold font-headline tracking-tight">PetVerse Blog</h1>
-                <p className="mt-2 text-lg text-muted-foreground">
+        <div className="container mx-auto px-4 py-6 md:py-8">
+            <div className="text-center mb-8 md:mb-12">
+                <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tight">PetVerse Blog</h1>
+                <p className="mt-2 text-md md:text-lg text-muted-foreground">
                     Insights, stories, and advice from our team of pet experts.
                 </p>
             </div>
             
             {isLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     {Array.from({ length: 6 }).map((_, i) => (
                         <Card key={i}>
                             <CardHeader className="p-0">
@@ -108,7 +108,7 @@ export default function BlogPage() {
                     ))}
                 </div>
             ) : posts && posts.length > 0 ? (
-                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                     {posts.map(post => (
                        <BlogCard key={post.id} post={post} />
                     ))}

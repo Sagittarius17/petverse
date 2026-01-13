@@ -185,7 +185,7 @@ export default function AdoptionHeader() {
               <X className="h-6 w-6" />
             </Button>
           </div>
-          <div className="flex flex-col items-center justify-center gap-6 p-4 pt-16 text-center">
+          <div className="flex flex-col items-end justify-center gap-6 p-4 pt-16 text-right">
             {navLinks.map(({ href, label }) => (
               <Link
                 key={href}
@@ -206,25 +206,25 @@ export default function AdoptionHeader() {
               >
                 Services
               </Link>
-            <div className="mt-8 flex flex-col gap-4 w-full max-w-xs">
+            <div className="mt-8 flex flex-col gap-4 w-full max-w-xs items-end">
               {user ? (
                 <>
-                    <Button asChild size="lg">
+                    <Button asChild size="lg" className="w-auto">
                         <Link href="/profile" onClick={() => setIsMenuOpen(false)}>
                             <UserIcon className="mr-2 h-4 w-4" />
                             Profile
                         </Link>
                     </Button>
-                    <Button variant="ghost" size="lg" onClick={handleLogout}>
+                    <Button variant="ghost" size="lg" onClick={handleLogout} className="w-auto">
                         Log Out
                     </Button>
                 </>
               ) : (
                 <>
-                  <Button asChild size="lg">
+                  <Button asChild size="lg" className="w-auto">
                       <Link href="/login" onClick={() => setIsMenuOpen(false)}>Log In</Link>
                   </Button>
-                  <Button variant="outline" asChild size="lg">
+                  <Button variant="outline" asChild size="lg" className="w-auto">
                       <Link href="/register" onClick={() => setIsMenuOpen(false)}>Register</Link>
                   </Button>
                 </>

@@ -84,15 +84,15 @@ export default function AdoptPage() {
 
   if (isLoading) {
     return (
-        <div className="container mx-auto px-4 py-8">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="container mx-auto px-4 py-6 md:py-8">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
                 <div className="lg:col-span-1 space-y-4">
                     <Skeleton className="h-10 w-full" />
                     <Skeleton className="h-32 w-full" />
                     <Skeleton className="h-24 w-full" />
                     <Skeleton className="h-24 w-full" />
                 </div>
-                <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                     {Array.from({length: 6}).map((_, i) => (
                         <div key={i} className="space-y-2">
                             <Skeleton className="h-48 w-full" />
@@ -116,15 +116,15 @@ export default function AdoptPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-6 md:py-8">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold font-headline tracking-tight">Find Your New Best Friend</h1>
-        <p className="mt-2 text-lg text-muted-foreground">
+        <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tight">Find Your New Best Friend</h1>
+        <p className="mt-2 text-md md:text-lg text-muted-foreground">
           Browse our listings of lovable pets waiting for a forever home.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8 items-start">
         <div className="lg:col-span-1 lg:sticky lg:top-20">
           <PetFilters
             searchTerm={searchTerm}

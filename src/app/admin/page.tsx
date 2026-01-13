@@ -65,9 +65,9 @@ export default function AdminDashboardPage() {
   const totalAdoptions = '23';
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-3xl font-bold font-headline">Admin Dashboard</h1>
+        <h1 className="text-2xl md:text-3xl font-bold font-headline">Admin Dashboard</h1>
         <div className="w-full sm:w-[180px]">
           <Select value={timeFilter} onValueChange={setTimeFilter}>
             <SelectTrigger>
@@ -86,7 +86,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
       
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard 
           title="Total Pets" 
           value={totalPetsCount}

@@ -42,7 +42,7 @@ export default function Home() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative w-full bg-primary/10 py-12 md:py-24 lg:py-32">
+      <section className="relative w-full bg-primary/10 py-12 md:py-24">
         <div className="container mx-auto grid items-center gap-6 px-4 md:px-6 lg:grid-cols-2 lg:gap-10">
           <div className="space-y-4 text-center lg:text-left">
             <h1 className="font-headline text-3xl font-bold tracking-tighter text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
@@ -80,7 +80,7 @@ export default function Home() {
       </section>
 
       {/* Featured Pets */}
-      <section id="featured-pets" className="w-full py-12 md:py-24">
+      <section id="featured-pets" className="w-full py-12 md:py-20">
         <div className="container mx-auto space-y-8 px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-5xl">Ready for a Home</h2>
@@ -115,7 +115,7 @@ export default function Home() {
       </section>
 
       {/* Care Guides */}
-      <section id="care-guides" className="w-full bg-secondary py-12 md:py-24">
+      <section id="care-guides" className="w-full bg-secondary py-12 md:py-20">
         <div className="container mx-auto space-y-8 px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-5xl">Expert Pet Care Guides</h2>
@@ -137,7 +137,7 @@ export default function Home() {
       </section>
 
       {/* Lost and Found */}
-      <section id="lost-found" className="w-full py-12 md:py-24">
+      <section id="lost-found" className="w-full py-12 md:py-20">
         <div className="container mx-auto grid items-center justify-center gap-4 px-4 text-center md:px-6">
           <div className="space-y-3">
             <h2 className="font-headline text-3xl font-bold tracking-tighter md:text-4xl/tight">Lost & Found</h2>
