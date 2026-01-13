@@ -1,3 +1,4 @@
+
 /**
  * Core Philosophy:
  * This ruleset enforces a strict, user-centric security model combined with
@@ -125,16 +126,10 @@ service cloud.firestore {
 
     match /users/{userId} {
 
-      // Owner + Admins can read
-      allow get: if
-        isSignedIn() &&
-        isActive(request.auth.uid) &&
-        (
-          isOwner(userId) ||
-          isAdmin(request.auth.uid)
-        );
+      // Anyone can read a user's public profile data (for usernames, etc.)
+      allow get: if true;
 
-      // Only Admins & above can list users
+      // Only Admins & above can list all users
       allow list: if
         isSignedIn() &&
         isActive(request.auth.uid) &&
@@ -219,18 +214,12 @@ service cloud.firestore {
       allow read, list: if true;
 
       allow create: if
-        createdBy('authorId');
+        isSignedIn() && isSuperuser(request.auth.uid);
 
-      allow update: if
+      allow update, delete: if
         isSignedIn() &&
         isActive(request.auth.uid) &&
-        request.auth.uid == resource.data.authorId &&
-        immutable('authorId');
-
-      allow delete: if
-        isSignedIn() &&
-        isActive(request.auth.uid) &&
-        request.auth.uid == resource.data.authorId;
+        (request.auth.uid == resource.data.authorId || isSuperadmin(request.auth.uid));
     }
 
     /* ─────────────────────────────
@@ -311,16 +300,23 @@ service cloud.firestore {
     /* ─────────────────────────────
        CONVERSATIONS & MESSAGES
     ───────────────────────────── */
-    
+
     function isParticipant(conversationId) {
       return isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+    }
+    
+    function isParticipantInRequest(requestData) {
+      return isSignedIn() && request.auth.uid in requestData.participants;
     }
 
     match /conversations/{conversationId} {
       allow get: if isParticipant(conversationId);
-      allow list: if isSignedIn();
-      allow create: if isSignedIn() && request.auth.uid in request.resource.data.participants;
-      allow update: if isSignedIn() && request.auth.uid in request.resource.data.participants && immutable('participants');
+      allow list: if isSignedIn(); // Query must be secured with `where('participants', 'array-contains', request.auth.uid)`
+      
+      // Allow write (create/update) if the user is a participant in the new data being written.
+      // This covers both creating a conversation and updating the `lastMessage`.
+      allow write: if isParticipantInRequest(request.resource.data);
+
       allow delete: if false;
 
       match /messages/{messageId} {
