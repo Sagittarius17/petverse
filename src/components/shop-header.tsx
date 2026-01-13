@@ -243,7 +243,7 @@ export default function ShopHeader() {
               <X className="h-6 w-6" />
             </Button>
           </div>
-          <div className="flex flex-col gap-4 p-4 pt-8">
+          <div className="flex flex-col gap-2 p-4 pt-6">
             <form onSubmit={handleSearch} className="relative w-full">
                 <Input 
                   name="q"
@@ -253,13 +253,13 @@ export default function ShopHeader() {
                 />
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             </form>
-             <div className="flex flex-col items-start gap-2 w-full text-left">
+             <div className="flex flex-col items-start gap-1 w-full text-left mt-4">
                 {navLinks.map(({ href, label, icon: Icon }) => (
                   <Link
                     key={href}
                     href={href}
                     className={cn(
-                      "flex items-center gap-4 text-xl w-full p-4 rounded-md font-medium",
+                      "flex items-center gap-4 text-lg w-full p-4 rounded-md font-medium",
                       pathname === href ? "text-foreground bg-muted" : "text-muted-foreground hover:bg-muted/50"
                     )}
                     onClick={() => setIsMenuOpen(false)}
@@ -269,23 +269,32 @@ export default function ShopHeader() {
                   </Link>
                 ))}
             </div>
-            <div className="mt-8 flex w-full flex-col items-start gap-4">
+            <div className="mt-6 flex w-full flex-col items-center gap-4 border-t pt-6">
+                 <div className="flex items-center justify-center w-full gap-2">
+                    <Label htmlFor="view-mode-mobile-shop" className="font-bold cursor-pointer">PetVerse</Label>
+                    <Switch
+                        id="view-mode-mobile-shop"
+                        checked={isShop}
+                        onCheckedChange={handleToggle}
+                    />
+                    <Label htmlFor="view-mode-mobile-shop" className="font-bold cursor-pointer">PetShop</Label>
+                </div>
               {user ? (
                 <>
-                  <Button asChild size="lg" className="w-full justify-start text-lg p-8">
+                  <Button asChild size="lg" className="w-full justify-start text-lg p-6 mt-4">
                     <Link href="/profile" onClick={() => setIsMenuOpen(false)}>
                       <User className="mr-4 h-6 w-6" />
                       <span>Profile</span>
                     </Link>
                   </Button>
-                  <Button variant="ghost" size="lg" onClick={handleLogout} className="w-full justify-start text-lg p-8 text-destructive hover:text-destructive">
-                      <LogOut className="mr-4 h-6 w-6 text-destructive" />
+                  <Button variant="ghost" size="lg" onClick={handleLogout} className="w-full justify-center text-lg p-6 text-destructive hover:text-destructive">
+                      <LogOut className="mr-2 h-6 w-6" />
                       <span>Log Out</span>
                   </Button>
                 </>
               ) : (
                 <>
-                  <Button asChild size="lg" className="w-full">
+                  <Button asChild size="lg" className="w-full mt-4">
                       <Link href="/login" onClick={() => setIsMenuOpen(false)}>Log In</Link>
                   </Button>
                   <Button variant="outline" asChild size="lg" className="w-full">

@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, PawPrint, Sun, Moon, Trees, Flower, Monitor, User as UserIcon, Home, Search, Heart } from 'lucide-react';
+import { Menu, X, PawPrint, Sun, Moon, Trees, Flower, Monitor, User as UserIcon, Home, Search, Heart, ChevronsDown, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUser, useAuth } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -24,6 +24,7 @@ import { ServicesMenu } from './services-menu';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { useTheme } from 'next-themes';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 
 const navLinks = [
   { href: '/', label: 'Home', icon: Home },
@@ -185,13 +186,13 @@ export default function AdoptionHeader() {
               <X className="h-6 w-6" />
             </Button>
           </div>
-          <div className="flex flex-col bg-background items-start gap-2 p-4 text-left">
+          <div className="flex flex-col bg-background items-start gap-1 p-4 text-left">
             {navLinks.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}
                 className={cn(
-                  "flex items-center gap-4 text-xl w-full p-4 rounded-md font-medium",
+                  "flex items-center gap-4 text-lg w-full p-4 rounded-md font-medium",
                   pathname === href ? "text-foreground bg-muted" : "text-muted-foreground hover:bg-muted/50"
                 )}
                 onClick={() => setIsMenuOpen(false)}
@@ -200,31 +201,42 @@ export default function AdoptionHeader() {
                 <span>{label}</span>
               </Link>
             ))}
-             <Link
-                href="#"
-                className="flex items-center gap-4 text-xl w-full p-4 rounded-md font-medium text-muted-foreground hover:bg-muted/50"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                 <X className="h-6 w-6" />
-                <span>Services</span>
-              </Link>
-            <div className="mt-8 flex w-full flex-col items-start gap-4">
+             <Collapsible className="w-full">
+                <CollapsibleTrigger className="flex items-center gap-4 text-lg w-full p-4 rounded-md font-medium text-muted-foreground hover:bg-muted/50 data-[state=open]:bg-muted/50 data-[state=open]:text-foreground">
+                    <ChevronsDown className="h-6 w-6" />
+                    <span>Services</span>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pl-8 pt-2">
+                    <ServicesMenu />
+                </CollapsibleContent>
+             </Collapsible>
+
+            <div className="mt-6 flex w-full flex-col items-center gap-4 border-t pt-6">
+                <div className="flex items-center justify-center w-full gap-2">
+                    <Label htmlFor="view-mode-mobile" className="font-bold cursor-pointer">PetVerse</Label>
+                    <Switch
+                        id="view-mode-mobile"
+                        checked={isShop}
+                        onCheckedChange={handleToggle}
+                    />
+                    <Label htmlFor="view-mode-mobile" className="font-bold cursor-pointer">PetShop</Label>
+                </div>
               {user ? (
                 <>
-                    <Button asChild size="lg" className="w-full justify-start text-lg p-8">
+                    <Button asChild size="lg" className="w-full justify-start text-lg p-6 mt-4">
                         <Link href="/profile" onClick={() => setIsMenuOpen(false)}>
                             <UserIcon className="mr-4 h-6 w-6" />
                             Profile
                         </Link>
                     </Button>
-                    <Button variant="ghost" size="lg" onClick={handleLogout} className="w-full justify-start text-lg p-8 text-destructive hover:text-destructive">
-                         <X className="mr-4 h-6 w-6 text-destructive" />
+                    <Button variant="ghost" size="lg" onClick={handleLogout} className="w-full justify-center text-lg p-6 text-destructive hover:text-destructive">
+                         <LogOut className="mr-2 h-6 w-6" />
                         Log Out
                     </Button>
                 </>
               ) : (
                 <>
-                  <Button asChild size="lg" className="w-full">
+                  <Button asChild size="lg" className="w-full mt-4">
                       <Link href="/login" onClick={() => setIsMenuOpen(false)}>Log In</Link>
                   </Button>
                   <Button variant="outline" asChild size="lg" className="w-full">
