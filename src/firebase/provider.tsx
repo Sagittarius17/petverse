@@ -2,9 +2,9 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { Firestore, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
-import { getDatabase, ref, onValue, onDisconnect, set } from 'firebase/database';
+import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp as rtdbServerTimestamp } from 'firebase/database';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 
 interface FirebaseProviderProps {
@@ -117,20 +117,37 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
 function setupPresence(user: User, firestore: Firestore) {
   const database = getDatabase();
-  const myConnectionsRef = ref(database, `users/${user.uid}/connections`);
-  const lastOnlineRef = ref(database, `users/${user.uid}/lastOnline`);
+  const uid = user.uid;
+  
+  const userStatusDatabaseRef = ref(database, `/status/${uid}`);
+  const userStatusFirestoreRef = doc(firestore, 'users', uid);
+
   const connectedRef = ref(database, '.info/connected');
 
   onValue(connectedRef, (snap) => {
     if (snap.val() === true) {
-      const con = set(myConnectionsRef, true); // Use set to represent a connection
-      
-      const userStatusFirestoreRef = doc(firestore, 'users', user.uid);
-      setDoc(userStatusFirestoreRef, { isOnline: true }, { merge: true });
+      // We're connected (or reconnected).
+      // Set the Realtime Database status to 'online'.
+      set(userStatusDatabaseRef, {
+        isOnline: true,
+        last_changed: rtdbServerTimestamp(),
+      });
 
-      onDisconnect(myConnectionsRef).remove();
-      onDisconnect(lastOnlineRef).set(serverTimestamp());
-       onDisconnect(userStatusFirestoreRef).update({ isOnline: false, lastSeen: serverTimestamp() });
+      // Update Firestore to reflect online status.
+      updateDoc(userStatusFirestoreRef, {
+        isOnline: true,
+        lastSeen: serverTimestamp(),
+      });
+
+      // When the client disconnects, update both RTDB and Firestore.
+      onDisconnect(userStatusDatabaseRef).set({
+        isOnline: false,
+        last_changed: rtdbServerTimestamp(),
+      });
+      onDisconnect(userStatusFirestoreRef).update({
+        isOnline: false,
+        lastSeen: serverTimestamp(),
+      });
     }
   });
 }
@@ -199,5 +216,3 @@ export const useUser = (): UserHookResult => { // Renamed from useAuthUser
   const { user, isUserLoading, userError } = useFirebase(); // Leverages the main hook
   return { user, isUserLoading, userError };
 };
-
-    
