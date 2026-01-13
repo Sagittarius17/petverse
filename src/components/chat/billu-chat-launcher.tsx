@@ -32,22 +32,32 @@ export default function BilluChatLauncher() {
   const [meows, setMeows] = useState<Meow[]>([]);
   const meowIdCounter = useRef(0);
 
-  // Interval to create new meows
+  // Interval to create new meows, but only when the chat is closed.
   useEffect(() => {
-    const interval = setInterval(() => {
-      const word = CAT_SOUNDS[Math.floor(Math.random() * CAT_SOUNDS.length)];
-      const id = meowIdCounter.current++;
-      const newMeow: Meow = {
-        id,
-        word,
-        x: Math.random() * 80 - 40, // Random horizontal position around avatar
-        y: -20 - Math.random() * 20, // Start just above the avatar
-      };
-      setMeows(prev => [...prev, newMeow]);
-    }, 5000 + Math.random() * 2000); // every 5-7 seconds
+    let interval: NodeJS.Timeout | undefined;
 
-    return () => clearInterval(interval);
-  }, []);
+    if (!isOpen) {
+      interval = setInterval(() => {
+        const word = CAT_SOUNDS[Math.floor(Math.random() * CAT_SOUNDS.length)];
+        const id = meowIdCounter.current++;
+        const newMeow: Meow = {
+          id,
+          word,
+          x: Math.random() * 80 - 40, // Random horizontal position around avatar
+          y: -20 - Math.random() * 20, // Start just above the avatar
+        };
+        setMeows(prev => [...prev, newMeow]);
+      }, 5000 + Math.random() * 2000); // every 5-7 seconds
+    }
+
+    // Cleanup function: clears the interval if it exists.
+    // This runs when the component unmounts or when `isOpen` changes.
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isOpen]); // Re-run this effect whenever the chat's open state changes.
 
 
   const handleAnimationEnd = (id: number) => {
