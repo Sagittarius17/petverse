@@ -185,7 +185,7 @@ export default function AdoptionHeader() {
               <X className="h-6 w-6" />
             </Button>
           </div>
-          <div className="flex flex-col items-end justify-center gap-6 p-4 pt-16 text-right">
+          <div className="flex flex-col items-end gap-6 p-4 pt-16 text-right">
             {navLinks.map(({ href, label }) => (
               <Link
                 key={href}
@@ -206,7 +206,7 @@ export default function AdoptionHeader() {
               >
                 Services
               </Link>
-            <div className="mt-8 flex flex-col gap-4 w-full max-w-xs items-end">
+            <div className="mt-8 flex w-full max-w-xs flex-col items-end gap-4">
               {user ? (
                 <>
                     <Button asChild size="lg" className="w-auto">

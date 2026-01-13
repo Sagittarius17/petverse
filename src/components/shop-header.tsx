@@ -243,8 +243,8 @@ export default function ShopHeader() {
               <X className="h-6 w-6" />
             </Button>
           </div>
-          <div className="flex flex-col items-end justify-center gap-6 p-4 pt-16 text-right">
-            <form onSubmit={handleSearch} className="w-full relative max-w-sm">
+          <div className="flex flex-col items-end gap-6 p-4 pt-16 text-right">
+            <form onSubmit={handleSearch} className="relative w-full max-w-sm">
                 <Input 
                   name="q"
                   placeholder="Search..." 
@@ -266,7 +266,7 @@ export default function ShopHeader() {
                 {label}
               </Link>
             ))}
-            <div className="mt-8 flex flex-col gap-4 w-full max-w-xs items-end">
+            <div className="mt-8 flex w-full max-w-xs flex-col items-end gap-4">
               {user ? (
                 <>
                   <Button asChild size="lg" className="w-auto">
