@@ -164,10 +164,18 @@ export default function ProfilePage() {
     const petDocRef = doc(firestore, 'pets', pet.id);
     const newStatus = !pet.isAdoptable;
     updateDocumentNonBlocking(petDocRef, { isAdoptable: newStatus });
-    toast({
-      title: 'Status Updated',
-      description: `${pet.name} is now marked as ${newStatus ? 'Available' : 'Adopted'}.`
-    });
+    
+    if (newStatus === false) { // Pet is now adopted
+        toast({
+            title: '🎉 A Home Found! 🎉',
+            description: `${pet.name}, the ${pet.breed} (${pet.age}), has been adopted!`,
+        });
+    } else {
+        toast({
+            title: 'Status Updated',
+            description: `${pet.name} is now marked as available for adoption.`,
+        });
+    }
   };
 
   const handleDeletePet = async () => {
