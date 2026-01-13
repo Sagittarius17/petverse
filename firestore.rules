@@ -242,7 +242,7 @@ service cloud.firestore {
        NOTIFICATIONS
     ───────────────────────────── */
     match /notifications/{notificationId} {
-      allow read, list: if isSignedIn();
+      allow read, list: if true;
       allow create: if isSignedIn() && isActive(request.auth.uid);
       allow update, delete: if false; // Notifications are immutable
     }
