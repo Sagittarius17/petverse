@@ -237,6 +237,15 @@ service cloud.firestore {
       allow read, list: if true;
       allow write: if false;
     }
+    
+    /* ─────────────────────────────
+       NOTIFICATIONS
+    ───────────────────────────── */
+    match /notifications/{notificationId} {
+      allow read, list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow write: if false; // Notifications are immutable
+    }
 
     /* ─────────────────────────────
        VET SERVICES (PUBLIC LISTINGS)
@@ -334,3 +343,5 @@ service cloud.firestore {
     }
   }
 }
+
+    

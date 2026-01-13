@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase, useDoc, updateDocumentNonBlocking } from '@/firebase';
+import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase, useDoc, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -11,7 +11,7 @@ import { Edit, LogOut, Trash2, Eye, PlusCircle, Heart, Tag } from 'lucide-react'
 import PetCard from '@/components/pet-card';
 import { type Pet, type PetBreed } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
-import { collection, query, where, doc, deleteDoc, DocumentData, getDocs } from 'firebase/firestore';
+import { collection, query, where, doc, deleteDoc, DocumentData, getDocs, serverTimestamp } from 'firebase/firestore';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PetDetailDialog from '@/components/pet-detail-dialog';
@@ -166,10 +166,13 @@ export default function ProfilePage() {
     updateDocumentNonBlocking(petDocRef, { isAdoptable: newStatus });
     
     if (newStatus === false) { // Pet is now adopted
-        toast({
-            title: '🎉 A Home Found! 🎉',
+        const notification = {
+            title: "🎉 A Home Found! 🎉",
             description: `${pet.name}, the ${pet.breed} (${pet.age}), has been adopted!`,
-        });
+            timestamp: serverTimestamp(),
+            type: "adoption",
+        };
+        addDocumentNonBlocking(collection(firestore, 'notifications'), notification);
     } else {
         toast({
             title: 'Status Updated',
@@ -400,3 +403,5 @@ export default function ProfilePage() {
     </>
   );
 }
+
+    

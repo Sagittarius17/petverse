@@ -8,6 +8,7 @@ import ShopHeader from '@/components/shop-header';
 import ShopFooter from '@/components/shop-footer';
 import { maintenanceStore } from '@/lib/maintenance-store';
 import MaintenancePage from './maintenance-page';
+import AdoptionNotifier from './adoption-notifier';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -62,8 +63,11 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="flex min-h-screen flex-col">
       {isShopPage ? <ShopHeader /> : <AdoptionHeader />}
+      <AdoptionNotifier />
       <main className="flex-grow">{children}</main>
       {isShopPage ? <ShopFooter /> : <AdoptionFooter />}
     </div>
   );
 }
+
+    
