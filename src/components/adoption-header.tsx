@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, PawPrint, Sun, Moon, Trees, Flower, Monitor, User as UserIcon, Home, Search, Heart, ChevronsDown, LogOut } from 'lucide-react';
+import { Menu, X, PawPrint, Sun, Moon, Trees, Flower, Monitor, User as UserIcon, Home, Search, Heart, ChevronsDown, LogOut, ArrowLeft, Scissors, Stethoscope, Bone, HeartHandshake, ShoppingCart, Building, Shield, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUser, useAuth } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -20,11 +20,12 @@ import {
   DropdownMenuSubContent
 } from "@/components/ui/dropdown-menu";
 import { cn } from '@/lib/utils';
-import { ServicesMenu } from './services-menu';
+import { ServicesMenu as DesktopServicesMenu } from './services-menu';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { useTheme } from 'next-themes';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import { ScrollArea } from './ui/scroll-area';
+
 
 const navLinks = [
   { href: '/', label: 'Home', icon: Home },
@@ -33,8 +34,88 @@ const navLinks = [
   { href: '/know-your-pet', label: 'Know Your Pet', icon: Heart },
 ];
 
+const services = [
+  {
+    title: 'Pet Care',
+    items: [
+      {
+        title: 'Pet Grooming',
+        href: '#',
+        description: 'Professional grooming to keep your pet looking and feeling great.',
+        icon: Scissors,
+      },
+      {
+        title: 'Consult a Vet',
+        href: '#',
+        description: 'Connect with certified veterinarians for expert medical advice.',
+        icon: Stethoscope,
+      },
+      {
+        title: 'Dog Training',
+        href: '#',
+        description: 'Obedience and behavior training for a well-behaved companion.',
+        icon: Bone,
+      },
+      {
+        title: 'Dog Walking',
+        href: '#',
+        description: 'Reliable dog walking services to keep your friend active.',
+        icon: HeartHandshake,
+      },
+    ],
+  },
+  {
+    title: 'Resources',
+    items: [
+      {
+        title: 'Online Pet Shop',
+        href: '/shop',
+        description: 'Shop for food, toys, and accessories from the comfort of home.',
+        icon: ShoppingCart,
+      },
+      {
+        title: 'Pet Boarding',
+        href: '#',
+        description: 'Safe and comfortable boarding facilities for when you are away.',
+        icon: Building,
+      },
+      {
+        title: 'Re-home a Pet',
+        href: '#',
+        description: 'Find a new loving home for your pet with our re-homing service.',
+        icon: Home,
+      },
+    ],
+  },
+  {
+    title: 'Community',
+    items: [
+      {
+        title: 'Report Animal Abuse',
+        href: '#',
+        description: 'Anonymously report cases of animal cruelty or neglect.',
+        icon: Shield,
+      },
+      {
+        title: 'Pet Mating',
+        href: '#',
+        description: 'Connect with other pet owners for responsible breeding.',
+        icon: HeartHandshake,
+      },
+      {
+        title: 'Register Pet for Mating',
+        href: '#',
+        description: 'List your pet for mating and find the perfect match.',
+        icon: UserPlus,
+      },
+    ],
+  },
+];
+
+
 export default function AdoptionHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isServicesMenuOpen, setIsServicesMenuOpen] = useState(false);
   const { user, isUserLoading } = useUser();
   const { setTheme } = useTheme();
   const auth = useAuth();
@@ -63,6 +144,11 @@ export default function AdoptionHeader() {
     setIsMenuOpen(false);
   };
 
+  const closeAllMenus = () => {
+    setIsMenuOpen(false);
+    setIsServicesMenuOpen(false);
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
@@ -86,7 +172,7 @@ export default function AdoptionHeader() {
               {label}
             </Link>
           ))}
-          <ServicesMenu />
+          <DesktopServicesMenu />
         </nav>
         <div className="hidden items-center gap-2 md:flex">
           {isUserLoading ? null : user ? (
@@ -176,78 +262,118 @@ export default function AdoptionHeader() {
         </div>
       </div>
       {isMenuOpen && (
-        <div className="fixed inset-0 z-50 bg-background md:hidden">
-          <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-            <Link href="/" className="flex items-center gap-2 text-xl font-bold font-headline" onClick={() => setIsMenuOpen(false)}>
-              <PawPrint className="h-6 w-6 text-primary" />
-               PetVerse
-            </Link>
-            <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(false)}>
-              <X className="h-6 w-6" />
-            </Button>
-          </div>
-          <div className="flex flex-col bg-background items-start gap-1 p-4 text-left">
-            {navLinks.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  "flex items-center gap-4 text-lg w-full p-4 rounded-md font-medium",
-                  pathname === href ? "text-foreground bg-muted" : "text-muted-foreground hover:bg-muted/50"
-                )}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <Icon className="h-6 w-6" />
-                <span>{label}</span>
-              </Link>
-            ))}
-             <Collapsible className="w-full">
-                <CollapsibleTrigger className="flex items-center gap-4 text-lg w-full p-4 rounded-md font-medium text-muted-foreground hover:bg-muted/50 data-[state=open]:bg-muted/50 data-[state=open]:text-foreground">
+        <>
+            <div className="fixed inset-0 z-50 bg-background md:hidden">
+            <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
+                <Link href="/" className="flex items-center gap-2 text-xl font-bold font-headline" onClick={closeAllMenus}>
+                <PawPrint className="h-6 w-6 text-primary" />
+                PetVerse
+                </Link>
+                <Button variant="ghost" size="icon" onClick={closeAllMenus}>
+                <X className="h-6 w-6" />
+                </Button>
+            </div>
+            <div className="flex flex-col bg-background items-start gap-1 p-4 text-left">
+                {navLinks.map(({ href, label, icon: Icon }) => (
+                <Link
+                    key={href}
+                    href={href}
+                    className={cn(
+                    "flex items-center gap-4 text-lg w-full p-4 rounded-md font-medium",
+                    pathname === href ? "text-foreground bg-muted" : "text-muted-foreground hover:bg-muted/50"
+                    )}
+                    onClick={closeAllMenus}
+                >
+                    <Icon className="h-6 w-6" />
+                    <span>{label}</span>
+                </Link>
+                ))}
+                <button
+                    className="flex items-center gap-4 text-lg w-full p-4 rounded-md font-medium text-muted-foreground hover:bg-muted/50"
+                    onClick={() => setIsServicesMenuOpen(true)}
+                >
                     <ChevronsDown className="h-6 w-6" />
                     <span>Services</span>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pl-8 pt-2">
-                    <ServicesMenu />
-                </CollapsibleContent>
-             </Collapsible>
+                </button>
 
-            <div className="mt-6 flex w-full flex-col items-center gap-4 border-t pt-6">
-                <div className="flex items-center justify-center w-full gap-2">
-                    <Label htmlFor="view-mode-mobile" className="font-bold cursor-pointer">PetVerse</Label>
-                    <Switch
-                        id="view-mode-mobile"
-                        checked={isShop}
-                        onCheckedChange={handleToggle}
-                    />
-                    <Label htmlFor="view-mode-mobile" className="font-bold cursor-pointer">PetShop</Label>
+                <div className="mt-6 flex w-full flex-col items-center gap-4 border-t pt-6">
+                    <div className="flex items-center justify-center w-full gap-2">
+                        <Label htmlFor="view-mode-mobile" className="font-bold cursor-pointer">PetVerse</Label>
+                        <Switch
+                            id="view-mode-mobile"
+                            checked={isShop}
+                            onCheckedChange={handleToggle}
+                        />
+                        <Label htmlFor="view-mode-mobile" className="font-bold cursor-pointer">PetShop</Label>
+                    </div>
+                {user ? (
+                    <>
+                        <Button asChild size="lg" className="w-full justify-start text-lg p-6 mt-4">
+                            <Link href="/profile" onClick={closeAllMenus}>
+                                <UserIcon className="mr-4 h-6 w-6" />
+                                Profile
+                            </Link>
+                        </Button>
+                        <Button variant="ghost" size="lg" onClick={handleLogout} className="w-full justify-center text-lg p-6 text-destructive hover:text-destructive hover:bg-destructive/10">
+                            <LogOut className="mr-2 h-6 w-6" />
+                            Log Out
+                        </Button>
+                    </>
+                ) : (
+                    <>
+                    <Button asChild size="lg" className="w-full mt-4">
+                        <Link href="/login" onClick={closeAllMenus}>Log In</Link>
+                    </Button>
+                    <Button variant="outline" asChild size="lg" className="w-full">
+                        <Link href="/register" onClick={closeAllMenus}>Register</Link>
+                    </Button>
+                    </>
+                )}
                 </div>
-              {user ? (
-                <>
-                    <Button asChild size="lg" className="w-full justify-start text-lg p-6 mt-4">
-                        <Link href="/profile" onClick={() => setIsMenuOpen(false)}>
-                            <UserIcon className="mr-4 h-6 w-6" />
-                            Profile
-                        </Link>
-                    </Button>
-                    <Button variant="ghost" size="lg" onClick={handleLogout} className="w-full justify-center text-lg p-6 text-destructive hover:text-destructive">
-                         <LogOut className="mr-2 h-6 w-6" />
-                        Log Out
-                    </Button>
-                </>
-              ) : (
-                <>
-                  <Button asChild size="lg" className="w-full mt-4">
-                      <Link href="/login" onClick={() => setIsMenuOpen(false)}>Log In</Link>
-                  </Button>
-                  <Button variant="outline" asChild size="lg" className="w-full">
-                      <Link href="/register" onClick={() => setIsMenuOpen(false)}>Register</Link>
-                  </Button>
-                </>
-              )}
             </div>
-          </div>
-        </div>
+            </div>
+
+            {isServicesMenuOpen && (
+                <div className="fixed inset-0 z-[60] bg-background md:hidden">
+                    <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
+                        <h2 className="text-xl font-bold font-headline">All Services</h2>
+                        <Button variant="ghost" size="icon" onClick={() => setIsServicesMenuOpen(false)}>
+                            <X className="h-6 w-6" />
+                        </Button>
+                    </div>
+                    <ScrollArea className="h-[calc(100vh-4rem)] p-4">
+                        <div className="space-y-6">
+                            {services.map(category => (
+                                <div key={category.title}>
+                                    <h3 className="mb-4 text-lg font-semibold text-primary">{category.title}</h3>
+                                    <div className="grid gap-2">
+                                        {category.items.map(item => {
+                                            const ItemIcon = item.icon;
+                                            return (
+                                                <Link
+                                                    key={item.title}
+                                                    href={item.href}
+                                                    onClick={closeAllMenus}
+                                                    className="flex items-start gap-4 rounded-lg p-3 text-left transition-colors hover:bg-muted"
+                                                >
+                                                    <ItemIcon className="h-6 w-6 mt-1 text-muted-foreground flex-shrink-0" />
+                                                    <div>
+                                                        <p className="font-medium text-foreground">{item.title}</p>
+                                                        <p className="text-sm text-muted-foreground">{item.description}</p>
+                                                    </div>
+                                                </Link>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </ScrollArea>
+                </div>
+            )}
+        </>
       )}
     </header>
   );
 }
+
