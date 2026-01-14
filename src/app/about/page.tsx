@@ -9,9 +9,9 @@ export default function AboutUsPage() {
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-bold font-headline tracking-tight">About PetVerse</h1>
+        <h1 className="text-4xl md:text-5xl font-bold font-headline tracking-tight">So, About PetVerse...</h1>
         <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-          We are a passionate team of animal lovers dedicated to connecting pets with loving families and providing the resources to help them thrive.
+          It's mostly just me, a keyboard, and an unreasonable number of pets who think they're my supervisors. This whole thing started because my heart has more room for animals than my house does.
         </p>
       </div>
 
@@ -34,27 +34,27 @@ export default function AboutUsPage() {
             <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 mb-4">
               <PawPrint className="h-8 w-8 text-primary" />
             </div>
-            <h2 className="text-2xl font-bold font-headline">Our Mission</h2>
+            <h2 className="text-2xl font-bold font-headline">My Mission</h2>
             <p className="mt-2 text-muted-foreground">
-              To reduce the number of homeless pets by making adoption accessible and providing comprehensive support and education to pet owners.
+              To build a place so good at finding homes for pets that my own living room ceases to be an unofficial shelter. And to maybe, just maybe, see every kennel and cage empty for good. A guy can dream, right?
             </p>
           </div>
           <div className="flex flex-col items-center">
             <div className="flex items-center justify-center h-16 w-16 rounded-full bg-accent/10 mb-4">
               <Heart className="h-8 w-8 text-accent" />
             </div>
-            <h2 className="text-2xl font-bold font-headline">Our Vision</h2>
+            <h2 className="text-2xl font-bold font-headline">My Hope</h2>
             <p className="mt-2 text-muted-foreground">
-              A world where every pet has a safe, loving, and permanent home, and every owner has the knowledge to provide the best possible care.
+              I picture a world where the saddest 'goodbye' is the one at the shelter door when a pet leaves for their forever home, not when they're left behind. A world where every "Hello" is the start of a lifelong friendship.
             </p>
           </div>
           <div className="flex flex-col items-center">
             <div className="flex items-center justify-center h-16 w-16 rounded-full bg-secondary mb-4">
               <Users className="h-8 w-8 text-secondary-foreground" />
             </div>
-            <h2 className="text-2xl font-bold font-headline">Our Community</h2>
+            <h2 className="text-2xl font-bold font-headline">The "Community"</h2>
             <p className="mt-2 text-muted-foreground">
-              We believe in the power of community. PetVerse is a place for shelters, rescuers, veterinarians, and pet lovers to connect and share their passion.
+              This isn't just my project; it's a testament to everyone who has ever loved an animal. Every share, every adoption, every time you choose kindness, you're a part of this. You are the "we" in this mission.
             </p>
           </div>
         </div>
