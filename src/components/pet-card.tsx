@@ -100,7 +100,7 @@ export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
             <CardTitle className="text-xl font-headline group-hover:underline">
               {pet.name}
             </CardTitle>
-             <Badge className={cn(!isAvailable ? "bg-green-600 hover:bg-green-700" : "bg-secondary text-secondary-foreground")}>
+             <Badge className={cn(!isAvailable ? "bg-green-600 hover:bg-green-700" : "bg-secondary text-secondary-foreground", "whitespace-nowrap")}>
                 {adoptionStatusText()}
             </Badge>
           </div>
