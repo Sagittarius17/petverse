@@ -12,7 +12,7 @@ import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where, Timestamp } from 'firebase/firestore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { subDays, getMonth, format } from 'date-fns';
-import type { Pet, UserProfile } from '@/lib/data';
+import { Pet } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +20,24 @@ import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+
+interface UserProfile {
+    id: string;
+    username: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    createdAt?: Timestamp;
+    role?: 'User' | 'Admin' | 'Superuser' | 'Superadmin';
+    status?: 'Active' | 'Inactive';
+}
+
+declare module '@/lib/data' {
+    interface Pet {
+        adoptedAt?: Timestamp;
+    }
+}
+
 
 const processMonthlyData = (users: UserProfile[], pets: Pet[]) => {
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -321,33 +339,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-
-interface UserProfile {
-    id: string;
-    username: string;
-    email: string;
-    firstName?: string;
-    lastName?: string;
-    createdAt?: Timestamp;
-    role?: 'User' | 'Admin' | 'Superuser' | 'Superadmin';
-    status?: 'Active' | 'Inactive';
-}
-
-declare module '@/lib/data' {
-    interface Pet {
-        adoptedAt?: Timestamp;
-    }
-    interface UserProfile {
-        id: string;
-        username: string;
-        email: string;
-        firstName?: string;
-        lastName?: string;
-        createdAt?: Timestamp;
-        role?: 'User' | 'Admin' | 'Superuser' | 'Superadmin';
-        status?: 'Active' | 'Inactive';
-    }
-}
-
-
-    
