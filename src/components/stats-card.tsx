@@ -5,12 +5,17 @@ import { Skeleton } from "./ui/skeleton";
 interface StatsCardProps {
   title: string;
   value: string;
+  valueLabel?: string;
+  additionalValue?: string;
+  additionalLabel?: string;
   icon: LucideIcon;
   description: string;
   isLoading?: boolean;
 }
 
-export default function StatsCard({ title, value, icon: Icon, description, isLoading }: StatsCardProps) {
+export default function StatsCard({ title, value, valueLabel, additionalValue, additionalLabel, icon: Icon, description, isLoading }: StatsCardProps) {
+  const hasAdditionalValue = additionalValue !== undefined && additionalLabel !== undefined;
+  
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -25,8 +30,22 @@ export default function StatsCard({ title, value, icon: Icon, description, isLoa
           </>
         ) : (
           <>
-            <div className="text-2xl font-bold">{value}</div>
-            <p className="text-xs text-muted-foreground">{description}</p>
+            {hasAdditionalValue ? (
+              <div className="flex items-end gap-4">
+                <div className="text-center">
+                   <div className="text-2xl font-bold">{value}</div>
+                   <p className="text-xs font-medium text-muted-foreground">{valueLabel}</p>
+                </div>
+                <div className="text-2xl text-muted-foreground pb-1">|</div>
+                <div className="text-center">
+                   <div className="text-2xl font-bold">{additionalValue}</div>
+                   <p className="text-xs font-medium text-muted-foreground">{additionalLabel}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="text-2xl font-bold">{value}</div>
+            )}
+            <p className="text-xs text-muted-foreground mt-2">{description}</p>
           </>
         )}
       </CardContent>

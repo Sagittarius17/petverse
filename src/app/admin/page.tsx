@@ -66,7 +66,9 @@ export default function AdminDashboardPage() {
   const { data: petsData, isLoading: petsLoading } = useCollection<Pet>(petsQuery);
 
   const totalPetsCount = useMemo(() => petsData?.length ?? 0, [petsData]);
-  const totalAdoptions = useMemo(() => petsData?.filter(p => !p.isAdoptable).length ?? 0, [petsData]);
+  const totalAdoptions = useMemo(() => petsData?.filter(p => p.isAdoptable === false).length ?? 0, [petsData]);
+  const totalAvailable = useMemo(() => petsData?.filter(p => p.isAdoptable !== false).length ?? 0, [petsData]);
+
 
   return (
     <div className="space-y-6 md:space-y-8">
@@ -113,10 +115,13 @@ export default function AdminDashboardPage() {
           isLoading={blogsLoading}
         />
         <StatsCard 
-          title="Adoptions" 
+          title="Adoption Status" 
           value={totalAdoptions.toString()} 
+          valueLabel="Adopted"
+          additionalValue={totalAvailable.toString()}
+          additionalLabel="Available"
           icon={Heart} 
-          description={timeFilter === '-1' ? 'All time' : `In the last ${timeFilter} days`}
+          description={timeFilter === '-1' ? 'All time stats' : `In the last ${timeFilter} days`}
           isLoading={petsLoading}
         />
       </div>
