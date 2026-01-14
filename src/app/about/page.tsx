@@ -1,7 +1,9 @@
 'use client';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { PawPrint, Heart, Users } from 'lucide-react';
+import { PawPrint, Heart, Users, Coffee } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export default function AboutUsPage() {
   const aboutImage = PlaceHolderImages.find(p => p.id === 'shop-hero-1');
@@ -58,6 +60,20 @@ export default function AboutUsPage() {
             </p>
           </div>
         </div>
+
+        <div className="mt-16 text-center border-t pt-12">
+            <h2 className="text-3xl font-bold font-headline">A Little Something for the Human?</h2>
+            <p className="mt-4 max-w-2xl mx-auto text-muted-foreground">
+              This whole project runs on passion, late nights, and a whole lot of coffee. If you'd like to support the human behind the screen (and maybe buy a treat for my furry supervisors), it's deeply appreciated.
+            </p>
+            <Button asChild size="lg" className="mt-6">
+                <Link href="/donate">
+                    <Coffee className="mr-2 h-5 w-5" />
+                    Buy me a coffee
+                </Link>
+            </Button>
+        </div>
+
       </div>
     </div>
   );
