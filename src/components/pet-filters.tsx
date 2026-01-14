@@ -6,6 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
 import { Search } from 'lucide-react';
 import { petCategories } from '@/lib/data';
 
@@ -16,8 +17,8 @@ interface PetFiltersProps {
   setCategoryFilter: (categories: string[]) => void;
   genderFilter: string[];
   setGenderFilter: (genders: string[]) => void;
-  ageFilter: string[];
-  setAgeFilter: (ages: string[]) => void;
+  ageRange: [number];
+  setAgeRange: (ages: [number]) => void;
 }
 
 export default function PetFilters({
@@ -27,12 +28,11 @@ export default function PetFilters({
   setCategoryFilter,
   genderFilter,
   setGenderFilter,
-  ageFilter,
-  setAgeFilter,
+  ageRange,
+  setAgeRange,
 }: PetFiltersProps) {
 
   const categories = [...petCategories.map(c => c.category), 'Other'];
-  const ageRanges = ['Puppy/Kitten', 'Young', 'Adult', 'Senior'];
 
   const handleCheckboxChange = (
     value: string,
@@ -50,8 +50,21 @@ export default function PetFilters({
     setSearchTerm('');
     setCategoryFilter([]);
     setGenderFilter([]);
-    setAgeFilter([]);
+    setAgeRange([180]);
   };
+
+  const formatAgeLabel = (months: number): string => {
+    if (months < 12) {
+      return `${months} month${months > 1 ? 's' : ''}`;
+    }
+    const years = Math.floor(months / 12);
+    const remainingMonths = months % 12;
+    if (remainingMonths === 0) {
+        return `${years} year${years > 1 ? 's' : ''}`;
+    }
+    return `${years}y ${remainingMonths}m`;
+};
+
 
   return (
     <div className="space-y-6">
@@ -109,17 +122,17 @@ export default function PetFilters({
         <CardHeader>
           <CardTitle className="text-lg">Age</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {ageRanges.map(age => (
-            <div key={age} className="flex items-center space-x-2">
-              <Checkbox
-                id={`age-${age}`}
-                checked={ageFilter.includes(age)}
-                onCheckedChange={() => handleCheckboxChange(age, ageFilter, setAgeFilter)}
-              />
-              <Label htmlFor={`age-${age}`} className="cursor-pointer">{age}</Label>
-            </div>
-          ))}
+        <CardContent>
+          <Slider
+            min={1}
+            max={180} // 15 years in months
+            step={1}
+            value={ageRange}
+            onValueChange={(value) => setAgeRange(value as [number])}
+          />
+          <div className="mt-2 text-sm text-muted-foreground">
+            Up to {formatAgeLabel(ageRange[0])}
+          </div>
         </CardContent>
       </Card>
     </div>

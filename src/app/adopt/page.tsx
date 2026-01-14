@@ -9,22 +9,25 @@ import PetFilters from '@/components/pet-filters';
 import { Skeleton } from '@/components/ui/skeleton';
 import { petCategories } from '@/lib/data';
 
-// Helper function to categorize age string into groups
-const getAgeGroup = (ageString: string): string => {
-  const ageNum = parseInt(ageString);
-  const isMonths = ageString.toLowerCase().includes('month');
-
-  if (isMonths || ageNum < 1) {
-    return 'Puppy/Kitten';
+// Helper function to parse age string into total months
+const getAgeInMonths = (ageString: string): number => {
+  if (!ageString) return 0;
+  const parts = ageString.toLowerCase().split(' ');
+  let totalMonths = 0;
+  
+  const yearsIndex = parts.findIndex(p => p.includes('year'));
+  if (yearsIndex !== -1) {
+    totalMonths += parseInt(parts[yearsIndex - 1] || '0') * 12;
   }
-  if (ageNum >= 1 && ageNum <= 3) {
-    return 'Young';
+  
+  const monthsIndex = parts.findIndex(p => p.includes('month'));
+  if (monthsIndex !== -1) {
+    totalMonths += parseInt(parts[monthsIndex - 1] || '0');
   }
-  if (ageNum > 3 && ageNum <= 7) {
-    return 'Adult';
-  }
-  return 'Senior';
+  
+  return totalMonths;
 };
+
 
 // Create a mapping from species to category for efficient lookup
 const speciesToCategoryMap = new Map<string, string>();
@@ -54,7 +57,7 @@ export default function AdoptPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
   const [genderFilter, setGenderFilter] = useState<string[]>([]);
-  const [ageFilter, setAgeFilter] = useState<string[]>([]);
+  const [ageRange, setAgeRange] = useState<[number]>([180]); // Max age in months (15 years)
 
   const petsCollection = useMemoFirebase(
     () => collection(firestore, 'pets'),
@@ -76,11 +79,12 @@ export default function AdoptPage() {
         pet.breed.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = categoryFilter.length === 0 || categoryFilter.includes(getCategoryFromSpecies(pet.species));
       const matchesGender = genderFilter.length === 0 || genderFilter.includes(pet.gender);
-      const matchesAge = ageFilter.length === 0 || ageFilter.includes(getAgeGroup(pet.age));
+      const petAgeInMonths = getAgeInMonths(pet.age);
+      const matchesAge = petAgeInMonths <= ageRange[0];
       
       return matchesSearch && matchesCategory && matchesGender && matchesAge;
     });
-  }, [allPets, searchTerm, categoryFilter, genderFilter, ageFilter]);
+  }, [allPets, searchTerm, categoryFilter, genderFilter, ageRange]);
 
   if (isLoading) {
     return (
@@ -133,8 +137,8 @@ export default function AdoptPage() {
             setCategoryFilter={setCategoryFilter}
             genderFilter={genderFilter}
             setGenderFilter={setGenderFilter}
-            ageFilter={ageFilter}
-            setAgeFilter={setAgeFilter}
+            ageRange={ageRange}
+            setAgeRange={setAgeRange}
           />
         </div>
         <div className="lg:col-span-3">
