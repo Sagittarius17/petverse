@@ -11,7 +11,7 @@ import { Edit, LogOut, Trash2, Eye, PlusCircle, Heart, Tag } from 'lucide-react'
 import PetCard from '@/components/pet-card';
 import { type Pet, type PetBreed } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
-import { collection, query, where, doc, deleteDoc, DocumentData, getDocs, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, doc, deleteDoc, DocumentData, getDocs, serverTimestamp, deleteField } from 'firebase/firestore';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PetDetailDialog from '@/components/pet-detail-dialog';
@@ -165,7 +165,7 @@ export default function ProfilePage() {
   const handleToggleAdoptionStatus = (pet: Pet) => {
     if (!firestore) return;
     const petDocRef = doc(firestore, 'pets', pet.id);
-    const newStatus = !pet.isAdoptable;
+    const newStatus = pet.isAdoptable !== false ? false : true;
 
     const updateData: { isAdoptable: boolean; adoptedAt?: any } = { isAdoptable: newStatus };
 
@@ -173,13 +173,17 @@ export default function ProfilePage() {
         updateData.adoptedAt = serverTimestamp();
         const notification = {
             title: "🎉 A Home Found! 🎉",
-            description: `${pet.name}, the ${pet.breed} (${pet.age}), has been adopted!`,
+            description: `${pet.name}, the ${pet.breed}, has been adopted!`,
             timestamp: serverTimestamp(),
             type: "adoption",
         };
         addDocumentNonBlocking(collection(firestore, 'notifications'), notification);
+        toast({
+            title: 'Congratulations!',
+            description: `${pet.name} is now marked as adopted.`,
+        });
     } else { // Pet is made available again
-        updateData.adoptedAt = null; // Or use deleteField() if you prefer
+        updateData.adoptedAt = deleteField();
         toast({
             title: 'Status Updated',
             description: `${pet.name} is now marked as available for adoption.`,
@@ -309,7 +313,7 @@ export default function ProfilePage() {
                           onClick={() => handleToggleAdoptionStatus(pet)}
                         >
                           <Tag className="mr-2 h-4 w-4" />
-                          {pet.isAdoptable ? 'Show as Adopted' : 'Show for Adoption'}
+                          {pet.isAdoptable !== false ? 'Show as Adopted' : 'Show for Adoption'}
                        </Button>
                        <div className="flex justify-end items-center gap-2">
                           <Button variant="secondary" size="sm" onClick={() => handleEditPet(pet)} className="flex-grow">
