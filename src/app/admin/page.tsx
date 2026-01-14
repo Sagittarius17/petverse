@@ -61,12 +61,17 @@ const processMonthlyData = (users: UserProfile[], pets: Pet[]) => {
     });
 
     pets.forEach(pet => {
-        if (pet.adoptedAt && pet.adoptedAt.toDate() > sixMonthsAgo) {
-            const monthIndex = getMonth(pet.adoptedAt.toDate());
-            const monthName = monthNames[monthIndex];
-            const monthData = monthlyData.find(m => m.name === monthName);
-            if (monthData) {
-                monthData.adoptions += 1;
+        // A pet is adopted if isAdoptable is false.
+        // We can use adoptedAt for time-based filtering if it exists.
+        if (pet.isAdoptable === false) {
+            const adoptionDate = pet.adoptedAt ? pet.adoptedAt.toDate() : (pet.createdAt ? pet.createdAt.toDate() : new Date());
+            if (adoptionDate > sixMonthsAgo) {
+                const monthIndex = getMonth(adoptionDate);
+                const monthName = monthNames[monthIndex];
+                const monthData = monthlyData.find(m => m.name === monthName);
+                if (monthData) {
+                    monthData.adoptions += 1;
+                }
             }
         }
     });
@@ -87,7 +92,7 @@ export default function AdminDashboardPage() {
   const [timeFilter, setTimeFilter] = useState('30'); // Default to 30 days
   const firestore = useFirestore();
 
-  const filterDate = useMemoFirebase(() => {
+  const filterDate = useMemo(() => {
     const days = parseInt(timeFilter);
     if (isNaN(days) || days === -1) return null; // -1 for "All time"
     return subDays(new Date(), days);
@@ -146,8 +151,12 @@ export default function AdminDashboardPage() {
   const recentlyAdopted = useMemo(() => {
       if (!allPetsData) return [];
       return allPetsData
-          .filter(p => p.isAdoptable === false && p.adoptedAt)
-          .sort((a, b) => b.adoptedAt!.toMillis() - a.adoptedAt!.toMillis())
+          .filter(p => p.isAdoptable === false)
+          .sort((a, b) => {
+              const timeA = a.adoptedAt?.toMillis() ?? a.createdAt?.toMillis() ?? 0;
+              const timeB = b.adoptedAt?.toMillis() ?? b.createdAt?.toMillis() ?? 0;
+              return timeB - timeA;
+          })
           .slice(0, 5);
   }, [allPetsData]);
 
@@ -300,6 +309,7 @@ export default function AdminDashboardPage() {
                         <div className="space-y-4 pr-4">
                             {recentlyAdopted.map(pet => {
                                 const image = PlaceHolderImages.find(p => p.id === pet.imageId);
+                                const adoptionDate = pet.adoptedAt ?? pet.createdAt;
                                 return (
                                     <div key={pet.id} className="flex items-center gap-4">
                                         <Avatar className="h-12 w-12">
@@ -311,7 +321,7 @@ export default function AdminDashboardPage() {
                                             <p className="text-sm text-muted-foreground">{pet.breed}</p>
                                         </div>
                                         <Badge variant="secondary">
-                                            {pet.adoptedAt ? format(pet.adoptedAt.toDate(), 'MMM d, yyyy') : ''}
+                                            {adoptionDate ? format(adoptionDate.toDate(), 'MMM d, yyyy') : 'Recently'}
                                         </Badge>
                                         <Button asChild variant="ghost" size="sm">
                                             <Link href={`/profile/${pet.userId}`}>View Owner</Link>
