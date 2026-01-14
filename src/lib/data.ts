@@ -33,7 +33,7 @@ export const PetBreedWithImagesSchema = FetchBreedInfoOutputSchema.extend({
 export interface Pet {
   id: string;
   name: string;
-  species: 'Dog' | 'Cat' | 'Bird' | 'Other';
+  species: 'Dog' | 'Cat' | 'Bird' | 'Other' | 'Rabbit' | 'Hamster' | 'Lizard' | 'Fish';
   breed: string;
   age: string;
   gender: 'Male' | 'Female';
@@ -43,6 +43,18 @@ export interface Pet {
   viewCount?: number;
   userId?: string;
   createdAt?: Timestamp;
+  adoptedAt?: Timestamp;
+}
+
+export interface UserProfile {
+    id: string;
+    username: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    createdAt?: Timestamp;
+    role?: 'User' | 'Admin' | 'Superuser' | 'Superadmin';
+    status?: 'Active' | 'Inactive';
 }
 
 export interface CareGuide {

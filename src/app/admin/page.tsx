@@ -4,23 +4,64 @@ import { useState, useMemo } from 'react';
 import { Dog, Users, FileText, Heart } from 'lucide-react';
 import StatsCard from '@/components/stats-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import ActivityLog from '@/components/admin/activity-log';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where, Timestamp } from 'firebase/firestore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { subDays } from 'date-fns';
-import type { Pet } from '@/lib/data';
+import { subDays, getMonth, format } from 'date-fns';
+import type { Pet, UserProfile } from '@/lib/data';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
 
-const data = [
-    { name: 'Jan', adoptions: 4, signups: 24 },
-    { name: 'Feb', adoptions: 3, signups: 13 },
-    { name: 'Mar', adoptions: 5, signups: 98 },
-    { name: 'Apr', adoptions: 4, signups: 39 },
-    { name: 'May', adoptions: 9, signups: 48 },
-    { name: 'Jun', adoptions: 7, signups: 38 },
-];
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+
+const processMonthlyData = (users: UserProfile[], pets: Pet[]) => {
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const monthlyData: { name: string; signups: number; adoptions: number }[] = Array.from({ length: 6 }, (_, i) => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - i);
+        return { name: monthNames[d.getMonth()], signups: 0, adoptions: 0 };
+    }).reverse();
+
+    const sixMonthsAgo = subDays(new Date(), 180);
+
+    users.forEach(user => {
+        if (user.createdAt && user.createdAt.toDate() > sixMonthsAgo) {
+            const monthIndex = getMonth(user.createdAt.toDate());
+            const monthName = monthNames[monthIndex];
+            const monthData = monthlyData.find(m => m.name === monthName);
+            if (monthData) {
+                monthData.signups += 1;
+            }
+        }
+    });
+
+    pets.forEach(pet => {
+        if (pet.adoptedAt && pet.adoptedAt.toDate() > sixMonthsAgo) {
+            const monthIndex = getMonth(pet.adoptedAt.toDate());
+            const monthName = monthNames[monthIndex];
+            const monthData = monthlyData.find(m => m.name === monthName);
+            if (monthData) {
+                monthData.adoptions += 1;
+            }
+        }
+    });
+    
+    return monthlyData;
+};
+
+const processSpeciesData = (pets: Pet[]) => {
+    const speciesCount: { [key: string]: number } = {};
+    pets.forEach(pet => {
+        speciesCount[pet.species] = (speciesCount[pet.species] || 0) + 1;
+    });
+    return Object.entries(speciesCount).map(([name, value]) => ({ name, value }));
+};
+
 
 export default function AdminDashboardPage() {
   const [timeFilter, setTimeFilter] = useState('30'); // Default to 30 days
@@ -52,22 +93,45 @@ export default function AdminDashboardPage() {
 
   const petsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    const petsCollectionRef = collection(firestore, 'pets');
-    if (filterDate) {
-      // Note: This requires a composite index on createdAt and isAdoptable
-      // For simplicity, we filter adoptions client-side for now.
-      return query(petsCollectionRef, where('createdAt', '>=', filterDate));
-    }
-    return petsCollectionRef;
-  }, [firestore, filterDate]);
+    return collection(firestore, 'pets');
+  }, [firestore]);
 
-  const { data: usersData, isLoading: usersLoading } = useCollection(usersQuery);
+  const { data: allUsersData, isLoading: usersLoading } = useCollection<UserProfile>(collection(firestore, 'users'));
   const { data: blogsData, isLoading: blogsLoading } = useCollection(blogsQuery);
-  const { data: petsData, isLoading: petsLoading } = useCollection<Pet>(petsQuery);
+  const { data: allPetsData, isLoading: petsLoading } = useCollection<Pet>(petsQuery);
+  
+  const filteredUsers = useMemo(() => {
+      if (!allUsersData || !filterDate) return allUsersData;
+      return allUsersData.filter(u => u.createdAt && u.createdAt.toDate() >= filterDate);
+  }, [allUsersData, filterDate]);
+  
+  const filteredPets = useMemo(() => {
+      if (!allPetsData) return [];
+      if (!filterDate) return allPetsData;
+      return allPetsData.filter(p => p.createdAt && p.createdAt.toDate() >= filterDate);
+  }, [allPetsData, filterDate]);
 
-  const totalPetsCount = useMemo(() => petsData?.length ?? 0, [petsData]);
-  const totalAdoptions = useMemo(() => petsData?.filter(p => p.isAdoptable === false).length ?? 0, [petsData]);
-  const totalAvailable = useMemo(() => petsData?.filter(p => p.isAdoptable !== false).length ?? 0, [petsData]);
+  const totalPetsCount = useMemo(() => filteredPets?.length ?? 0, [filteredPets]);
+  const totalAdoptions = useMemo(() => filteredPets?.filter(p => p.isAdoptable === false).length ?? 0, [filteredPets]);
+  const totalAvailable = useMemo(() => filteredPets?.filter(p => p.isAdoptable !== false).length ?? 0, [filteredPets]);
+
+  const monthlyActivityData = useMemo(() => {
+      if (!allUsersData || !allPetsData) return [];
+      return processMonthlyData(allUsersData, allPetsData);
+  }, [allUsersData, allPetsData]);
+  
+  const speciesDistributionData = useMemo(() => {
+      if (!allPetsData) return [];
+      return processSpeciesData(allPetsData);
+  }, [allPetsData]);
+
+  const recentlyAdopted = useMemo(() => {
+      if (!allPetsData) return [];
+      return allPetsData
+          .filter(p => p.isAdoptable === false && p.adoptedAt)
+          .sort((a, b) => b.adoptedAt!.toMillis() - a.adoptedAt!.toMillis())
+          .slice(0, 5);
+  }, [allPetsData]);
 
 
   return (
@@ -102,7 +166,7 @@ export default function AdminDashboardPage() {
         />
         <StatsCard 
           title="New Users" 
-          value={usersData?.length?.toString() ?? '0'} 
+          value={filteredUsers?.length?.toString() ?? '0'} 
           icon={Users} 
           description={timeFilter === '-1' ? 'All time' : `In the last ${timeFilter} days`}
           isLoading={usersLoading}
@@ -121,13 +185,13 @@ export default function AdminDashboardPage() {
           additionalValue={totalAvailable.toString()}
           additionalLabel="Available"
           icon={Heart} 
-          description={timeFilter === '-1' ? 'All time stats' : `In the last ${timeFilter} days`}
+          description={timeFilter === '-1' ? 'All time stats' : `Stats for last ${timeFilter} days`}
           isLoading={petsLoading}
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2">
             <CardHeader>
                 <CardTitle>Monthly Activity</CardTitle>
                 <CardDescription>New user signups and adoptions over the last 6 months.</CardDescription>
@@ -135,7 +199,7 @@ export default function AdminDashboardPage() {
             <CardContent>
                 <div className="h-[300px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={data}>
+                        <BarChart data={monthlyActivityData}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} />
                             <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
@@ -156,6 +220,78 @@ export default function AdminDashboardPage() {
         </Card>
         <Card>
             <CardHeader>
+                <CardTitle>Pet Species Distribution</CardTitle>
+                <CardDescription>The current breakdown of pet species in the system.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                            <Pie
+                                data={speciesDistributionData}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                outerRadius={80}
+                                fill="#8884d8"
+                                dataKey="value"
+                                nameKey="name"
+                                label={(entry) => `${entry.name} (${entry.value})`}
+                            >
+                                {speciesDistributionData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                            </Pie>
+                            <Tooltip
+                              contentStyle={{
+                                background: "hsl(var(--background))",
+                                border: "1px solid hsl(var(--border))",
+                                color: "hsl(var(--foreground))"
+                              }}
+                            />
+                            <Legend />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </div>
+            </CardContent>
+        </Card>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2">
+            <CardHeader>
+                <CardTitle>Recently Adopted</CardTitle>
+                <CardDescription>The latest pets to find their forever homes.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <ScrollArea className="h-[300px]">
+                    <div className="space-y-4 pr-4">
+                        {recentlyAdopted.map(pet => {
+                             const image = PlaceHolderImages.find(p => p.id === pet.imageId);
+                             return (
+                                <div key={pet.id} className="flex items-center gap-4">
+                                    <Avatar className="h-12 w-12">
+                                        <AvatarImage src={image?.imageUrl} />
+                                        <AvatarFallback>{pet.name[0]}</AvatarFallback>
+                                    </Avatar>
+                                    <div className='flex-1'>
+                                        <p className="font-semibold">{pet.name}</p>
+                                        <p className="text-sm text-muted-foreground">{pet.breed}</p>
+                                    </div>
+                                    <Badge variant="secondary">
+                                        {pet.adoptedAt ? format(pet.adoptedAt.toDate(), 'MMM d, yyyy') : ''}
+                                    </Badge>
+                                    <Button asChild variant="ghost" size="sm">
+                                        <Link href={`/profile/${pet.userId}`}>View Owner</Link>
+                                    </Button>
+                                </div>
+                             )
+                        })}
+                    </div>
+                 </ScrollArea>
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader>
                 <CardTitle>Activity Log</CardTitle>
                 <CardDescription>A log of all administrative actions taken in the application.</CardDescription>
             </CardHeader>
@@ -168,4 +304,31 @@ export default function AdminDashboardPage() {
       </div>
     </div>
   );
+}
+
+interface UserProfile {
+    id: string;
+    username: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    createdAt?: Timestamp;
+    role?: 'User' | 'Admin' | 'Superuser' | 'Superadmin';
+    status?: 'Active' | 'Inactive';
+}
+
+declare module '@/lib/data' {
+    interface Pet {
+        adoptedAt?: Timestamp;
+    }
+    interface UserProfile {
+        id: string;
+        username: string;
+        email: string;
+        firstName?: string;
+        lastName?: string;
+        createdAt?: Timestamp;
+        role?: 'User' | 'Admin' | 'Superuser' | 'Superadmin';
+        status?: 'Active' | 'Inactive';
+    }
 }

@@ -166,9 +166,11 @@ export default function ProfilePage() {
     if (!firestore) return;
     const petDocRef = doc(firestore, 'pets', pet.id);
     const newStatus = !pet.isAdoptable;
-    updateDocumentNonBlocking(petDocRef, { isAdoptable: newStatus });
-    
+
+    const updateData: { isAdoptable: boolean; adoptedAt?: any } = { isAdoptable: newStatus };
+
     if (newStatus === false) { // Pet is now adopted
+        updateData.adoptedAt = serverTimestamp();
         const notification = {
             title: "🎉 A Home Found! 🎉",
             description: `${pet.name}, the ${pet.breed} (${pet.age}), has been adopted!`,
@@ -176,12 +178,15 @@ export default function ProfilePage() {
             type: "adoption",
         };
         addDocumentNonBlocking(collection(firestore, 'notifications'), notification);
-    } else {
+    } else { // Pet is made available again
+        updateData.adoptedAt = null; // Or use deleteField() if you prefer
         toast({
             title: 'Status Updated',
             description: `${pet.name} is now marked as available for adoption.`,
         });
     }
+
+    updateDocumentNonBlocking(petDocRef, updateData);
   };
 
   const handleDeletePet = async () => {
