@@ -36,6 +36,7 @@ export default function Footer() {
               <li><Link href="/adopt" className="text-muted-foreground hover:text-primary">Adoption</Link></li>
               <li><Link href="/care" className="text-muted-foreground hover:text-primary">Care Guides</Link></li>
               <li><Link href="/lost-and-found" className="text-muted-foreground hover:text-primary">Lost & Found</Link></li>
+              <li><Link href="/donate" className="text-muted-foreground hover:text-primary">Donate</Link></li>
             </ul>
           </div>
 

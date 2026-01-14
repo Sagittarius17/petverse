@@ -43,6 +43,12 @@
       "imageHint": "pet grooming"
     },
     {
+      "id": "donate-hero",
+      "description": "A person gently holding a small puppy's paw.",
+      "imageUrl": "https://images.unsplash.com/photo-1546527868-9a6a4a10502a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkb25hdGUlMjBwZXR8ZW58MHx8fHwxNzY4NjU0NTMxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "donate pet"
+    },
+    {
       "id": "dog-golden-retriever-1",
       "description": "A friendly Golden Retriever puppy.",
       "imageUrl": "https://images.unsplash.com/photo-1642581684512-52947badee8c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxkb2clMjBwdXBweXxlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
