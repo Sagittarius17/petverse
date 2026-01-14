@@ -92,8 +92,7 @@ export async function initiateGoogleSignIn(auth: Auth, firestore: Firestore): Pr
       });
     }
   } catch (error) {
-    console.error("Error during Google sign-in:", error);
-    // Re-throw to be handled by the UI
+    // Re-throw to be handled by the UI, without logging here.
     throw error;
   }
 }
