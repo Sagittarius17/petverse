@@ -18,13 +18,17 @@ import type { Pet } from '@/lib/data';
 
 const petSchema = z.object({
   name: z.string().min(2, 'Pet name must be at least 2 characters.'),
-  species: z.enum(['Dog', 'Cat', 'Bird', 'Other']),
-  breed: z.string().min(2, 'Breed must be at least 2 characters.'),
-  age: z.string().min(1, 'Age is required.'),
+  species: z.enum(['Dog', 'Cat', 'Bird', 'Rabbit', 'Hamster', 'Lizard', 'Fish', 'Other']),
+  ageYears: z.number().min(0).optional(),
+  ageMonths: z.number().min(0).max(11).optional(),
   gender: z.enum(['Male', 'Female']),
   description: z.string().min(10, 'Description must be at least 10 characters.'),
   petImage: z.any().optional(),
+}).refine(data => data.ageYears !== undefined || data.ageMonths !== undefined, {
+  message: "At least one age field (years or months) must be filled.",
+  path: ["ageYears"], // assign error to one of the fields
 });
+
 
 type PetFormData = z.infer<typeof petSchema>;
 
@@ -44,8 +48,6 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
     defaultValues: {
       name: '',
       species: 'Dog',
-      breed: '',
-      age: '',
       gender: 'Male',
       description: '',
     },
@@ -55,27 +57,32 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
 
   useEffect(() => {
     if (isOpen) {
-      if (isEditMode) {
-        reset({
-          name: pet.name,
-          species: pet.species,
-          breed: pet.breed,
-          age: pet.age,
-          gender: pet.gender,
-          description: pet.description,
-        });
-      } else {
-        reset({
-          name: '',
-          species: 'Dog',
-          breed: '',
-          age: '',
-          gender: 'Male',
-          description: '',
-        });
-      }
+        if (isEditMode && pet) {
+            const ageParts = (pet.age || '').split(' ');
+            const years = ageParts.includes('years') ? parseInt(ageParts[ageParts.indexOf('years') - 1] || '0') : (ageParts.includes('year') ? parseInt(ageParts[ageParts.indexOf('year') - 1] || '0') : 0);
+            const months = ageParts.includes('months') ? parseInt(ageParts[ageParts.indexOf('months') - 1] || '0') : (ageParts.includes('month') ? parseInt(ageParts[ageParts.indexOf('month') - 1] || '0') : 0);
+
+            reset({
+                name: pet.name,
+                species: pet.species,
+                ageYears: years,
+                ageMonths: months,
+                gender: pet.gender,
+                description: pet.description,
+            });
+        } else {
+            reset({
+                name: '',
+                species: 'Dog',
+                ageYears: 0,
+                ageMonths: 0,
+                gender: 'Male',
+                description: '',
+            });
+        }
     }
   }, [pet, isOpen, isEditMode, reset]);
+
 
   const onSubmit = async (data: PetFormData) => {
     if (!firestore || !user) {
@@ -87,18 +94,25 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
       return;
     }
 
+    let ageString = '';
+    if (data.ageYears) ageString += `${data.ageYears} year${data.ageYears > 1 ? 's' : ''} `;
+    if (data.ageMonths) ageString += `${data.ageMonths} month${data.ageMonths > 1 ? 's' : ''}`;
+    ageString = ageString.trim();
+
     try {
-      const { petImage, ...restOfData } = data;
+      const { petImage, ageYears, ageMonths, ...restOfData } = data;
+      const petData = { ...restOfData, age: ageString, breed: restOfData.species }; // Set breed to species
+
       if (isEditMode) {
         // Update existing pet
         const petDocRef = doc(firestore, 'pets', pet.id);
-        await updateDoc(petDocRef, restOfData);
+        await updateDoc(petDocRef, petData);
         onSuccess('updated');
       } else {
         // Create new pet
         const petsCollection = collection(firestore, 'pets');
         await addDoc(petsCollection, {
-          ...restOfData,
+          ...petData,
           userId: user.uid,
           imageId: `${data.species.toLowerCase()}-1`, // Generic placeholder
           viewCount: 0,
@@ -137,14 +151,7 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
                     <Input id="name" {...register('name')} />
                     {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="breed">Breed</Label>
-                    <Input id="breed" {...register('breed')} placeholder="e.g., Golden Retriever" />
-                    {errors.breed && <p className="text-sm text-destructive">{errors.breed.message}</p>}
-                </div>
-            </div>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-                <div className="space-y-2">
+                 <div className="space-y-2">
                     <Label>Species</Label>
                     <Controller
                         name="species"
@@ -156,16 +163,28 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
                                 <SelectItem value="Dog">Dog</SelectItem>
                                 <SelectItem value="Cat">Cat</SelectItem>
                                 <SelectItem value="Bird">Bird</SelectItem>
+                                <SelectItem value="Rabbit">Rabbit</SelectItem>
+                                <SelectItem value="Hamster">Hamster</SelectItem>
+                                <SelectItem value="Lizard">Lizard</SelectItem>
+                                <SelectItem value="Fish">Fish</SelectItem>
                                 <SelectItem value="Other">Other</SelectItem>
                             </SelectContent>
                             </Select>
                         )}
                     />
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="age">Age</Label>
-                    <Input id="age" {...register('age')} placeholder="e.g., 2 years" />
-                    {errors.age && <p className="text-sm text-destructive">{errors.age.message}</p>}
+            </div>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                 <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="ageYears">Age (Years)</Label>
+                        <Input id="ageYears" type="number" {...register('ageYears', { valueAsNumber: true })} placeholder="YY" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="ageMonths">Age (Months)</Label>
+                        <Input id="ageMonths" type="number" {...register('ageMonths', { valueAsNumber: true })} placeholder="MM" />
+                    </div>
+                    {errors.ageYears && <p className="col-span-2 text-sm text-destructive">{errors.ageYears.message}</p>}
                 </div>
                 <div className="space-y-2">
                     <Label>Gender</Label>
