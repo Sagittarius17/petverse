@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
@@ -263,29 +264,45 @@ export default function AdminDashboardPage() {
             </CardHeader>
             <CardContent>
                  <ScrollArea className="h-[300px]">
-                    <div className="space-y-4 pr-4">
-                        {recentlyAdopted.map(pet => {
-                             const image = PlaceHolderImages.find(p => p.id === pet.imageId);
-                             return (
-                                <div key={pet.id} className="flex items-center gap-4">
-                                    <Avatar className="h-12 w-12">
-                                        <AvatarImage src={image?.imageUrl} />
-                                        <AvatarFallback>{pet.name[0]}</AvatarFallback>
-                                    </Avatar>
-                                    <div className='flex-1'>
-                                        <p className="font-semibold">{pet.name}</p>
-                                        <p className="text-sm text-muted-foreground">{pet.breed}</p>
+                    {petsLoading ? (
+                        <div className="space-y-4 pr-4">
+                            {Array.from({length: 3}).map((_, i) => (
+                                <div key={i} className="flex items-center gap-4">
+                                    <Skeleton className="h-12 w-12 rounded-full" />
+                                    <div className="flex-1 space-y-2">
+                                        <Skeleton className="h-4 w-24" />
+                                        <Skeleton className="h-3 w-16" />
                                     </div>
-                                    <Badge variant="secondary">
-                                        {pet.adoptedAt ? format(pet.adoptedAt.toDate(), 'MMM d, yyyy') : ''}
-                                    </Badge>
-                                    <Button asChild variant="ghost" size="sm">
-                                        <Link href={`/profile/${pet.userId}`}>View Owner</Link>
-                                    </Button>
+                                    <Skeleton className="h-5 w-20" />
+                                    <Skeleton className="h-8 w-24" />
                                 </div>
-                             )
-                        })}
-                    </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="space-y-4 pr-4">
+                            {recentlyAdopted.map(pet => {
+                                const image = PlaceHolderImages.find(p => p.id === pet.imageId);
+                                return (
+                                    <div key={pet.id} className="flex items-center gap-4">
+                                        <Avatar className="h-12 w-12">
+                                            <AvatarImage src={image?.imageUrl} />
+                                            <AvatarFallback>{pet.name[0]}</AvatarFallback>
+                                        </Avatar>
+                                        <div className='flex-1'>
+                                            <p className="font-semibold">{pet.name}</p>
+                                            <p className="text-sm text-muted-foreground">{pet.breed}</p>
+                                        </div>
+                                        <Badge variant="secondary">
+                                            {pet.adoptedAt ? format(pet.adoptedAt.toDate(), 'MMM d, yyyy') : ''}
+                                        </Badge>
+                                        <Button asChild variant="ghost" size="sm">
+                                            <Link href={`/profile/${pet.userId}`}>View Owner</Link>
+                                        </Button>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    )}
                  </ScrollArea>
             </CardContent>
         </Card>
