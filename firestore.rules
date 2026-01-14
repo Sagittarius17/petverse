@@ -129,11 +129,11 @@ service cloud.firestore {
       // Anyone can read a user's public profile data (for usernames, etc.)
       allow get: if true;
 
-      // Only Admins & above can list all users
+      // Only Superusers & above can list all users
       allow list: if
         isSignedIn() &&
         isActive(request.auth.uid) &&
-        isAdmin(request.auth.uid);
+        isSuperuser(request.auth.uid);
 
       // User can create only their own doc
       allow create: if
