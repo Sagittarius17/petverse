@@ -12,6 +12,7 @@ import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, DocumentData } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
 import { cn } from '@/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
 
 interface PetCardProps {
   pet: Pet;
@@ -56,6 +57,14 @@ function PetOwnerUsername({ userId }: { userId: string }) {
 export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
   const image = PlaceHolderImages.find(p => p.id === pet.imageId);
   const isAvailable = pet.isAdoptable !== false;
+
+  const adoptionStatusText = () => {
+    if (isAvailable) return 'Available';
+    if (pet.adoptedAt) {
+      return `Adopted ${formatDistanceToNow(pet.adoptedAt.toDate(), { addSuffix: true })}`;
+    }
+    return 'Adopted';
+  }
   
   return (
     <Card 
@@ -92,7 +101,7 @@ export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
               {pet.name}
             </CardTitle>
              <Badge className={cn(!isAvailable ? "bg-green-600 hover:bg-green-700" : "bg-secondary text-secondary-foreground")}>
-                {isAvailable ? 'Available' : 'Adopted'}
+                {adoptionStatusText()}
             </Badge>
           </div>
           <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
