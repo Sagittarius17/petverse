@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -73,14 +74,18 @@ export default function AdminDashboardPage() {
     return subDays(new Date(), days);
   }, [timeFilter]);
 
+  const allUsersCollection = useMemoFirebase(() => {
+      if (!firestore) return null;
+      return collection(firestore, 'users');
+  }, [firestore]);
+
   const usersQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    const usersCollection = collection(firestore, 'users');
+    if (!allUsersCollection) return null;
     if (filterDate) {
-      return query(usersCollection, where('createdAt', '>=', filterDate));
+      return query(allUsersCollection, where('createdAt', '>=', filterDate));
     }
-    return usersCollection;
-  }, [firestore, filterDate]);
+    return allUsersCollection;
+  }, [allUsersCollection, filterDate]);
 
   const blogsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -96,7 +101,7 @@ export default function AdminDashboardPage() {
     return collection(firestore, 'pets');
   }, [firestore]);
 
-  const { data: allUsersData, isLoading: usersLoading } = useCollection<UserProfile>(collection(firestore, 'users'));
+  const { data: allUsersData, isLoading: usersLoading } = useCollection<UserProfile>(allUsersCollection);
   const { data: blogsData, isLoading: blogsLoading } = useCollection(blogsQuery);
   const { data: allPetsData, isLoading: petsLoading } = useCollection<Pet>(petsQuery);
   
@@ -105,15 +110,9 @@ export default function AdminDashboardPage() {
       return allUsersData.filter(u => u.createdAt && u.createdAt.toDate() >= filterDate);
   }, [allUsersData, filterDate]);
   
-  const filteredPets = useMemo(() => {
-      if (!allPetsData) return [];
-      if (!filterDate) return allPetsData;
-      return allPetsData.filter(p => p.createdAt && p.createdAt.toDate() >= filterDate);
-  }, [allPetsData, filterDate]);
-
-  const totalPetsCount = useMemo(() => filteredPets?.length ?? 0, [filteredPets]);
-  const totalAdoptions = useMemo(() => filteredPets?.filter(p => p.isAdoptable === false).length ?? 0, [filteredPets]);
-  const totalAvailable = useMemo(() => filteredPets?.filter(p => p.isAdoptable !== false).length ?? 0, [filteredPets]);
+  const totalPetsCount = useMemo(() => allPetsData?.length ?? 0, [allPetsData]);
+  const totalAdoptions = useMemo(() => allPetsData?.filter(p => p.isAdoptable === false).length ?? 0, [allPetsData]);
+  const totalAvailable = useMemo(() => totalPetsCount - totalAdoptions, [totalPetsCount, totalAdoptions]);
 
   const monthlyActivityData = useMemo(() => {
       if (!allUsersData || !allPetsData) return [];
@@ -161,7 +160,7 @@ export default function AdminDashboardPage() {
           title="Total Pets" 
           value={totalPetsCount.toString()}
           icon={Dog}
-          description={timeFilter === '-1' ? 'All pets registered' : `New in last ${timeFilter} days`}
+          description={timeFilter === '-1' ? 'All pets registered' : `All time`}
           isLoading={petsLoading}
         />
         <StatsCard 
@@ -185,7 +184,7 @@ export default function AdminDashboardPage() {
           additionalValue={totalAvailable.toString()}
           additionalLabel="Available"
           icon={Heart} 
-          description={timeFilter === '-1' ? 'All time stats' : `Stats for last ${timeFilter} days`}
+          description={timeFilter === '-1' ? 'All time stats' : `All time stats`}
           isLoading={petsLoading}
         />
       </div>
@@ -332,3 +331,6 @@ declare module '@/lib/data' {
         status?: 'Active' | 'Inactive';
     }
 }
+
+
+    
