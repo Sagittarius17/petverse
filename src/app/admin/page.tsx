@@ -18,6 +18,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
@@ -149,15 +150,15 @@ export default function AdminDashboardPage() {
   }, [allPetsData]);
 
   const recentlyAdopted = useMemo(() => {
-      if (!allPetsData) return [];
-      return allPetsData
-          .filter(p => p.isAdoptable === false)
-          .sort((a, b) => {
-              const timeA = a.adoptedAt?.toMillis() ?? a.createdAt?.toMillis() ?? 0;
-              const timeB = b.adoptedAt?.toMillis() ?? b.createdAt?.toMillis() ?? 0;
-              return timeB - timeA;
-          })
-          .slice(0, 5);
+    if (!allPetsData) return [];
+    return allPetsData
+        .filter(p => p.isAdoptable === false)
+        .sort((a, b) => {
+            const timeA = a.adoptedAt?.toMillis() ?? a.createdAt?.toMillis() ?? 0;
+            const timeB = b.adoptedAt?.toMillis() ?? b.createdAt?.toMillis() ?? 0;
+            return timeB - timeA;
+        })
+        .slice(0, 5);
   }, [allPetsData]);
 
 
