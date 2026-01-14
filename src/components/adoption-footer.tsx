@@ -43,10 +43,10 @@ export default function AdoptionFooter() {
           <div className='col-span-2 md:col-span-1'>
             <h3 className="text-md font-semibold font-headline mb-4">Be a Partner</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="#" className="text-muted-foreground hover:text-primary">Dog Trainers</Link></li>
-              <li><Link href="#" className="text-muted-foreground hover:text-primary">Dog Walkers</Link></li>
-              <li><Link href="#" className="text-muted-foreground hover:text-primary">Veterinarians</Link></li>
-              <li><Link href="#" className="text-muted-foreground hover:text-primary">Groomers</Link></li>
+              <li><Link href="/be-a-partner" className="text-muted-foreground hover:text-primary">Dog Trainers</Link></li>
+              <li><Link href="/be-a-partner" className="text-muted-foreground hover:text-primary">Dog Walkers</Link></li>
+              <li><Link href="/be-a-partner" className="text-muted-foreground hover:text-primary">Veterinarians</Link></li>
+              <li><Link href="/be-a-partner" className="text-muted-foreground hover:text-primary">Groomers</Link></li>
             </ul>
           </div>
         </div>

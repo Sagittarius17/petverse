@@ -19,6 +19,30 @@
       "imageHint": "dog cat"
     },
     {
+      "id": "partner-trainer",
+      "description": "A woman training a dog in a park.",
+      "imageUrl": "https://images.unsplash.com/photo-1558222252-443e01d1a6e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkb2clMjB0cmFpbmluZ3xlbnwwfHx8fDE3Njg2NTIwOTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog training"
+    },
+    {
+      "id": "partner-vet",
+      "description": "A veterinarian examining a small puppy.",
+      "imageUrl": "https://images.unsplash.com/photo-1583250022413-28929da5b349?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx2ZXRlcmluYXJpYW4lMjBwZXR8ZW58MHx8fHwxNzY4NjUyMTAwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "veterinarian pet"
+    },
+    {
+      "id": "partner-walker",
+      "description": "A person walking several happy dogs on leashes.",
+      "imageUrl": "https://images.unsplash.com/photo-1629838096232-a4fe26f7a637?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkb2clMjB3YWxraW5nfGVufDB8fHx8MTc2ODY1MjEwMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog walking"
+    },
+    {
+      "id": "partner-groomer",
+      "description": "A fluffy white dog being groomed.",
+      "imageUrl": "https://images.unsplash.com/photo-1605632297129-28a553018240?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwZXQlMjBncm9vbWluZ3xlbnwwfHx8fDE3Njg2NTIxMDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "pet grooming"
+    },
+    {
       "id": "dog-golden-retriever-1",
       "description": "A friendly Golden Retriever puppy.",
       "imageUrl": "https://images.unsplash.com/photo-1642581684512-52947badee8c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxkb2clMjBwdXBweXxlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
