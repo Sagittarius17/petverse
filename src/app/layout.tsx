@@ -24,13 +24,12 @@ function ChatController() {
     return <BilluChatLauncher />;
   }
 
-  // If we are not on a shop page, check for user
-  if (user) {
-    // Authenticated users get the regular chat
+  // If there is a signed-in, non-anonymous user, show the regular user-to-user chat.
+  if (user && !user.isAnonymous) {
     return <Chat />;
   }
   
-  // Guests on non-shop pages get Billu
+  // For all other cases (guests or anonymous users), show the Billu AI Chatbot.
   return <BilluChatLauncher />;
 }
 
