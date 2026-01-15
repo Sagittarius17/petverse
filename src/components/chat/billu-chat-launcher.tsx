@@ -25,10 +25,12 @@ interface Meow {
 export default function BilluChatLauncher() {
   const { isOpen, toggleChat, setActiveConversationId, closeChat } = useChatStore();
   const billuAvatar = PlaceHolderImages.find(p => p.id === 'billu-avatar') || { imageUrl: '', imageHint: 'cat' };
-  const { user: authenticatedUser, isUserLoading } = useUser();
+  const { user: authenticatedUser } = useUser();
   const auth = useAuth();
-  const [guestUser, setGuestUser] = useState<User | null>(null);
+  
   const [isGuestLoading, setIsGuestLoading] = useState(false);
+  
+  const user = authenticatedUser;
 
   const [position, setPosition] = useState({ x: 20, y: 20 });
   const [isDragging, setIsDragging] = useState(false);
@@ -39,7 +41,6 @@ export default function BilluChatLauncher() {
   const [meows, setMeows] = useState<Meow[]>([]);
   const meowIdCounter = useRef(0);
   
-  const user = authenticatedUser || guestUser;
 
   // Interval to create new meows, but only when the chat is closed.
   useEffect(() => {
@@ -118,12 +119,13 @@ export default function BilluChatLauncher() {
         return;
     }
     
+    // If there's no user, it's a guest. Sign them in anonymously.
     if (!user) {
         setIsGuestLoading(true);
         try {
             await initiateAnonymousSignIn(auth);
-            // The onAuthStateChanged listener will update the user state.
-            // We'll rely on a useEffect to open the chat once the user is available.
+            // The onAuthStateChanged listener in FirebaseProvider will update the user state.
+            // A useEffect will handle opening the chat once the new guest user is available.
         } catch (error) {
             console.error("Anonymous sign-in failed:", error);
             setIsGuestLoading(false);
@@ -131,22 +133,19 @@ export default function BilluChatLauncher() {
         return;
     }
     
+    // If there is already a user (authenticated or guest), just open the chat.
     setActiveConversationId(BILLU_CONVERSATION_ID);
     toggleChat();
   }
   
   useEffect(() => {
-      // If we were trying to log in as guest, and now we have a user, open the chat.
+      // This effect runs when the guest login process completes and `user` state updates.
       if (isGuestLoading && user) {
           setIsGuestLoading(false);
           setActiveConversationId(BILLU_CONVERSATION_ID);
           toggleChat();
       }
   }, [user, isGuestLoading, setActiveConversationId, toggleChat]);
-
-  if (isUserLoading) {
-      return null;
-  }
   
   return (
     <>

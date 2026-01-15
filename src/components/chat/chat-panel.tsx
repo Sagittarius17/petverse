@@ -228,7 +228,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
           unsubscribers.forEach(unsub => unsub());
       };
 
-  }, [firestore, conversations.length, currentUser]);
+  }, [firestore, conversations, currentUser]);
   
   // Fetch messages for the active conversation
   useEffect(() => {
@@ -419,7 +419,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                 </div>
                 <div className="flex-1 overflow-hidden min-w-0">
                   <p className="font-semibold truncate">{convo.otherParticipant?.displayName || 'Unknown User'}</p>
-                  <p className={cn("text-sm truncate", unread > 0 ? "text-foreground font-bold" : "text-muted-foreground")}>
+                  <p className={cn("text-sm truncate", "text-muted-foreground")}>
                       {convo.lastMessage?.text}
                   </p>
                 </div>
@@ -587,4 +587,3 @@ function isSameDay(date1: Date, date2: Date) {
          date1.getMonth() === date2.getMonth() &&
          date1.getDate() === date2.getDate();
 }
-

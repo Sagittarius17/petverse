@@ -19,15 +19,18 @@ function ChatController() {
     return null; // Don't render anything until we know the auth state
   }
 
+  // On any shop page, always show Billu
   if (isShopPage) {
     return <BilluChatLauncher />;
   }
 
+  // If we are not on a shop page, check for user
   if (user) {
+    // Authenticated users get the regular chat
     return <Chat />;
   }
   
-  // If not on shop, and not logged in, show Billu
+  // Guests on non-shop pages get Billu
   return <BilluChatLauncher />;
 }
 
