@@ -413,7 +413,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                       </div>
                   )}
                 </div>
-                <div className="flex-1 overflow-hidden">
+                <div className="flex-1 overflow-hidden min-w-0">
                   <p className="font-semibold truncate">{convo.otherParticipant?.displayName || 'Unknown User'}</p>
                   <p className={cn("text-sm truncate", unread > 0 ? "text-foreground font-bold" : "text-muted-foreground")}>
                       {convo.lastMessage?.text}
