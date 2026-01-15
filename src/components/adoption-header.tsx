@@ -175,7 +175,7 @@ export default function AdoptionHeader() {
           <DesktopServicesMenu />
         </nav>
         <div className="hidden items-center gap-2 md:flex">
-          {isUserLoading ? null : user ? (
+          {isUserLoading ? null : user && !user.isAnonymous ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -306,7 +306,7 @@ export default function AdoptionHeader() {
                         />
                         <Label htmlFor="view-mode-mobile" className="font-bold cursor-pointer">PetShop</Label>
                     </div>
-                {user ? (
+                {user && !user.isAnonymous ? (
                     <>
                         <Button asChild size="lg" className="w-full justify-start text-lg p-6 mt-4">
                             <Link href="/profile" onClick={closeAllMenus}>

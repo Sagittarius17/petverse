@@ -123,7 +123,7 @@ export default function ShopHeader() {
               <ShoppingCart className="h-5 w-5" />
               <span className="sr-only">Shopping Cart</span>
           </Button>
-          {isUserLoading ? null : user ? (
+          {isUserLoading ? null : user && !user.isAnonymous ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -279,7 +279,7 @@ export default function ShopHeader() {
                     />
                     <Label htmlFor="view-mode-mobile-shop" className="font-bold cursor-pointer">PetShop</Label>
                 </div>
-              {user ? (
+              {user && !user.isAnonymous ? (
                 <>
                   <Button asChild size="lg" className="w-full justify-start text-lg p-6 mt-4">
                     <Link href="/profile" onClick={() => setIsMenuOpen(false)}>
