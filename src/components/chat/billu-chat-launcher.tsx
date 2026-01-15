@@ -7,8 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import ChatPanel from './chat-panel';
-import { useUser } from '@/firebase';
+import { useUser, initiateAnonymousSignIn, useAuth } from '@/firebase';
 import { cn } from '@/lib/utils';
+import { type User } from 'firebase/auth';
+import { Loader2 } from 'lucide-react';
 
 const BILLU_CONVERSATION_ID = 'ai-chatbot-billu';
 const CAT_SOUNDS = ['Meow! 🐾', 'Purrr...', 'Miu 😺', 'Miaowww', '😻', '😽', '😹', '... purr ...'];
@@ -23,7 +25,11 @@ interface Meow {
 export default function BilluChatLauncher() {
   const { isOpen, toggleChat, setActiveConversationId, closeChat } = useChatStore();
   const billuAvatar = PlaceHolderImages.find(p => p.id === 'billu-avatar') || { imageUrl: '', imageHint: 'cat' };
-  const { user } = useUser();
+  const { user: authenticatedUser, isUserLoading } = useUser();
+  const auth = useAuth();
+  const [guestUser, setGuestUser] = useState<User | null>(null);
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
+
   const [position, setPosition] = useState({ x: 20, y: 20 });
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef<HTMLDivElement>(null);
@@ -32,6 +38,8 @@ export default function BilluChatLauncher() {
   const didMove = useRef(false);
   const [meows, setMeows] = useState<Meow[]>([]);
   const meowIdCounter = useRef(0);
+  
+  const user = authenticatedUser || guestUser;
 
   // Interval to create new meows, but only when the chat is closed.
   useEffect(() => {
@@ -51,14 +59,12 @@ export default function BilluChatLauncher() {
       }, 5000 + Math.random() * 2000); // every 5-7 seconds
     }
 
-    // Cleanup function: clears the interval if it exists.
-    // This runs when the component unmounts or when `isOpen` changes.
     return () => {
       if (interval) {
         clearInterval(interval);
       }
     };
-  }, [isOpen]); // Re-run this effect whenever the chat's open state changes.
+  }, [isOpen]); 
 
 
   const handleAnimationEnd = (id: number) => {
@@ -76,7 +82,6 @@ export default function BilluChatLauncher() {
         let newX = initialPos.current.x - dx;
         let newY = initialPos.current.y - dy;
 
-        // Prevent dragging off-screen
         const rect = dragRef.current.getBoundingClientRect();
         if (newX < 0) newX = 0;
         if (newY < 0) newY = 0;
@@ -108,17 +113,41 @@ export default function BilluChatLauncher() {
     initialPos.current = { x: position.x, y: position.y };
   };
 
-  const handleClick = () => {
+  const handleClick = async () => {
     if (didMove.current) {
         return;
     }
+    
+    if (!user) {
+        setIsGuestLoading(true);
+        try {
+            await initiateAnonymousSignIn(auth);
+            // The onAuthStateChanged listener will update the user state.
+            // We'll rely on a useEffect to open the chat once the user is available.
+        } catch (error) {
+            console.error("Anonymous sign-in failed:", error);
+            setIsGuestLoading(false);
+        }
+        return;
+    }
+    
     setActiveConversationId(BILLU_CONVERSATION_ID);
     toggleChat();
   }
+  
+  useEffect(() => {
+      // If we were trying to log in as guest, and now we have a user, open the chat.
+      if (isGuestLoading && user) {
+          setIsGuestLoading(false);
+          setActiveConversationId(BILLU_CONVERSATION_ID);
+          toggleChat();
+      }
+  }, [user, isGuestLoading, setActiveConversationId, toggleChat]);
 
-  // The chat panel needs a user to function, even for the AI bot
-  if (!user) return null;
-
+  if (isUserLoading) {
+      return null;
+  }
+  
   return (
     <>
       <div
@@ -135,11 +164,16 @@ export default function BilluChatLauncher() {
             className="rounded-full w-16 h-16 bg-primary hover:bg-primary/90 shadow-lg p-0 cursor-grab active:cursor-grabbing"
             onClick={handleClick}
             onMouseDown={handleMouseDown}
+            disabled={isGuestLoading}
           >
-            <Avatar className="w-full h-full pointer-events-none">
-              <AvatarImage src={billuAvatar.imageUrl} />
-              <AvatarFallback>B</AvatarFallback>
-            </Avatar>
+            {isGuestLoading ? (
+                <Loader2 className="h-8 w-8 animate-spin text-primary-foreground" />
+            ) : (
+                <Avatar className="w-full h-full pointer-events-none">
+                  <AvatarImage src={billuAvatar.imageUrl} />
+                  <AvatarFallback>B</AvatarFallback>
+                </Avatar>
+            )}
           </Button>
           {meows.map(meow => (
             <span
@@ -158,11 +192,13 @@ export default function BilluChatLauncher() {
           ))}
         </div>
       </div>
-      <ChatPanel
-        isOpen={isOpen}
-        onClose={closeChat}
-        currentUser={user}
-      />
+      {user && (
+        <ChatPanel
+          isOpen={isOpen}
+          onClose={closeChat}
+          currentUser={user}
+        />
+      )}
     </>
   );
 }

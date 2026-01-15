@@ -129,7 +129,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
 
   const handleConversationSelect = async (convoId: string) => {
     setActiveConversationId(convoId);
-    if (convoId !== BILLU_CONVERSATION_ID && firestore && currentUser) {
+    if (convoId !== BILLU_CONVERSATION_ID && firestore && currentUser && !currentUser.isAnonymous) {
         const convoRef = doc(firestore, 'conversations', convoId);
         await updateDoc(convoRef, {
             [`unreadCount.${currentUser.uid}`]: 0
@@ -140,7 +140,11 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
 
   // Fetch conversations where the current user is a participant
   useEffect(() => {
-    if (!firestore || !currentUser) return;
+    if (!firestore || !currentUser || currentUser.isAnonymous) {
+        setConversations([]);
+        setIsLoadingConvos(false);
+        return;
+    };
 
     setIsLoadingConvos(true);
     const q = query(collection(firestore, 'conversations'), where('participants', 'array-contains', currentUser.uid));
@@ -160,7 +164,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
               id: userDoc.id,
               displayName: userData.displayName || userData.username || 'User',
               photoURL: userData.profilePicture || '',
-              isOnline: userData.isOnline || false, // Get initial status
+              isOnline: userData.isOnline || false,
             };
           }
         }
@@ -192,7 +196,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
 
   // Real-time listener for participant online status
   useEffect(() => {
-      if (!firestore || conversations.length === 0) return;
+      if (!firestore || conversations.length === 0 || !currentUser || currentUser.isAnonymous) return;
 
       const unsubscribers = conversations.map(convo => {
           if (convo.otherParticipant) {
@@ -217,14 +221,14 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                   }
               });
           }
-          return () => {}; // Return a no-op function for convos without other participants
+          return () => {};
       });
 
       return () => {
           unsubscribers.forEach(unsub => unsub());
       };
 
-  }, [firestore, conversations.length]); // Rerun when the number of conversations changes.
+  }, [firestore, conversations.length, currentUser]);
   
   // Fetch messages for the active conversation
   useEffect(() => {
@@ -263,7 +267,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value);
     
-    if (activeConversationId === BILLU_CONVERSATION_ID) return;
+    if (activeConversationId === BILLU_CONVERSATION_ID || currentUser.isAnonymous) return;
 
     if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
@@ -323,7 +327,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
         return;
     }
     
-    if (!newMessage.trim() || !firestore || !activeConversationId || !currentUser) return;
+    if (!newMessage.trim() || !firestore || !activeConversationId || !currentUser || currentUser.isAnonymous) return;
 
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
@@ -371,7 +375,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     },
   };
 
-  const allConversations = [pinnedBilluConversation, ...conversations];
+  const allConversations = currentUser.isAnonymous ? [pinnedBilluConversation] : [pinnedBilluConversation, ...conversations];
 
 
   const renderConversationList = () => (
@@ -584,4 +588,3 @@ function isSameDay(date1: Date, date2: Date) {
          date1.getDate() === date2.getDate();
 }
 
-    

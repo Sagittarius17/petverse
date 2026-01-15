@@ -4,19 +4,39 @@
 import { usePathname } from 'next/navigation';
 import { Toaster } from "@/components/ui/toaster"
 import './globals.css';
-import { FirebaseClientProvider } from '@/firebase';
+import { FirebaseClientProvider, useUser } from '@/firebase';
 import { ThemeProvider } from '@/components/theme-provider';
 import MainLayout from '@/components/main-layout';
 import Chat from '@/components/chat/chat';
 import BilluChatLauncher from '@/components/chat/billu-chat-launcher';
+
+function ChatController() {
+  const pathname = usePathname();
+  const { user, isUserLoading } = useUser();
+  const isShopPage = pathname.startsWith('/shop');
+
+  if (isUserLoading) {
+    return null; // Don't render anything until we know the auth state
+  }
+
+  if (isShopPage) {
+    return <BilluChatLauncher />;
+  }
+
+  if (user) {
+    return <Chat />;
+  }
+  
+  // If not on shop, and not logged in, show Billu
+  return <BilluChatLauncher />;
+}
+
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const pathname = usePathname();
-  const isShopPage = pathname.startsWith('/shop');
 
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
@@ -37,7 +57,7 @@ export default function RootLayout({
             <MainLayout>
               {children}
             </MainLayout>
-            {isShopPage ? <BilluChatLauncher /> : <Chat />}
+            <ChatController />
             <Toaster />
           </FirebaseClientProvider>
         </ThemeProvider>
