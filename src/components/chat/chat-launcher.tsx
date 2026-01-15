@@ -2,16 +2,17 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, MessagesSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useChatStore } from '@/lib/chat-store';
 import { Badge } from '../ui/badge';
 
 interface ChatLauncherProps {
-  unreadCount: number;
+  unreadMessages: number;
+  unreadChats: number;
 }
 
-export default function ChatLauncher({ unreadCount }: ChatLauncherProps) {
+export default function ChatLauncher({ unreadMessages, unreadChats }: ChatLauncherProps) {
   const { toggleChat } = useChatStore();
   const [position, setPosition] = useState({ x: 20, y: 20 });
   const [isDragging, setIsDragging] = useState(false);
@@ -87,9 +88,14 @@ export default function ChatLauncher({ unreadCount }: ChatLauncherProps) {
         >
           <MessageSquare className="h-8 w-8 text-primary-foreground pointer-events-none" />
         </Button>
-        {unreadCount > 0 && (
+        {unreadMessages > 0 && (
           <Badge className="absolute -top-1 -right-1 h-6 w-6 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground p-0">
-            {unreadCount}
+            {unreadMessages}
+          </Badge>
+        )}
+        {unreadChats > 0 && (
+           <Badge className="absolute -bottom-1 -right-2 h-7 w-7 flex items-center justify-center rounded-full bg-accent text-accent-foreground p-0 border-2 border-background">
+             <MessagesSquare className="h-3 w-3 mr-0.5" /> {unreadChats}
           </Badge>
         )}
       </div>

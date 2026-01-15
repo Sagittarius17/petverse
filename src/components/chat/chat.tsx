@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -11,7 +12,9 @@ export default function Chat() {
   const { isOpen, closeChat } = useChatStore();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
-  const [totalUnreadCount, setTotalUnreadCount] = useState(0);
+  const [totalUnreadMessages, setTotalUnreadMessages] = useState(0);
+  const [totalUnreadChats, setTotalUnreadChats] = useState(0);
+
 
   // Effect for online presence
   useEffect(() => {
@@ -53,13 +56,19 @@ export default function Chat() {
     const q = query(collection(firestore, "conversations"), where("participants", "array-contains", user.uid));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      let total = 0;
+      let messageTotal = 0;
+      let chatTotal = 0;
+
       snapshot.forEach(doc => {
         const data = doc.data();
         const unreadForUser = data.unreadCount?.[user.uid] || 0;
-        total += unreadForUser;
+        if (unreadForUser > 0) {
+            messageTotal += unreadForUser;
+            chatTotal += 1;
+        }
       });
-      setTotalUnreadCount(total);
+      setTotalUnreadMessages(messageTotal);
+      setTotalUnreadChats(chatTotal);
     });
 
     return () => unsubscribe();
@@ -72,7 +81,7 @@ export default function Chat() {
 
   return (
     <>
-      <ChatLauncher unreadCount={totalUnreadCount} />
+      <ChatLauncher unreadMessages={totalUnreadMessages} unreadChats={totalUnreadChats} />
       <ChatPanel
         isOpen={isOpen}
         onClose={closeChat}
