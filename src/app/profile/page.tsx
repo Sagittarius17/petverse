@@ -21,6 +21,7 @@ import { PetFormDialog } from './pet-form-dialog';
 import { ProfileFormDialog } from './profile-form-dialog';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import PetInfoDialog from '@/components/pet-info-dialog';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
 
 interface UserProfile extends DocumentData {
@@ -280,10 +281,20 @@ export default function ProfilePage() {
     <>
     <div className="container mx-auto max-w-5xl px-4 py-8">
       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-12">
-        <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-primary">
-          {user.photoURL && <AvatarImage src={user.photoURL} alt="User Avatar" />}
-          <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
-        </Avatar>
+        <Dialog>
+            <DialogTrigger asChild>
+                <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-primary cursor-pointer">
+                    {user.photoURL && <AvatarImage src={user.photoURL} alt="User Avatar" />}
+                    <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
+                </Avatar>
+            </DialogTrigger>
+            {user.photoURL && (
+                <DialogContent className="p-0 border-0 max-w-md">
+                    <Image src={user.photoURL} alt="User Avatar Preview" width={512} height={512} className="rounded-lg w-full h-auto" />
+                </DialogContent>
+            )}
+        </Dialog>
+
         <div className="text-center sm:text-left flex-grow">
           <h1 className="text-3xl sm:text-4xl font-bold font-headline">{userProfile?.displayName || user.displayName || 'Anonymous User'}</h1>
           <p className="text-muted-foreground mt-1">@{userProfile?.username || user.email?.split('@')[0]}</p>
