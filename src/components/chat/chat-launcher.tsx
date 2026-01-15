@@ -5,8 +5,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useChatStore } from '@/lib/chat-store';
+import { Badge } from '../ui/badge';
 
-export default function ChatLauncher() {
+interface ChatLauncherProps {
+  unreadCount: number;
+}
+
+export default function ChatLauncher({ unreadCount }: ChatLauncherProps) {
   const { toggleChat } = useChatStore();
   const [position, setPosition] = useState({ x: 20, y: 20 });
   const [isDragging, setIsDragging] = useState(false);
@@ -73,14 +78,21 @@ export default function ChatLauncher() {
         right: `${position.x}px`,
       }}
     >
-      <Button
-        size="icon"
-        className="rounded-full w-16 h-16 bg-primary hover:bg-primary/90 shadow-lg cursor-grab active:cursor-grabbing"
-        onClick={handleClick}
-        onMouseDown={handleMouseDown}
-      >
-        <MessageSquare className="h-8 w-8 text-primary-foreground pointer-events-none" />
-      </Button>
+      <div className="relative">
+        <Button
+          size="icon"
+          className="rounded-full w-16 h-16 bg-primary hover:bg-primary/90 shadow-lg cursor-grab active:cursor-grabbing"
+          onClick={handleClick}
+          onMouseDown={handleMouseDown}
+        >
+          <MessageSquare className="h-8 w-8 text-primary-foreground pointer-events-none" />
+        </Button>
+        {unreadCount > 0 && (
+          <Badge className="absolute -top-1 -right-1 h-6 w-6 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground p-0">
+            {unreadCount}
+          </Badge>
+        )}
+      </div>
     </div>
   );
 }

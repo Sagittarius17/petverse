@@ -1,9 +1,10 @@
+
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useChatStore } from '@/lib/chat-store';
 import { useUser, useFirestore } from '@/firebase';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, collection, query, where, onSnapshot } from 'firebase/firestore';
 import ChatLauncher from './chat-launcher';
 import ChatPanel from './chat-panel';
 
@@ -11,7 +12,9 @@ export default function Chat() {
   const { isOpen, closeChat } = useChatStore();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+  const [totalUnreadCount, setTotalUnreadCount] = useState(0);
 
+  // Effect for online presence
   useEffect(() => {
     if (!user || !firestore) return;
 
@@ -20,16 +23,12 @@ export default function Chat() {
     if (isOpen) {
       updateDoc(userStatusRef, { isOnline: true });
     } else {
-      // When chat is not open, ensure user is marked offline.
-      // This will trigger when the component mounts with chat closed,
-      // or when the isOpen state changes to false.
       updateDoc(userStatusRef, {
         isOnline: false,
         lastSeen: serverTimestamp(),
       });
     }
 
-    // This handles the case where the user closes the browser tab/window
     const handleBeforeUnload = () => {
         updateDoc(userStatusRef, {
             isOnline: false,
@@ -40,23 +39,41 @@ export default function Chat() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     
     return () => {
-      // This cleanup function runs when the component unmounts
       window.removeEventListener('beforeunload', handleBeforeUnload);
       updateDoc(userStatusRef, {
         isOnline: false,
         lastSeen: serverTimestamp(),
       });
     };
-  }, [user, firestore, isOpen]); // Add isOpen to the dependency array
+  }, [user, firestore, isOpen]);
 
-  // Don't render the chat components if the user is not logged in or still loading
+  // Effect for calculating total unread count
+  useEffect(() => {
+    if (!firestore || !user) return;
+
+    const q = query(collection(firestore, "conversations"), where("participants", "array-contains", user.uid));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      let total = 0;
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const unreadForUser = data.unreadCount?.[user.uid] || 0;
+        total += unreadForUser;
+      });
+      setTotalUnreadCount(total);
+    });
+
+    return () => unsubscribe();
+  }, [firestore, user]);
+
+
   if (isUserLoading || !user) {
     return null;
   }
 
   return (
     <>
-      <ChatLauncher />
+      <ChatLauncher unreadCount={totalUnreadCount} />
       <ChatPanel
         isOpen={isOpen}
         onClose={closeChat}
