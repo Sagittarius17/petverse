@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -418,7 +419,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                   )}
                 </div>
                 <div className="flex-1 overflow-hidden min-w-0">
-                  <p className="font-semibold truncate">{convo.otherParticipant?.displayName || 'Unknown User'}</p>
+                  <Badge variant="outline" className="mb-1">{convo.otherParticipant?.displayName || 'Unknown User'}</Badge>
                   <p className={cn("text-sm truncate", "text-muted-foreground")}>
                       {convo.lastMessage?.text}
                   </p>
