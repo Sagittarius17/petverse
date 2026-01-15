@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase, useDoc, updateDocumentNonBlocking, addDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -99,6 +99,20 @@ export default function ProfilePage() {
   }, [firestore, user]);
 
   const { data: submittedPets, isLoading: isPetsLoading } = useCollection<Pet>(userPetsQuery);
+
+  const sortedSubmittedPets = useMemo(() => {
+    if (!submittedPets) return [];
+    return [...submittedPets].sort((a, b) => {
+      // Primary sort: adopted pets (isAdoptable === false) go to the end
+      if (a.isAdoptable !== false && b.isAdoptable === false) return -1;
+      if (a.isAdoptable === false && b.isAdoptable !== false) return 1;
+
+      // Secondary sort: by creation date, newest first
+      const timeA = a.createdAt?.toMillis() || 0;
+      const timeB = b.createdAt?.toMillis() || 0;
+      return timeB - timeA;
+    });
+  }, [submittedPets]);
 
   const favoriteBreedsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -299,9 +313,9 @@ export default function ProfilePage() {
                     Submit a New Pet
                 </Button>
             </div>
-           {submittedPets && submittedPets.length > 0 ? (
+           {sortedSubmittedPets && sortedSubmittedPets.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {submittedPets.map(pet => (
+              {sortedSubmittedPets.map(pet => (
                 <PetCard 
                   key={pet.id} 
                   pet={pet} 
