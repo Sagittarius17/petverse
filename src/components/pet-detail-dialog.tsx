@@ -137,14 +137,30 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
     const messageText = initialMessage || `Hi, I'm interested in ${pet?.name}!`;
     
     try {
-      await setDoc(conversationDocRef, {
-        participants: [currentUser.uid, ownerId],
-        lastMessage: {
-          text: messageText,
-          timestamp: serverTimestamp(),
-          senderId: currentUser.uid,
-        }
-      }, { merge: true });
+      const conversationSnap = await getDoc(conversationDocRef);
+      const otherParticipantId = ownerId;
+
+      if (!conversationSnap.exists()) {
+        await setDoc(conversationDocRef, {
+            participants: [currentUser.uid, otherParticipantId],
+            unreadCount: { [otherParticipantId]: 1 },
+            lastMessage: {
+              text: messageText,
+              timestamp: serverTimestamp(),
+              senderId: currentUser.uid,
+            }
+        });
+      } else {
+         await updateDoc(conversationDocRef, {
+            [`unreadCount.${otherParticipantId}`]: increment(1),
+            lastMessage: {
+              text: messageText,
+              timestamp: serverTimestamp(),
+              senderId: currentUser.uid,
+            }
+        });
+      }
+
 
       await addDoc(collection(conversationDocRef, 'messages'), {
           senderId: currentUser.uid,
@@ -252,3 +268,5 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
     </Dialog>
   );
 }
+
+    

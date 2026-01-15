@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { collection, query, where, onSnapshot, doc, getDoc, addDoc, serverTimestamp, updateDoc, Timestamp, orderBy, DocumentData } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, getDoc, addDoc, serverTimestamp, updateDoc, Timestamp, orderBy, DocumentData, increment, runTransaction } from 'firebase/firestore';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { User } from 'firebase/auth';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import { format, formatDistanceToNow, isToday, isYesterday, isThisWeek, parseISO } from 'date-fns';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { billuChatbot } from '@/ai/flows/billu-chatbot';
+import { Badge } from '../ui/badge';
 
 interface Conversation {
   id: string;
@@ -34,6 +35,9 @@ interface Conversation {
   };
   typing?: {
     [key: string]: boolean;
+  };
+  unreadCount?: {
+      [key: string]: number;
   };
 }
 
@@ -123,6 +127,16 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   const [billuChatHistory, setBilluChatHistory] = useState<Message[]>([]);
   const [isBilluThinking, setIsBilluThinking] = useState(false);
 
+  const handleConversationSelect = async (convoId: string) => {
+    setActiveConversationId(convoId);
+    if (convoId !== BILLU_CONVERSATION_ID && firestore && currentUser) {
+        const convoRef = doc(firestore, 'conversations', convoId);
+        await updateDoc(convoRef, {
+            [`unreadCount.${currentUser.uid}`]: 0
+        });
+    }
+  };
+
 
   // Fetch conversations where the current user is a participant
   useEffect(() => {
@@ -156,6 +170,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
           participants: data.participants,
           lastMessage: data.lastMessage,
           typing: data.typing || {},
+          unreadCount: data.unreadCount || {},
           otherParticipant,
         } as Conversation;
       });
@@ -308,7 +323,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
         return;
     }
     
-    if (!newMessage.trim() || !firestore || !activeConversationId) return;
+    if (!newMessage.trim() || !firestore || !activeConversationId || !currentUser) return;
 
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
@@ -324,13 +339,18 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
       timestamp: serverTimestamp(),
     });
     
-    await updateDoc(convoDocRef, {
-        lastMessage: {
-            text: newMessage,
-            timestamp: serverTimestamp(),
-            senderId: currentUser.uid,
-        }
-    });
+    const otherParticipantId = selectedConversation?.otherParticipant?.id;
+    if (otherParticipantId) {
+        const unreadCountUpdate = {
+            [`unreadCount.${otherParticipantId}`]: increment(1),
+            lastMessage: {
+                text: newMessage,
+                timestamp: serverTimestamp(),
+                senderId: currentUser.uid,
+            }
+        };
+        await updateDoc(convoDocRef, unreadCountUpdate);
+    }
 
     setNewMessage('');
   };
@@ -371,37 +391,43 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
             </div>
           ))
         ) : allConversations.length > 0 ? (
-          allConversations.map(convo => (
-            <div
-              key={convo.id}
-              className="flex items-start gap-4 p-4 cursor-pointer hover:bg-muted"
-              onClick={() => setActiveConversationId(convo.id)}
-            >
-              <div className="relative">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src={convo.otherParticipant?.photoURL} />
-                  <AvatarFallback>{convo.otherParticipant?.displayName[0] || 'U'}</AvatarFallback>
-                </Avatar>
-                {convo.otherParticipant?.isOnline && convo.id !== BILLU_CONVERSATION_ID && (
-                  <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-green-500 ring-2 ring-background" />
-                )}
-                {convo.id === BILLU_CONVERSATION_ID && (
-                    <div className="absolute bottom-0 right-0 block p-0.5 rounded-full bg-primary ring-2 ring-background">
-                        <Sparkles className="h-2 w-2 text-primary-foreground" />
-                    </div>
-                )}
-              </div>
-              <div className="flex-1 overflow-hidden">
-                <p className="font-semibold truncate">{convo.otherParticipant?.displayName || 'Unknown User'}</p>
-                <p className="text-sm text-muted-foreground truncate">{convo.lastMessage?.text}</p>
-              </div>
-              {convo.id !== BILLU_CONVERSATION_ID && (
-                <div className="text-xs text-muted-foreground whitespace-nowrap">
-                    {formatRelativeTime(convo.lastMessage?.timestamp)}
+          allConversations.map(convo => {
+            const unread = convo.unreadCount?.[currentUser.uid] || 0;
+            return (
+              <div
+                key={convo.id}
+                className="flex items-start gap-4 p-4 cursor-pointer hover:bg-muted"
+                onClick={() => handleConversationSelect(convo.id)}
+              >
+                <div className="relative">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={convo.otherParticipant?.photoURL} />
+                    <AvatarFallback>{convo.otherParticipant?.displayName[0] || 'U'}</AvatarFallback>
+                  </Avatar>
+                  {convo.otherParticipant?.isOnline && convo.id !== BILLU_CONVERSATION_ID && (
+                    <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-green-500 ring-2 ring-background" />
+                  )}
+                  {convo.id === BILLU_CONVERSATION_ID && (
+                      <div className="absolute bottom-0 right-0 block p-0.5 rounded-full bg-primary ring-2 ring-background">
+                          <Sparkles className="h-2 w-2 text-primary-foreground" />
+                      </div>
+                  )}
                 </div>
-              )}
-            </div>
-          ))
+                <div className="flex-1 overflow-hidden">
+                  <p className="font-semibold truncate">{convo.otherParticipant?.displayName || 'Unknown User'}</p>
+                  <p className={cn("text-sm truncate", unread > 0 ? "text-foreground font-bold" : "text-muted-foreground")}>
+                      {convo.lastMessage?.text}
+                  </p>
+                </div>
+                <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground whitespace-nowrap">
+                    <span>{formatRelativeTime(convo.lastMessage?.timestamp)}</span>
+                    {unread > 0 && (
+                        <Badge className="h-5 w-5 p-0 flex items-center justify-center">{unread}</Badge>
+                    )}
+                </div>
+              </div>
+            )
+          })
         ) : (
           <div className="text-center p-8 text-muted-foreground">
             <p>No conversations yet.</p>
@@ -557,3 +583,5 @@ function isSameDay(date1: Date, date2: Date) {
          date1.getMonth() === date2.getMonth() &&
          date1.getDate() === date2.getDate();
 }
+
+    

@@ -327,10 +327,8 @@ service cloud.firestore {
 
     match /conversations/{conversationId} {
       allow get: if isParticipant(conversationId);
-      allow list: if isSignedIn(); // Query must be secured with `where('participants', 'array-contains', request.auth.uid)`
+      allow list: if isSignedIn() && request.query.where.get('participants', 'array-contains', request.auth.uid)[2] == request.auth.uid;
       
-      // Allow write (create/update) if the user is a participant in the new data being written.
-      // This covers both creating a conversation and updating the `lastMessage`.
       allow write: if isParticipantInRequest(request.resource.data);
 
       allow delete: if false;
@@ -343,3 +341,5 @@ service cloud.firestore {
     }
   }
 }
+
+    

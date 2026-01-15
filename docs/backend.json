@@ -432,6 +432,12 @@
             "properties": {},
             "additionalProperties": { "type": "boolean" },
             "description": "A map of user IDs to a boolean indicating if they are typing."
+        },
+        "unreadCount": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": { "type": "number" },
+          "description": "A map of user IDs to their unread message count for this conversation."
         }
       },
       "required": ["participants"]
