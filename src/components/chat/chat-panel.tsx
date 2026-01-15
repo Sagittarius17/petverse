@@ -419,16 +419,18 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                   )}
                 </div>
                 <div className="flex-1 overflow-hidden min-w-0">
-                  <Badge variant="outline" className="mb-1">{convo.otherParticipant?.displayName || 'Unknown User'}</Badge>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge variant="outline">{convo.otherParticipant?.displayName || 'Unknown User'}</Badge>
+                    {unread > 0 && (
+                        <Badge variant="destructive" className="h-5 w-5 p-0 flex items-center justify-center">{unread}</Badge>
+                    )}
+                  </div>
                   <p className={cn("text-sm truncate", "text-muted-foreground")}>
                       {convo.lastMessage?.text}
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground whitespace-nowrap">
                     <span>{formatRelativeTime(convo.lastMessage?.timestamp)}</span>
-                    {unread > 0 && (
-                        <Badge className="h-5 w-5 p-0 flex items-center justify-center">{unread}</Badge>
-                    )}
                 </div>
               </div>
             )
