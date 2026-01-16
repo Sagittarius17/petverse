@@ -1,9 +1,7 @@
-
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { collection, query, where, onSnapshot, doc, getDoc, addDoc, serverTimestamp, updateDoc, Timestamp, orderBy, DocumentData, increment, runTransaction } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, getDoc, addDoc, serverTimestamp, updateDoc, Timestamp, orderBy, DocumentData, increment, writeBatch } from 'firebase/firestore';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { User } from 'firebase/auth';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -48,6 +46,7 @@ interface Message {
   senderId: string;
   text: string;
   timestamp: Timestamp;
+  isRead?: boolean;
 }
 
 interface UserProfile extends DocumentData {
@@ -232,9 +231,9 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
 
   }, [firestore, conversations, currentUser]);
   
-  // Fetch messages for the active conversation
+  // Fetch messages for the active conversation and mark as read
   useEffect(() => {
-    if (!firestore || !activeConversationId || activeConversationId === BILLU_CONVERSATION_ID) {
+    if (!firestore || !activeConversationId || activeConversationId === BILLU_CONVERSATION_ID || !currentUser) {
       setMessages([]);
       return;
     }
@@ -249,10 +248,25 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
       const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
       setMessages(msgs);
       setIsLoadingMessages(false);
+
+      // Mark received messages as read
+      const batch = writeBatch(firestore);
+      let hasUnread = false;
+      querySnapshot.docs.forEach(docSnap => {
+        const msgData = docSnap.data();
+        if (msgData.senderId !== currentUser.uid && !msgData.isRead) {
+          batch.update(docSnap.ref, { isRead: true });
+          hasUnread = true;
+        }
+      });
+
+      if (hasUnread) {
+        batch.commit().catch(e => console.error("Failed to mark messages as read", e));
+      }
     });
 
     return () => unsubscribe();
-  }, [firestore, activeConversationId]);
+  }, [firestore, activeConversationId, currentUser]);
   
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -343,6 +357,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
       senderId: currentUser.uid,
       text: newMessage,
       timestamp: serverTimestamp(),
+      isRead: false,
     });
     
     const otherParticipantId = selectedConversation?.otherParticipant?.id;

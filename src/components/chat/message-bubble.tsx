@@ -3,12 +3,14 @@
 import { cn } from '@/lib/utils';
 import { Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
+import { Check, CheckCheck } from 'lucide-react';
 
 interface Message {
   id: string;
   senderId: string;
   text: string;
   timestamp: Timestamp;
+  isRead?: boolean;
 }
 
 interface MessageBubbleProps {
@@ -27,13 +29,20 @@ export default function MessageBubble({ message, isCurrentUser }: MessageBubbleP
             : 'bg-background border rounded-bl-none'
         )}
       >
-        <p className="text-sm break-words pr-12">{message.text}</p>
-        <div className="absolute bottom-1 right-2 text-xs opacity-70">
-            {message.timestamp ? format(message.timestamp.toDate(), 'h:mm a') : ''}
+        <p className="text-sm break-words pr-20">{message.text}</p>
+        <div className="absolute bottom-1.5 right-2 flex items-center gap-1.5 text-xs">
+            <span className={cn(isCurrentUser ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+              {message.timestamp ? format(message.timestamp.toDate(), 'h:mm a') : ''}
+            </span>
+            {isCurrentUser && (
+              message.isRead ? (
+                <CheckCheck className="h-4 w-4 text-blue-400" />
+              ) : (
+                <Check className="h-4 w-4 text-primary-foreground/70" />
+              )
+            )}
         </div>
       </div>
     </div>
   );
 }
-
-    
