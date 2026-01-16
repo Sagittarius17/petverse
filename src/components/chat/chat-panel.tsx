@@ -427,19 +427,21 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                     )}
                   </div>
                   <div className="flex-1 overflow-hidden min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge variant="outline">{convo.otherParticipant?.displayName || 'Unknown User'}</Badge>
-                      {unread > 0 && (
-                          <Badge variant="destructive" className="h-5 w-5 p-0 flex items-center justify-center">{unread}</Badge>
-                      )}
+                    <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant="outline">{convo.otherParticipant?.displayName || 'Unknown User'}</Badge>
+                          {unread > 0 && (
+                              <Badge variant="destructive" className="h-5 w-5 p-0 flex items-center justify-center">{unread}</Badge>
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap pl-2">
+                            {formatRelativeTime(convo.lastMessage?.timestamp)}
+                        </span>
                     </div>
                     <p className={cn("text-sm truncate", unread > 0 ? "font-bold text-foreground" : "text-muted-foreground")}>
                         {convo.lastMessage?.senderId === currentUser.uid && 'You: '}
                         {convo.lastMessage?.text}
                     </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground whitespace-nowrap">
-                      <span>{formatRelativeTime(convo.lastMessage?.timestamp)}</span>
                   </div>
                 </div>
               )
@@ -600,5 +602,3 @@ function isSameDay(date1: Date, date2: Date) {
          date1.getMonth() === date2.getMonth() &&
          date1.getDate() === date2.getDate();
 }
-
-    
