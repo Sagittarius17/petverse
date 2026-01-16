@@ -397,46 +397,54 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
             </div>
           ))
         ) : allConversations.length > 0 ? (
-          allConversations.map(convo => {
-            const unread = convo.unreadCount?.[currentUser.uid] || 0;
-            return (
-              <div
-                key={convo.id}
-                className="flex items-start gap-4 p-4 cursor-pointer hover:bg-muted"
-                onClick={() => handleConversationSelect(convo.id)}
-              >
-                <div className="relative">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={convo.otherParticipant?.photoURL} />
-                    <AvatarFallback>{convo.otherParticipant?.displayName[0] || 'U'}</AvatarFallback>
-                  </Avatar>
-                  {convo.otherParticipant?.isOnline && convo.id !== BILLU_CONVERSATION_ID && (
-                    <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-green-500 ring-2 ring-background" />
+          <div className="p-2">
+            {allConversations.map(convo => {
+              const unread = convo.unreadCount?.[currentUser.uid] || 0;
+              const isActive = activeConversationId === convo.id;
+              return (
+                <div
+                  key={convo.id}
+                  className={cn(
+                    "flex items-start gap-4 p-3 cursor-pointer rounded-lg border transition-colors",
+                    isActive
+                      ? "bg-muted border-primary"
+                      : "border-transparent hover:bg-muted"
                   )}
-                  {convo.id === BILLU_CONVERSATION_ID && (
-                      <div className="absolute bottom-0 right-0 block p-0.5 rounded-full bg-primary ring-2 ring-background">
-                          <Sparkles className="h-2 w-2 text-primary-foreground" />
-                      </div>
-                  )}
-                </div>
-                <div className="flex-1 overflow-hidden min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Badge variant="outline">{convo.otherParticipant?.displayName || 'Unknown User'}</Badge>
-                    {unread > 0 && (
-                        <Badge variant="destructive" className="h-5 w-5 p-0 flex items-center justify-center">{unread}</Badge>
+                  onClick={() => handleConversationSelect(convo.id)}
+                >
+                  <div className="relative">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={convo.otherParticipant?.photoURL} />
+                      <AvatarFallback>{convo.otherParticipant?.displayName[0] || 'U'}</AvatarFallback>
+                    </Avatar>
+                    {convo.otherParticipant?.isOnline && convo.id !== BILLU_CONVERSATION_ID && (
+                      <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-green-500 ring-2 ring-background" />
+                    )}
+                    {convo.id === BILLU_CONVERSATION_ID && (
+                        <div className="absolute bottom-0 right-0 block p-0.5 rounded-full bg-primary ring-2 ring-background">
+                            <Sparkles className="h-2 w-2 text-primary-foreground" />
+                        </div>
                     )}
                   </div>
-                  <p className={cn("text-sm truncate", unread > 0 ? "font-bold text-foreground" : "text-muted-foreground")}>
-                      {convo.lastMessage?.senderId === currentUser.uid && 'You: '}
-                      {convo.lastMessage?.text}
-                  </p>
+                  <div className="flex-1 overflow-hidden min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant="outline">{convo.otherParticipant?.displayName || 'Unknown User'}</Badge>
+                      {unread > 0 && (
+                          <Badge variant="destructive" className="h-5 w-5 p-0 flex items-center justify-center">{unread}</Badge>
+                      )}
+                    </div>
+                    <p className={cn("text-sm truncate", unread > 0 ? "font-bold text-foreground" : "text-muted-foreground")}>
+                        {convo.lastMessage?.senderId === currentUser.uid && 'You: '}
+                        {convo.lastMessage?.text}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground whitespace-nowrap">
+                      <span>{formatRelativeTime(convo.lastMessage?.timestamp)}</span>
+                  </div>
                 </div>
-                <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground whitespace-nowrap">
-                    <span>{formatRelativeTime(convo.lastMessage?.timestamp)}</span>
-                </div>
-              </div>
-            )
-          })
+              )
+            })}
+          </div>
         ) : (
           <div className="text-center p-8 text-muted-foreground">
             <p>No conversations yet.</p>
