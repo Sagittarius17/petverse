@@ -33,6 +33,7 @@ interface Conversation {
   lastMessage?: {
     text: string;
     timestamp: Timestamp;
+    senderId?: string;
   };
   typing?: {
     [key: string]: boolean;
@@ -425,7 +426,8 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                         <Badge variant="destructive" className="h-5 w-5 p-0 flex items-center justify-center">{unread}</Badge>
                     )}
                   </div>
-                  <p className={cn("text-sm truncate", "text-muted-foreground")}>
+                  <p className={cn("text-sm truncate", unread > 0 ? "font-bold text-foreground" : "text-muted-foreground")}>
+                      {convo.lastMessage?.senderId === currentUser.uid && 'You: '}
                       {convo.lastMessage?.text}
                   </p>
                 </div>
@@ -590,3 +592,5 @@ function isSameDay(date1: Date, date2: Date) {
          date1.getMonth() === date2.getMonth() &&
          date1.getDate() === date2.getDate();
 }
+
+    
