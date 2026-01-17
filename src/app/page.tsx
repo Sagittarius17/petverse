@@ -25,7 +25,7 @@ export default function Home() {
   );
   
   const petsQuery = useMemoFirebase(
-    () => petsCollection ? query(petsCollection, where('isAdoptable', '==', true), orderBy('name'), limit(4)) : null,
+    () => petsCollection ? query(petsCollection, where('isAdoptable', '==', true), limit(4)) : null,
     [petsCollection]
   );
 
