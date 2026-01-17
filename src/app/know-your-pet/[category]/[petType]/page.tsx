@@ -206,9 +206,9 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
     <>
       <div className="container mx-auto px-4 py-8 relative">
         {loading && (
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-20">
+            <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-20">
                 <div className="relative flex h-24 w-24 items-center justify-center">
-                    <div className="absolute h-full w-full animate-spin rounded-full border-4 border-dashed border-primary border-t-transparent"></div>
+                    <div className="absolute h-full w-full animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
                     <PawPrint className="h-10 w-10 text-primary" />
                 </div>
             </div>
