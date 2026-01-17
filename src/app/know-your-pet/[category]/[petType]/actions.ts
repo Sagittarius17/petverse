@@ -2,8 +2,9 @@
 
 import { PetBreed, PetCategory, initialPetCategories } from '@/lib/initial-pet-data';
 import { db } from '@/firebase/server';
+import { unstable_cache as cache } from 'next/cache';
 
-export async function getPetCategories(): Promise<PetCategory[]> {
+const getAndProcessPetCategories = async (): Promise<PetCategory[]> => {
   const allCategories = JSON.parse(JSON.stringify(initialPetCategories)) as PetCategory[];
 
   try {
@@ -41,4 +42,12 @@ export async function getPetCategories(): Promise<PetCategory[]> {
   }
 
   return allCategories;
-}
+};
+
+
+// Cache the result of fetching and processing pet categories for 10 minutes (600 seconds)
+export const getPetCategories = cache(
+    getAndProcessPetCategories,
+    ['pet-categories'],
+    { revalidate: 600 }
+);
