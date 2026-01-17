@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo, useEffect, use } from 'react';
@@ -12,7 +11,7 @@ import PetInfoDialog from '@/components/pet-info-dialog';
 import { useRouter } from 'next/navigation';
 import BreedSearch from '@/components/ai/breed-search';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, Heart } from 'lucide-react';
+import { ArrowLeft, PawPrint, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUser, useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
@@ -208,7 +207,10 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
       <div className="container mx-auto px-4 py-8 relative">
         {loading && (
             <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-20">
-                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                <div className="relative flex h-24 w-24 items-center justify-center">
+                    <div className="absolute h-full w-full animate-spin rounded-full border-4 border-dashed border-primary border-t-transparent"></div>
+                    <PawPrint className="h-10 w-10 text-primary" />
+                </div>
             </div>
         )}
         <Button variant="ghost" onClick={() => router.back()} className="mb-4 pl-0">
