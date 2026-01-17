@@ -10,7 +10,7 @@ import PetCard from '@/components/pet-card';
 import CareGuideCard from '@/components/care-guide-card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit } from 'firebase/firestore';
+import { collection, query, orderBy, limit, where } from 'firebase/firestore';
 import PetDetailDialog from '@/components/pet-detail-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -25,7 +25,7 @@ export default function Home() {
   );
   
   const petsQuery = useMemoFirebase(
-    () => petsCollection ? query(petsCollection, orderBy('name'), limit(4)) : null,
+    () => petsCollection ? query(petsCollection, where('isAdoptable', '==', true), orderBy('name'), limit(4)) : null,
     [petsCollection]
   );
 
