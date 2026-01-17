@@ -75,6 +75,7 @@ export interface LostPetReport {
   lastSeenLocation: string;
   petImage: string; // URL of the uploaded image
   analysis: AnalyzePetImageForMatchingOutput;
+  reportDate?: Timestamp;
 }
 
 // Re-export interfaces from initial-pet-data to maintain external access

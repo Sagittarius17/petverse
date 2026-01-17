@@ -1,53 +1,22 @@
 'use client';
 
-import { useState } from 'react';
 import LostPetForm from "@/components/lost-pet-form";
 import { ClientTabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/client-tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PawPrint, Search } from "lucide-react";
 import type { LostPetReport } from '@/lib/data';
 import LostPetReportCard from '@/components/lost-pet-report-card';
-import { Button } from '@/components/ui/button';
-
-// Sample initial data. In a real app, this would come from a database.
-const initialReports: LostPetReport[] = [
-    {
-        id: 'report-1',
-        ownerName: 'Jane Doe',
-        contactEmail: 'jane@example.com',
-        petName: 'Buddy',
-        lastSeenLocation: 'Central Park, near the fountain',
-        petImage: 'https://images.unsplash.com/photo-1642581684512-52947badee8c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxkb2clMjBwdXBweXxlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib=rb-4.1.0&q=80&w=1080',
-        reportType: 'Lost',
-        analysis: {
-            attributeSummary: 'Golden Retriever puppy, light golden fur, appears to be young. No distinguishing collar or tags visible.',
-            isAnalysisHelpful: true,
-        }
-    },
-    {
-        id: 'report-2',
-        ownerName: 'John Smith',
-        contactEmail: 'john@example.com',
-        petName: 'Mochi',
-        lastSeenLocation: 'Downtown, 4th and Main St.',
-        petImage: 'https://images.unsplash.com/photo-1615901372949-296704779939?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjYXQlMjBhZHVsdHxlbnwwfHx8fDE3Njc1MjkyMDV8MA&ixlib=rb-4.1.0&q=80&w=1080',
-        reportType: 'Found',
-        analysis: {
-            attributeSummary: 'Siamese cat with classic color points, blue eyes, and a slender build.',
-            isAnalysisHelpful: true,
-        }
-    }
-];
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function LostAndFoundPage() {
-  const [reports, setReports] = useState<LostPetReport[]>(initialReports);
-
-  const handleReportSubmit = (newReport: Omit<LostPetReport, 'id'>) => {
-    const reportWithId = { ...newReport, id: `report-${Date.now()}` };
-    setReports(prevReports => [reportWithId, ...prevReports]);
-    
-    // In a real app, you would also save this to your database here.
-  };
+  const firestore = useFirestore();
+  const reportsQuery = useMemoFirebase(
+    () => firestore ? query(collection(firestore, 'lost_found_reports'), orderBy('reportDate', 'desc')) : null,
+    [firestore]
+  );
+  const { data: reports, isLoading } = useCollection<LostPetReport>(reportsQuery);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -72,11 +41,11 @@ export default function LostAndFoundPage() {
             <CardHeader>
               <CardTitle>Submit a Report</CardTitle>
               <CardDescription>
-                Fill out the form below to report a lost or found pet. Our AI can help analyze the pet&apos;s photo to create a helpful description for matching.
+                Fill out the form below to report a lost or found pet. Our AI will analyze the pet's photo to create a helpful description for matching.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <LostPetForm onReportSubmit={handleReportSubmit} />
+              <LostPetForm />
             </CardContent>
           </Card>
         </TabsContent>
@@ -89,7 +58,21 @@ export default function LostAndFoundPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {reports.length > 0 ? (
+              {isLoading ? (
+                Array.from({ length: 2 }).map((_, i) => (
+                  <Card key={i} className="overflow-hidden">
+                    <div className="grid grid-cols-1 md:grid-cols-3">
+                      <Skeleton className="h-60 md:h-full" />
+                      <div className="md:col-span-2 p-6 space-y-4">
+                        <Skeleton className="h-8 w-1/3" />
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-16 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              ) : reports && reports.length > 0 ? (
                 reports.map(report => (
                   <LostPetReportCard key={report.id} report={report} />
                 ))
