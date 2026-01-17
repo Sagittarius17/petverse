@@ -84,6 +84,22 @@ function formatDateSeparator(timestamp: Timestamp): string {
   return format(date, 'MMMM d, yyyy');
 }
 
+// New component for the presence indicator dot
+function PresenceIndicator({ userId }: { userId: string }) {
+    const firestore = useFirestore();
+    const userDocRef = useMemoFirebase(
+      () => (firestore ? doc(firestore, 'users', userId) : null),
+      [firestore, userId]
+    );
+    const { data: userProfile } = useDoc<UserProfile>(userDocRef);
+  
+    if (userProfile?.isOnline) {
+      return <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-green-500 ring-2 ring-background" />;
+    }
+  
+    return null;
+}
+
 
 function OtherParticipantStatus({ otherParticipantId, typingStatus }: { otherParticipantId: string, typingStatus?: boolean }) {
   const firestore = useFirestore();
@@ -195,41 +211,6 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     return () => unsubscribe();
   }, [firestore, currentUser]);
 
-  // Real-time listener for participant online status
-  useEffect(() => {
-      if (!firestore || conversations.length === 0 || !currentUser || currentUser.isAnonymous) return;
-
-      const unsubscribers = conversations.map(convo => {
-          if (convo.otherParticipant) {
-              const userDocRef = doc(firestore, 'users', convo.otherParticipant.id);
-              return onSnapshot(userDocRef, (userDoc) => {
-                  if (userDoc.exists()) {
-                      const userData = userDoc.data() as UserProfile;
-                      setConversations(prevConvos => 
-                          prevConvos.map(p => {
-                              if (p.otherParticipant && p.otherParticipant.id === userData.id) {
-                                  return {
-                                      ...p,
-                                      otherParticipant: {
-                                          ...p.otherParticipant,
-                                          isOnline: userData.isOnline,
-                                      }
-                                  };
-                              }
-                              return p;
-                          })
-                      );
-                  }
-              });
-          }
-          return () => {};
-      });
-
-      return () => {
-          unsubscribers.forEach(unsub => unsub());
-      };
-
-  }, [firestore, conversations, currentUser]);
   
   // Fetch messages for the active conversation and mark as read
   useEffect(() => {
@@ -432,8 +413,8 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                       <AvatarImage src={convo.otherParticipant?.photoURL} />
                       <AvatarFallback>{convo.otherParticipant?.displayName[0] || 'U'}</AvatarFallback>
                     </Avatar>
-                    {convo.otherParticipant?.isOnline && convo.id !== BILLU_CONVERSATION_ID && (
-                      <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-green-500 ring-2 ring-background" />
+                    {convo.otherParticipant && convo.id !== BILLU_CONVERSATION_ID && (
+                       <PresenceIndicator userId={convo.otherParticipant.id} />
                     )}
                     {convo.id === BILLU_CONVERSATION_ID && (
                         <div className="absolute bottom-0 right-0 block p-0.5 rounded-full bg-primary ring-2 ring-background">
