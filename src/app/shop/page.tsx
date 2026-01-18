@@ -30,7 +30,7 @@ function ShopContent() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="w-full bg-amber-100/50 dark:bg-amber-900/20 py-12 md:py-24">
+      <section className="w-full bg-secondary py-12 md:py-24">
         <div className="container mx-auto grid items-center gap-6 px-4 md:px-6 lg:grid-cols-2 lg:gap-10">
           <div className="space-y-4 text-center lg:text-left">
             <h1 className="font-headline text-3xl font-bold tracking-tighter text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
@@ -71,7 +71,7 @@ function ShopContent() {
       <section className="w-full py-12 md:py-20">
         <div className="container px-4 md:px-6">
           <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
-            <div className="space-y-4 lg:order-last">
+            <div className="space-y-4">
               <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">Smarter Playtime</div>
               <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">Keep Their Minds Sharp</h2>
               <p className="text-muted-foreground md:text-xl/relaxed">
@@ -99,7 +99,7 @@ function ShopContent() {
       <section className="w-full bg-secondary py-12 md:py-20">
          <div className="container px-4 md:px-6">
           <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
-            <div className="space-y-4">
+            <div className="space-y-4 lg:order-last">
               <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">Nutrition First</div>
               <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">Fuel Their Adventures</h2>
               <p className="text-muted-foreground md:text-xl/relaxed">
@@ -127,7 +127,7 @@ function ShopContent() {
       <section className="w-full py-12 md:py-20">
         <div className="container px-4 md:px-6">
           <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
-            <div className="space-y-4 lg:order-last">
+            <div className="space-y-4">
               <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">Sweet Dreams</div>
               <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">Ultimate Comfort Zone</h2>
               <p className="text-muted-foreground md:text-xl/relaxed">
