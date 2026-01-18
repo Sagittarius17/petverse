@@ -586,7 +586,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-        <SheetContent side="right" className="p-0 w-full sm:max-w-md">
+        <SheetContent side="floating-right" className="p-0 w-full sm:max-w-md">
             {activeConversationId ? renderMessageView() : renderConversationList()}
         </SheetContent>
     </Sheet>
