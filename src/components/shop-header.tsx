@@ -24,6 +24,9 @@ import { cn } from '@/lib/utils';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { useTheme } from 'next-themes';
+import useCartStore from '@/lib/cart-store';
+import { Badge } from './ui/badge';
+import CartSheet from './cart-sheet';
 
 const navLinks = [
   { href: '/shop', label: 'Home', icon: Home },
@@ -32,6 +35,7 @@ const navLinks = [
 
 export default function ShopHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const { setTheme } = useTheme();
@@ -39,6 +43,7 @@ export default function ShopHeader() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isClient, setIsClient] = useState(false);
+  const { totalItems } = useCartStore();
 
   useEffect(() => {
     setIsClient(true);
@@ -82,6 +87,7 @@ export default function ShopHeader() {
   };
 
   return (
+    <>
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 gap-4">
         <Link href="/shop" className="flex items-center gap-2 text-xl font-bold font-headline">
@@ -119,8 +125,13 @@ export default function ShopHeader() {
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="relative" onClick={() => setIsCartOpen(true)}>
               <ShoppingCart className="h-5 w-5" />
+              {totalItems > 0 && (
+                <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center rounded-full bg-destructive p-0">
+                  {totalItems}
+                </Badge>
+              )}
               <span className="sr-only">Shopping Cart</span>
           </Button>
           {isUserLoading ? null : user && !user.isAnonymous ? (
@@ -307,5 +318,7 @@ export default function ShopHeader() {
         </div>
       )}
     </header>
+    <CartSheet isOpen={isCartOpen} onOpenChange={setIsCartOpen} />
+    </>
   );
 }
