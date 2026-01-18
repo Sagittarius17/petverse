@@ -30,39 +30,38 @@ function ShopContent() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="w-full bg-secondary min-h-screen flex items-center justify-center py-12 md:py-24">
-        <div className="container mx-auto flex flex-col items-center justify-center gap-8 px-4 md:px-6">
-          <div className="relative h-64 w-full max-w-2xl overflow-hidden rounded-xl shadow-2xl md:h-96">
-            {heroImage && (
-                <Image
-                  src={heroImage.imageUrl}
-                  alt={heroImage.description}
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  data-ai-hint={heroImage.imageHint}
-                  priority
-                />
-              )}
-          </div>
-          <div className="space-y-4 text-center">
-            <h1 className="font-headline text-3xl font-bold tracking-tighter text-foreground sm:text-4xl md:text-5xl">
-              Everything Your Pet Deserves
-            </h1>
-            <p className="max-w-[600px] text-muted-foreground md:text-xl">
-              High-quality food, engaging toys, and stylish accessories to keep your best friend happy and healthy.
-            </p>
-            <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center">
-              <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                <Link href="/shop/toys">
-                  Shop Toys
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link href="/adopt">
-                  Adopt a Pet
-                </Link>
-              </Button>
-            </div>
+      <section className="relative w-full min-h-screen flex items-center justify-center text-center text-white">
+        <div className="absolute inset-0 z-0">
+          {heroImage && (
+            <Image
+              src={heroImage.imageUrl}
+              alt={heroImage.description}
+              fill
+              style={{ objectFit: 'cover' }}
+              data-ai-hint={heroImage.imageHint}
+              priority
+            />
+          )}
+          <div className="absolute inset-0 bg-black/50 z-10"></div>
+        </div>
+        <div className="relative z-20 container mx-auto flex flex-col items-center justify-center gap-4 px-4 md:px-6">
+          <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
+            Everything Your Pet Deserves
+          </h1>
+          <p className="max-w-[600px] text-lg md:text-xl">
+            High-quality food, engaging toys, and stylish accessories to keep your best friend happy and healthy.
+          </p>
+          <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center">
+            <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
+              <Link href="/shop/toys">
+                Shop Toys
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white hover:text-black">
+              <Link href="/adopt">
+                Adopt a Pet
+              </Link>
+            </Button>
           </div>
         </div>
       </section>
