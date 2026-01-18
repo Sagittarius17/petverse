@@ -179,12 +179,6 @@ export default function ShopHeader() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/profile/wishlist">
-                    <Heart className="mr-2 h-4 w-4" />
-                    <span>Wishlist</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
                   <Link href="/profile/addresses">
                     <Home className="mr-2 h-4 w-4" />
                     <span>Address</span>
