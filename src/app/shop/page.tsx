@@ -30,16 +30,28 @@ function ShopContent() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="w-full bg-secondary py-12 md:py-24">
-        <div className="container mx-auto grid items-center gap-6 px-4 md:px-6 lg:grid-cols-2 lg:gap-10">
-          <div className="space-y-4 text-center lg:text-left">
-            <h1 className="font-headline text-3xl font-bold tracking-tighter text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
+      <section className="w-full bg-secondary min-h-screen flex items-center justify-center py-12 md:py-24">
+        <div className="container mx-auto flex flex-col items-center justify-center gap-8 px-4 md:px-6">
+          <div className="relative h-64 w-full max-w-2xl overflow-hidden rounded-xl shadow-2xl md:h-96">
+            {heroImage && (
+                <Image
+                  src={heroImage.imageUrl}
+                  alt={heroImage.description}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  data-ai-hint={heroImage.imageHint}
+                  priority
+                />
+              )}
+          </div>
+          <div className="space-y-4 text-center">
+            <h1 className="font-headline text-3xl font-bold tracking-tighter text-foreground sm:text-4xl md:text-5xl">
               Everything Your Pet Deserves
             </h1>
-            <p className="max-w-[600px] text-muted-foreground md:text-xl lg:mx-0">
+            <p className="max-w-[600px] text-muted-foreground md:text-xl">
               High-quality food, engaging toys, and stylish accessories to keep your best friend happy and healthy.
             </p>
-            <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center lg:justify-start">
+            <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center">
               <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
                 <Link href="/shop/toys">
                   Shop Toys
@@ -52,25 +64,13 @@ function ShopContent() {
               </Button>
             </div>
           </div>
-          <div className="relative h-64 w-full overflow-hidden rounded-xl shadow-2xl md:h-96">
-            {heroImage && (
-                <Image
-                  src={heroImage.imageUrl}
-                  alt={heroImage.description}
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  data-ai-hint={heroImage.imageHint}
-                  priority
-                />
-              )}
-          </div>
         </div>
       </section>
 
       {/* Sections */}
-      <section className="w-full py-12 md:py-20">
+      <section className="w-full py-12 md:py-20 bg-background">
         <div className="container px-4 md:px-6">
-          <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
+          <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
             <div className="space-y-4">
               <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">Smarter Playtime</div>
               <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">Keep Their Minds Sharp</h2>
@@ -98,7 +98,7 @@ function ShopContent() {
       
       <section className="w-full bg-secondary py-12 md:py-20">
          <div className="container px-4 md:px-6">
-          <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
+          <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
             <div className="space-y-4 lg:order-last">
               <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">Nutrition First</div>
               <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">Fuel Their Adventures</h2>
@@ -124,9 +124,9 @@ function ShopContent() {
         </div>
       </section>
 
-      <section className="w-full py-12 md:py-20">
+      <section className="w-full py-12 md:py-20 bg-background">
         <div className="container px-4 md:px-6">
-          <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
+          <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
             <div className="space-y-4">
               <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">Sweet Dreams</div>
               <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">Ultimate Comfort Zone</h2>
