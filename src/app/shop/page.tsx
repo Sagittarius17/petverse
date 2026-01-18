@@ -99,6 +99,16 @@ function ShopContent() {
       <section className="w-full bg-secondary py-12 md:py-20">
          <div className="container px-4 md:px-6">
           <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
+            <div className="space-y-4">
+              <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">Nutrition First</div>
+              <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">Fuel Their Adventures</h2>
+              <p className="text-muted-foreground md:text-xl/relaxed">
+                Give your pet the best with our range of organic and grain-free foods. Packed with high-quality proteins and essential nutrients, our formulas support everything from puppy growth to senior vitality.
+              </p>
+              <Button asChild size="lg">
+                <Link href="/shop/food">Explore Pet Food</Link>
+              </Button>
+            </div>
             <div className="relative h-80 w-full overflow-hidden rounded-xl shadow-lg">
               {foodImage && (
                 <Image
@@ -109,16 +119,6 @@ function ShopContent() {
                   data-ai-hint="dog food"
                 />
               )}
-            </div>
-            <div className="space-y-4">
-              <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">Nutrition First</div>
-              <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">Fuel Their Adventures</h2>
-              <p className="text-muted-foreground md:text-xl/relaxed">
-                Give your pet the best with our range of organic and grain-free foods. Packed with high-quality proteins and essential nutrients, our formulas support everything from puppy growth to senior vitality.
-              </p>
-              <Button asChild size="lg">
-                <Link href="/shop/food">Explore Pet Food</Link>
-              </Button>
             </div>
           </div>
         </div>
