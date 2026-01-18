@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -15,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Building, Home, Loader2, Landmark, DollarSign } from 'lucide-react';
+import { Building, Home, Loader2, Landmark, DollarSign, Wallet } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 function OrderSummary() {
@@ -87,8 +86,20 @@ function ShippingAddressStep({ onNext }: { onNext: () => void }) {
 
 function PaymentStep({ onPlaceOrder, isPlacingOrder }: { onPlaceOrder: (paymentMethod: string) => void, isPlacingOrder: boolean }) {
     const [paymentMethod, setPaymentMethod] = useState('upi');
+    const [selectedUpi, setSelectedUpi] = useState('gpay');
+    const [selectedWallet, setSelectedWallet] = useState('petverse');
 
     const buttonText = paymentMethod === 'cod' ? 'Place Order' : 'Pay & Place Order';
+
+    const handlePlaceOrderClick = () => {
+        let finalPaymentMethod = paymentMethod;
+        if (paymentMethod === 'upi') {
+            finalPaymentMethod = `UPI: ${selectedUpi.charAt(0).toUpperCase() + selectedUpi.slice(1)}`;
+        } else if (paymentMethod === 'wallet') {
+            finalPaymentMethod = `Wallet: ${selectedWallet === 'petverse' ? 'PetVerse Wallet' : 'Amazon Pay'}`;
+        }
+        onPlaceOrder(finalPaymentMethod);
+    };
 
     return (
         <div className="space-y-6">
@@ -97,37 +108,77 @@ function PaymentStep({ onPlaceOrder, isPlacingOrder }: { onPlaceOrder: (paymentM
                     <CardTitle>Payment Method</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-                        <div className="flex items-center space-x-2 rounded-md border p-4">
-                            <RadioGroupItem value="upi" id="upi" />
-                            <Label htmlFor="upi" className="flex items-center gap-2 font-medium cursor-pointer">
-                                <Landmark /> UPI / QR Code
-                            </Label>
+                    <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-4">
+                        {/* UPI */}
+                        <div className="rounded-md border p-4 has-[[data-state=checked]]:border-primary transition-colors">
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="upi" id="upi" />
+                                <Label htmlFor="upi" className="flex flex-1 items-center gap-2 font-medium cursor-pointer">
+                                    <Landmark /> UPI / QR Code
+                                </Label>
+                            </div>
+                            {paymentMethod === 'upi' && (
+                                <div className="pl-6 pt-4">
+                                    <p className="text-sm font-medium mb-2">Select UPI App</p>
+                                    <RadioGroup value={selectedUpi} onValueChange={setSelectedUpi} className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        {['gpay', 'phonepe', 'paytm'].map((app) => (
+                                            <div key={app}>
+                                                <RadioGroupItem value={app} id={app} className="peer sr-only" />
+                                                <Label htmlFor={app} className="flex h-12 items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer capitalize">
+                                                    {app === 'gpay' ? 'GPay' : app === 'phonepe' ? 'PhonePe' : 'Paytm'}
+                                                </Label>
+                                            </div>
+                                        ))}
+                                    </RadioGroup>
+                                </div>
+                            )}
                         </div>
-                        <div className="flex items-center space-x-2 rounded-md border p-4">
-                            <RadioGroupItem value="wallet" id="wallet" />
-                            <Label htmlFor="wallet" className="flex items-center gap-2 font-medium cursor-pointer">
-                                <Home /> Wallet
-                            </Label>
+
+                        {/* Wallet */}
+                        <div className="rounded-md border p-4 has-[[data-state=checked]]:border-primary transition-colors">
+                             <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="wallet" id="wallet" />
+                                <Label htmlFor="wallet" className="flex flex-1 items-center gap-2 font-medium cursor-pointer">
+                                    <Wallet /> Wallet
+                                </Label>
+                            </div>
+                            {paymentMethod === 'wallet' && (
+                                <div className="pl-6 pt-4">
+                                    <p className="text-sm font-medium mb-2">Select Wallet</p>
+                                    <RadioGroup value={selectedWallet} onValueChange={setSelectedWallet} className="grid grid-cols-2 gap-2">
+                                        {[{id: 'petverse', name: 'PetVerse Wallet'}, {id: 'amazon', name: 'Amazon Pay'}].map((wallet) => (
+                                            <div key={wallet.id}>
+                                                <RadioGroupItem value={wallet.id} id={wallet.id} className="peer sr-only" />
+                                                <Label htmlFor={wallet.id} className="flex h-12 items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer capitalize">
+                                                    {wallet.name}
+                                                </Label>
+                                            </div>
+                                        ))}
+                                    </RadioGroup>
+                                </div>
+                            )}
                         </div>
-                         <div className="flex items-center space-x-2 rounded-md border p-4">
+                        
+                        <div className="flex items-center space-x-2 rounded-md border p-4 opacity-50">
                             <RadioGroupItem value="card" id="card" disabled />
-                            <Label htmlFor="card" className="flex items-center gap-2 font-medium cursor-not-allowed text-muted-foreground">
+                            <Label htmlFor="card" className="flex items-center gap-2 font-medium cursor-not-allowed">
                                 Credit / Debit Card (coming soon)
                             </Label>
                         </div>
-                        <div className="flex items-center space-x-2 rounded-md border p-4">
-                            <RadioGroupItem value="cod" id="cod" />
-                            <Label htmlFor="cod" className="flex items-center gap-2 font-medium cursor-pointer">
-                                <DollarSign /> Cash on Delivery
-                            </Label>
+                        
+                        <div className="rounded-md border p-4 has-[[data-state=checked]]:border-primary transition-colors">
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="cod" id="cod" />
+                                <Label htmlFor="cod" className="flex flex-1 items-center gap-2 font-medium cursor-pointer">
+                                    <DollarSign /> Cash on Delivery
+                                </Label>
+                            </div>
                         </div>
                     </RadioGroup>
                 </CardContent>
             </Card>
-            <Button onClick={() => onPlaceOrder(paymentMethod)} className="w-full" disabled={isPlacingOrder}>
-                {isPlacingOrder && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isPlacingOrder ? 'Placing Order...' : buttonText}
+            <Button onClick={handlePlaceOrderClick} className="w-full" disabled={isPlacingOrder}>
+                {isPlacingOrder ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Placing Order...</> : buttonText}
             </Button>
         </div>
     )
