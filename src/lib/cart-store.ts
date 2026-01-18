@@ -4,7 +4,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { type Product } from './shop-data';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 export interface CartItem extends Product {
   quantity: number;
@@ -40,7 +40,6 @@ const useCartStore = create<CartState>()(
       subtotal: 0,
 
       addToCart: (product) => {
-        const { toast } = useToast();
         const existingItem = get().items.find((item) => item.id === product.id);
         if (existingItem) {
           get().incrementQuantity(product.id);
@@ -96,7 +95,6 @@ const useCartStore = create<CartState>()(
       },
 
       toggleWishlist: (product) => {
-        const { toast } = useToast();
         const isWishlisted = get().isWishlisted(product.id);
         if (isWishlisted) {
           set((state) => ({
