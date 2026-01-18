@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Building, Home, Loader2, Landmark } from 'lucide-react';
+import { Building, Home, Loader2, Landmark, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 function OrderSummary() {
@@ -88,6 +88,8 @@ function ShippingAddressStep({ onNext }: { onNext: () => void }) {
 function PaymentStep({ onPlaceOrder, isPlacingOrder }: { onPlaceOrder: (paymentMethod: string) => void, isPlacingOrder: boolean }) {
     const [paymentMethod, setPaymentMethod] = useState('upi');
 
+    const buttonText = paymentMethod === 'cod' ? 'Place Order' : 'Pay & Place Order';
+
     return (
         <div className="space-y-6">
             <Card>
@@ -114,12 +116,18 @@ function PaymentStep({ onPlaceOrder, isPlacingOrder }: { onPlaceOrder: (paymentM
                                 Credit / Debit Card (coming soon)
                             </Label>
                         </div>
+                        <div className="flex items-center space-x-2 rounded-md border p-4">
+                            <RadioGroupItem value="cod" id="cod" />
+                            <Label htmlFor="cod" className="flex items-center gap-2 font-medium cursor-pointer">
+                                <DollarSign /> Cash on Delivery
+                            </Label>
+                        </div>
                     </RadioGroup>
                 </CardContent>
             </Card>
             <Button onClick={() => onPlaceOrder(paymentMethod)} className="w-full" disabled={isPlacingOrder}>
                 {isPlacingOrder && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isPlacingOrder ? 'Placing Order...' : 'Place Order'}
+                {isPlacingOrder ? 'Placing Order...' : buttonText}
             </Button>
         </div>
     )
