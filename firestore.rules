@@ -312,6 +312,25 @@ service cloud.firestore {
       allow read, list: if true;
       allow create, update, delete: if isSignedIn() && isSuperuser(request.auth.uid);
     }
+
+    /* ─────────────────────────────
+       ORDERS
+    ───────────────────────────── */
+    match /orders/{orderId} {
+      // User can create their own order.
+      allow create: if createdBy('userId');
+
+      // User or an Admin can read a specific order.
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isSuperuser(request.auth.uid));
+      
+      // User can list their own orders, and Admins can list any/all orders.
+      allow list: if 
+        isSuperuser(request.auth.uid) ||
+        (isSignedIn() && request.query.get('where', [['userId', '==', request.auth.uid]])[0][2] == request.auth.uid);
+
+      // Only admins can update (e.g., to change status) or delete orders.
+      allow update, delete: if isSignedIn() && isSuperuser(request.auth.uid);
+    }
     
     /* ─────────────────────────────
        CONVERSATIONS & MESSAGES
@@ -341,5 +360,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
