@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense } from 'react';
@@ -39,14 +40,14 @@ function ShopContent() {
               High-quality food, engaging toys, and stylish accessories to keep your best friend happy and healthy.
             </p>
             <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center lg:justify-start">
-              <Button asChild size="lg" className="bg-amber-500 hover:bg-amber-600 text-amber-950">
+              <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
                 <Link href="/shop/toys">
-                  shop toys?
+                  Shop Toys
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
                 <Link href="/adopt">
-                  want to adopt a pet?
+                  Adopt a Pet
                 </Link>
               </Button>
             </div>
@@ -70,7 +71,7 @@ function ShopContent() {
       <section className="w-full py-12 md:py-20">
         <div className="container px-4 md:px-6">
           <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
-            <div className="space-y-4">
+            <div className="space-y-4 lg:order-last">
               <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">Smarter Playtime</div>
               <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">Keep Their Minds Sharp</h2>
               <p className="text-muted-foreground md:text-xl/relaxed">
@@ -126,7 +127,7 @@ function ShopContent() {
       <section className="w-full py-12 md:py-20">
         <div className="container px-4 md:px-6">
           <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
-            <div className="space-y-4">
+            <div className="space-y-4 lg:order-last">
               <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">Sweet Dreams</div>
               <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">Ultimate Comfort Zone</h2>
               <p className="text-muted-foreground md:text-xl/relaxed">
