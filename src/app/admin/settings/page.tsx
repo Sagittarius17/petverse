@@ -3,7 +3,8 @@
 
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc, setDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -17,35 +18,117 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
-import { Sun, Moon, Trees, Flower, Monitor } from 'lucide-react';
+import { Sun, Moon, Trees, Flower, Monitor, Loader2, Timer } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { maintenanceStore } from '@/lib/maintenance-store';
-import { addMinutes, addHours } from 'date-fns';
+import { differenceInSeconds, formatDuration, intervalToDuration } from 'date-fns';
+
+interface MaintenanceSettings {
+  isMaintenanceMode?: boolean;
+  bannerMessage?: string;
+  maintenanceStartTime?: string | null;
+  maintenanceEndTime?: string | null;
+}
+
+function AdminCountdown({ settings }: { settings: MaintenanceSettings | null }) {
+  const [timeLeft, setTimeLeft] = useState('');
+  const [status, setStatus] = useState<'inactive' | 'pending' | 'active'>('inactive');
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!settings) {
+        setStatus('inactive');
+        setTimeLeft('');
+        return;
+      }
+      
+      const { isMaintenanceMode, maintenanceStartTime, maintenanceEndTime } = settings;
+      const now = new Date();
+
+      if (isMaintenanceMode) {
+        setStatus('active');
+        if (maintenanceEndTime) {
+          const end = new Date(maintenanceEndTime);
+          const secondsLeft = differenceInSeconds(end, now);
+          if (secondsLeft <= 0) {
+            setTimeLeft('Ending now...');
+          } else {
+            setTimeLeft(`Active for ${formatDuration(intervalToDuration({ start: 0, end: secondsLeft * 1000 }), { format: ['hours', 'minutes', 'seconds'], zero: false, delimiter: ', ' })}`);
+          }
+        } else {
+          setTimeLeft('Active indefinitely');
+        }
+      } else if (maintenanceStartTime) {
+        const start = new Date(maintenanceStartTime);
+        if (now < start) {
+          setStatus('pending');
+          const secondsLeft = differenceInSeconds(start, now);
+          if (secondsLeft <= 0) {
+            setTimeLeft('Starting now...');
+          } else {
+            setTimeLeft(`Starts in ${formatDuration(intervalToDuration({ start: 0, end: secondsLeft * 1000 }), { format: ['hours', 'minutes', 'seconds'], zero: false, delimiter: ', ' })}`);
+          }
+        } else {
+            setStatus('inactive');
+            setTimeLeft('');
+        }
+      } else {
+        setStatus('inactive');
+        setTimeLeft('');
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [settings]);
+
+  if (status === 'inactive' || !timeLeft) {
+    return null;
+  }
+
+  return (
+    <div className={`text-sm font-medium flex items-center gap-2 ${status === 'active' ? 'text-destructive' : 'text-primary'}`}>
+       <Timer className="h-4 w-4" />
+       <span>{timeLeft}</span>
+    </div>
+  );
+}
+
 
 export default function AdminSettingsPage() {
   const { theme, setTheme } = useTheme();
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
+  const firestore = useFirestore();
 
-  const [isMaintenanceMode, setIsMaintenanceMode] = useState(maintenanceStore.getState().isMaintenanceMode || !!maintenanceStore.getState().maintenanceStartTime);
-  const [bannerMessage, setBannerMessage] = useState(maintenanceStore.getState().bannerMessage);
+  const settingsDocRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'settings', 'maintenance');
+  }, [firestore]);
+
+  const { data: maintenanceSettings, isLoading: isSettingsLoading } = useDoc<MaintenanceSettings>(settingsDocRef);
   
+  const [isMaintenanceOn, setIsMaintenanceOn] = useState(false);
+  const [message, setMessage] = useState('');
   const [scheduleHours, setScheduleHours] = useState(0);
   const [scheduleMinutes, setScheduleMinutes] = useState(0);
   const [durationHours, setDurationHours] = useState(0);
   const [durationMinutes, setDurationMinutes] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = maintenanceStore.subscribe(
-      (state) => {
-        setIsMaintenanceMode(state.isMaintenanceMode || !!state.maintenanceStartTime);
-        setBannerMessage(state.bannerMessage);
-      }
-    );
-    return unsubscribe;
-  }, []);
-
+    if (maintenanceSettings) {
+        const now = new Date();
+        const startTime = maintenanceSettings.maintenanceStartTime ? new Date(maintenanceSettings.maintenanceStartTime) : null;
+        const isActiveOrPending = maintenanceSettings.isMaintenanceMode || (startTime ? startTime > now : false);
+        
+        setIsMaintenanceOn(isActiveOrPending);
+        setMessage(maintenanceSettings.bannerMessage || 'We are performing scheduled maintenance.');
+    } else {
+        setIsMaintenanceOn(false);
+        setMessage('We are performing scheduled maintenance.');
+    }
+  }, [maintenanceSettings]);
+  
   const handleProfileSave = () => {
     toast({
       title: 'Settings Saved!',
@@ -53,58 +136,46 @@ export default function AdminSettingsPage() {
     });
   };
 
-  const handleMaintenanceToggle = (checked: boolean) => {
-    setIsMaintenanceMode(checked);
-    if (!checked) {
-      // When turning off, clear all settings from the store
-      maintenanceStore.setState({
-        isMaintenanceMode: false,
-        maintenanceStartTime: null,
-        maintenanceEndTime: null,
-      });
-      toast({
-        title: 'Maintenance Mode Disabled',
-      });
+  const handleSiteSettingsSave = async () => {
+    if (!firestore || !settingsDocRef) return;
+    setIsSubmitting(true);
+
+    try {
+        if (!isMaintenanceOn) {
+            await setDoc(settingsDocRef, {
+                isMaintenanceMode: false,
+                maintenanceStartTime: null,
+                maintenanceEndTime: null,
+                bannerMessage: message,
+            }, { merge: true });
+            toast({ title: 'Settings Saved', description: 'Maintenance mode is now disabled.' });
+            return;
+        }
+
+        const now = new Date();
+        const startOffsetMs = (scheduleHours * 60 * 60 + scheduleMinutes * 60) * 1000;
+        const durationMs = (durationHours * 60 * 60 + durationMinutes * 60) * 1000;
+
+        const calculatedStartTime = new Date(now.getTime() + startOffsetMs);
+        let calculatedEndTime: string | null = null;
+        if (durationMs > 0) {
+            calculatedEndTime = new Date(calculatedStartTime.getTime() + durationMs).toISOString();
+        }
+
+        await setDoc(settingsDocRef, {
+            isMaintenanceMode: startOffsetMs === 0,
+            maintenanceStartTime: calculatedStartTime.toISOString(),
+            maintenanceEndTime: calculatedEndTime,
+            bannerMessage: message,
+        }, { merge: true });
+
+        toast({ title: 'Settings Saved!', description: 'Maintenance schedule has been updated.' });
+    } catch (error) {
+        console.error("Error saving settings:", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not save settings.' });
+    } finally {
+        setIsSubmitting(false);
     }
-  };
-
-  const handleSiteSettingsSave = () => {
-    if (!isMaintenanceMode) {
-      // If the main switch is off, ensure everything is cleared.
-      maintenanceStore.setState({
-        isMaintenanceMode: false,
-        maintenanceStartTime: null,
-        maintenanceEndTime: null,
-      });
-      toast({
-        title: 'Settings Saved',
-        description: 'Maintenance mode remains disabled.',
-      });
-      return;
-    }
-
-    // If the switch is ON, proceed with calculations.
-    const now = new Date();
-    const startOffsetMs = (scheduleHours * 60 * 60 + scheduleMinutes * 60) * 1000;
-    const durationMs = (durationHours * 60 * 60 + durationMinutes * 60) * 1000;
-
-    const calculatedStartTime = new Date(now.getTime() + startOffsetMs);
-    let endTime: string | null = null;
-    if (durationMs > 0) {
-      endTime = new Date(calculatedStartTime.getTime() + durationMs).toISOString();
-    }
-
-    maintenanceStore.setState({ 
-        isMaintenanceMode: startOffsetMs === 0,
-        maintenanceStartTime: calculatedStartTime.toISOString(),
-        maintenanceEndTime: endTime,
-        bannerMessage: bannerMessage,
-    });
-
-    toast({
-      title: 'Settings Saved!',
-      description: 'Maintenance schedule has been updated.',
-    });
   };
 
   const handleNotificationsSave = () => {
@@ -114,7 +185,9 @@ export default function AdminSettingsPage() {
     });
   };
   
-  if (isUserLoading || !user) {
+  const isLoading = isUserLoading || isSettingsLoading;
+
+  if (isLoading || !user) {
     return (
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card><CardHeader><Skeleton className="h-5 w-24" /></CardHeader><CardContent className="space-y-4"><div className="space-y-2"><Skeleton className="h-4 w-16" /><Skeleton className="h-10 w-full" /></div><div className="space-y-2"><Skeleton className="h-4 w-16" /><Skeleton className="h-10 w-full" /></div></CardContent><CardFooter><Skeleton className="h-10 w-24" /></CardFooter></Card>
@@ -188,8 +261,8 @@ export default function AdminSettingsPage() {
           <div className="flex items-center space-x-2">
             <Switch
               id="maintenance-mode"
-              checked={isMaintenanceMode}
-              onCheckedChange={handleMaintenanceToggle}
+              checked={isMaintenanceOn}
+              onCheckedChange={setIsMaintenanceOn}
               showOnOff
             />
             <Label htmlFor="maintenance-mode" className="text-sm">
@@ -207,7 +280,7 @@ export default function AdminSettingsPage() {
                             type="number" min="0" placeholder="0"
                             value={scheduleHours || ''}
                             onChange={(e) => setScheduleHours(parseInt(e.target.value, 10) || 0)}
-                            disabled={!isMaintenanceMode}
+                            disabled={!isMaintenanceOn}
                         />
                     </div>
                     <div className="space-y-1">
@@ -217,7 +290,7 @@ export default function AdminSettingsPage() {
                             type="number" min="0" max="59" placeholder="0"
                             value={scheduleMinutes || ''}
                             onChange={(e) => setScheduleMinutes(parseInt(e.target.value, 10) || 0)}
-                            disabled={!isMaintenanceMode}
+                            disabled={!isMaintenanceOn}
                         />
                     </div>
                 </div>
@@ -232,7 +305,7 @@ export default function AdminSettingsPage() {
                             type="number" min="0" placeholder="0"
                             value={durationHours || ''}
                             onChange={(e) => setDurationHours(parseInt(e.target.value, 10) || 0)}
-                            disabled={!isMaintenanceMode}
+                            disabled={!isMaintenanceOn}
                         />
                     </div>
                     <div className="space-y-1">
@@ -242,7 +315,7 @@ export default function AdminSettingsPage() {
                             type="number" min="0" max="59" placeholder="0"
                             value={durationMinutes || ''}
                             onChange={(e) => setDurationMinutes(parseInt(e.target.value, 10) || 0)}
-                            disabled={!isMaintenanceMode}
+                            disabled={!isMaintenanceOn}
                         />
                     </div>
                 </div>
@@ -253,14 +326,18 @@ export default function AdminSettingsPage() {
                 <Input 
                   id="banner-message" 
                   placeholder="e.g., Deploying new features..."
-                  value={bannerMessage}
-                  onChange={(e) => setBannerMessage(e.target.value)}
-                  disabled={!isMaintenanceMode}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  disabled={!isMaintenanceOn}
                 />
             </div>
         </CardContent>
-        <CardFooter className="border-t px-6 py-4">
-          <Button onClick={handleSiteSettingsSave}>Save Settings</Button>
+        <CardFooter className="border-t px-6 py-4 flex items-center justify-between">
+          <Button onClick={handleSiteSettingsSave} disabled={isSubmitting}>
+             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+             Save Settings
+          </Button>
+          <AdminCountdown settings={maintenanceSettings} />
         </CardFooter>
       </Card>
 

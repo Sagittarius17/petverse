@@ -358,5 +358,16 @@ service cloud.firestore {
         allow update, delete: if false;
       }
     }
+    
+    /* ─────────────────────────────
+       SETTINGS (GLOBAL)
+    ───────────────────────────── */
+    match /settings/{settingId} {
+      // Anyone can read the settings to check for maintenance mode.
+      allow read: if true;
+      
+      // Only admins and superadmins can change the settings.
+      allow write: if isSignedIn() && isAdmin(request.auth.uid);
+    }
   }
 }
