@@ -287,7 +287,6 @@ export default function AdminSettingsPage() {
             <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
                 <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} />
-                {errors.username && <p className="text-sm text-destructive">{errors.username.message}</p>}
             </div>
             <div className="space-y-2">
                 <Label htmlFor="admin-email">Email</Label>
