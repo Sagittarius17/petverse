@@ -8,6 +8,7 @@ import {
   updateProfile,
   GoogleAuthProvider,
   signInWithPopup,
+  UserCredential,
 } from 'firebase/auth';
 import { Firestore, doc, setDoc, serverTimestamp, getDoc, writeBatch, query, collection, where, getDocs } from 'firebase/firestore';
 
@@ -63,12 +64,8 @@ export async function initiateEmailSignUp(
 }
 
 /** Initiate email/password sign-in (non-blocking). */
-export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): Promise<void> {
-  // Simplified promise handling. signInWithEmailAndPassword already returns a promise.
-  return signInWithEmailAndPassword(authInstance, email, password).then(() => {
-    // Return void on success to match the function signature.
-    return;
-  });
+export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): Promise<UserCredential> {
+  return signInWithEmailAndPassword(authInstance, email, password);
 }
 
 async function findUniqueUsername(firestore: Firestore, baseUsername: string): Promise<string> {
@@ -92,7 +89,7 @@ async function findUniqueUsername(firestore: Firestore, baseUsername: string): P
 }
 
 /** Initiate Google sign-in and create user document if new (non-blocking). */
-export async function initiateGoogleSignIn(auth: Auth, firestore: Firestore): Promise<void> {
+export async function initiateGoogleSignIn(auth: Auth, firestore: Firestore): Promise<UserCredential> {
   const provider = new GoogleAuthProvider();
   try {
     const result = await signInWithPopup(auth, provider);
@@ -130,6 +127,7 @@ export async function initiateGoogleSignIn(auth: Auth, firestore: Firestore): Pr
 
       await batch.commit();
     }
+    return result;
   } catch (error) {
     // Re-throw to be handled by the UI, without logging here.
     throw error;

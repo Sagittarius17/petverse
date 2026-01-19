@@ -13,6 +13,8 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { FirebaseError } from 'firebase/app';
 import { Separator } from '@/components/ui/separator';
+import { User } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -63,9 +65,37 @@ export default function LoginPage() {
     resolver: zodResolver(formSchema),
   });
 
+  const checkUserStatus = async (user: User) => {
+    if (!firestore) return false;
+    const userDocRef = doc(firestore, 'users', user.uid);
+    try {
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists() && userDoc.data().status === 'Inactive') {
+            return false;
+        }
+    } catch (e) {
+        console.error("Error checking user status:", e);
+        // Fail open in case of firestore read error, auth will handle it.
+    }
+    return true;
+  };
+
   const onEmailSubmit = async (data: FormValues) => {
     try {
-      await initiateEmailSignIn(auth, data.email, data.password);
+      const userCredential = await initiateEmailSignIn(auth, data.email, data.password);
+      const isActive = await checkUserStatus(userCredential.user);
+
+      if (!isActive) {
+        await auth.signOut();
+        toast({
+          variant: 'destructive',
+          title: 'Account Suspended',
+          description: "This account is inactive or has been suspended. Please contact support or create a new account.",
+          duration: 9000,
+        });
+        return;
+      }
+      
       toast({
         title: 'Login Successful',
         description: "Welcome back!",
@@ -78,7 +108,20 @@ export default function LoginPage() {
 
   const onGoogleSubmit = async () => {
     try {
-      await initiateGoogleSignIn(auth, firestore);
+      const userCredential = await initiateGoogleSignIn(auth, firestore);
+      const isActive = await checkUserStatus(userCredential.user);
+      
+      if (!isActive) {
+        await auth.signOut();
+        toast({
+          variant: 'destructive',
+          title: 'Account Suspended',
+          description: "This account is inactive or has been suspended. Please contact support or create a new account.",
+          duration: 9000,
+        });
+        return;
+      }
+
       toast({
         title: 'Login Successful',
         description: 'Welcome back!',
