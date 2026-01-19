@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -6,7 +5,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, PawPrint, Sun, Moon, Trees, Flower, Monitor, User as UserIcon, Home, Search, Heart, ChevronsDown, LogOut, ArrowLeft, Scissors, Stethoscope, Bone, HeartHandshake, ShoppingCart, Building, Shield, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useUser, useAuth } from '@/firebase';
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc, DocumentData } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -112,16 +112,33 @@ const services = [
   },
 ];
 
+interface UserProfile extends DocumentData {
+    profilePicture?: string;
+    displayName: string;
+    email: string;
+}
+
 
 export default function AdoptionHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isServicesMenuOpen, setIsServicesMenuOpen] = useState(false);
-  const { user, isUserLoading } = useUser();
+  const { user, isUserLoading: isAuthLoading } = useUser();
+  const firestore = useFirestore(); // get firestore instance
   const { setTheme } = useTheme();
   const auth = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
+
+  // Fetch user profile from firestore
+  const userDocRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [firestore, user]);
+  
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
+
+  const isUserLoading = isAuthLoading || isProfileLoading;
 
   useEffect(() => {
     setIsClient(true);
@@ -180,7 +197,7 @@ export default function AdoptionHeader() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.photoURL || undefined} alt={user.displayName || user.email || ''} />
+                    <AvatarImage src={userProfile?.profilePicture || user.photoURL || undefined} alt={userProfile?.displayName || user.displayName || user.email || ''} />
                     <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
                   </Avatar>
                 </Button>
@@ -188,7 +205,7 @@ export default function AdoptionHeader() {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.displayName || 'User'}</p>
+                    <p className="text-sm font-medium leading-none">{userProfile?.displayName || user.displayName || 'User'}</p>
                     <p className="text-xs leading-none text-muted-foreground">
                       {user.email}
                     </p>
