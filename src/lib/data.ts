@@ -78,6 +78,25 @@ export interface LostPetReport {
   reportDate?: Timestamp;
 }
 
+export interface OrderItem {
+    id: string;
+    name: string;
+    quantity: number;
+    price: number;
+}
+
+export interface Order {
+    id: string;
+    userId: string;
+    items: OrderItem[];
+    subtotal: number;
+    paymentMethod: string;
+    razorpayPaymentId: string;
+    status: 'Placed' | 'Shipped' | 'Delivered' | 'Cancelled';
+    orderDate: Timestamp;
+}
+
+
 // Re-export interfaces from initial-pet-data to maintain external access
 export type { PetCategory, PetSpecies, BreedCareDetail };
 export const petCategories = initialPetCategories;

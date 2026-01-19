@@ -578,6 +578,20 @@
         }
       },
       {
+        "path": "/users/{userId}/orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": {
+            "$ref": "#/backend/entities/Order"
+          },
+          "description": "Stores customer orders from the shop. Read access is restricted to the owner and admins.",
+          "params": [
+            { "name": "userId", "description": "The unique identifier of the user." },
+            { "name": "orderId", "description": "The unique identifier for the order." }
+          ]
+        }
+      },
+      {
         "path": "/pets/{petId}",
         "definition": {
             "entityName": "Pet",
@@ -685,22 +699,6 @@
             {
               "name": "productId",
               "description": "The unique identifier for the product."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/orders/{orderId}",
-        "definition": {
-          "entityName": "Order",
-          "schema": {
-            "$ref": "#/backend/entities/Order"
-          },
-          "description": "Stores customer orders from the shop. Read access is restricted to the owner and admins.",
-          "params": [
-            {
-              "name": "orderId",
-              "description": "The unique identifier for the order."
             }
           ]
         }

@@ -95,7 +95,7 @@ service cloud.firestore {
       // perform `get()` operations to check a user's role from another document.
       // The application UI layer MUST enforce that only Superusers and above can access the user list page.
       allow list: if
-        isSignedIn();
+        isSignedIn() && isSuperuser(request.auth.uid);
 
       // User can create only their own doc
       allow create: if
@@ -108,8 +108,7 @@ service cloud.firestore {
           // Case 1: Owner is updating their own non-privileged profile data.
           (
             isOwner(userId) &&
-            resource.data.status == 'Active' && // User must be active to update their own profile
-            // Owner can't change their own role or status
+            isActive(userId) &&
             !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status'])
           )
           ||
@@ -122,40 +121,42 @@ service cloud.firestore {
 
       // Hard delete disabled (soft delete only)
       allow delete: if false;
-    }
+      
+      /* ─────────────────────────────
+        USER SUBCOLLECTIONS
+      ───────────────────────────── */
 
-    /* ─────────────────────────────
-       USER PETS (PRIVATE DATA)
-    ───────────────────────────── */
+      match /orders/{orderId} {
+        allow create, read, list: if isOwner(userId);
+        allow update, delete: if isOwner(userId) || isSuperuser(request.auth.uid);
+      }
+      
+      match /pets/{petId} {
+        allow read, list: if
+          isOwner(userId) &&
+          isActive(request.auth.uid);
 
-    match /users/{userId}/pets/{petId} {
-      allow read, list: if
-        isOwner(userId) &&
-        isActive(request.auth.uid);
+        allow create: if
+          isOwner(userId) &&
+          isActive(request.auth.uid) &&
+          request.resource.data.userId == userId;
 
-      allow create: if
-        isOwner(userId) &&
-        isActive(request.auth.uid) &&
-        request.resource.data.userId == userId;
+        allow update: if
+          isOwner(userId) &&
+          isActive(request.auth.uid) &&
+          immutable('userId');
 
-      allow update: if
-        isOwner(userId) &&
-        isActive(request.auth.uid) &&
-        immutable('userId');
-
-      allow delete: if
-        isOwner(userId) &&
-        isActive(request.auth.uid);
-    }
-    
-    /* ─────────────────────────────
-       USER FAVORITE BREEDS (PRIVATE DATA)
-    ───────────────────────────── */
-    match /users/{userId}/favoriteBreeds/{breedId} {
-        allow read, write: if 
-            isSignedIn() &&
-            isActive(request.auth.uid) &&
-            isOwner(userId);
+        allow delete: if
+          isOwner(userId) &&
+          isActive(request.auth.uid);
+      }
+      
+      match /favoriteBreeds/{breedId} {
+          allow read, write: if 
+              isSignedIn() &&
+              isActive(request.auth.uid) &&
+              isOwner(userId);
+      }
     }
 
     /* ─────────────────────────────
@@ -296,24 +297,6 @@ service cloud.firestore {
       allow delete: if request.auth.uid != null && resource.data.uid == request.auth.uid;
       
       allow update: if false; // No reason to update a username doc.
-    }
-
-    /* ─────────────────────────────
-       ORDERS
-    ───────────────────────────── */
-    match /orders/{orderId} {
-      // User can create their own order.
-      allow create: if createdBy('userId');
-
-      // User or an Admin can read a specific order.
-      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isSuperuser(request.auth.uid));
-      
-      // Only Superusers and above can list all orders from the root collection.
-      // Regular users cannot list their own orders from this collection due to security rule limitations.
-      allow list: if isSignedIn() && isSuperuser(request.auth.uid);
-
-      // Only admins can update (e.g., to change status) or delete orders.
-      allow update, delete: if isSignedIn() && isSuperuser(request.auth.uid);
     }
     
     /* ─────────────────────────────

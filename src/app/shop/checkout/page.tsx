@@ -189,7 +189,7 @@ export default function CheckoutPage() {
 
         setIsPlacingOrder(true);
         try {
-            const ordersCollection = collection(firestore, 'orders');
+            const ordersCollection = collection(firestore, 'users', user.uid, 'orders');
             const newOrderRef = await addDoc(ordersCollection, {
                 userId: user.uid,
                 items: items.map(item => ({ id: item.id, name: item.name, quantity: item.quantity, price: item.price })),
