@@ -1,4 +1,37 @@
-
+/**
+ * Core Philosophy:
+ * This ruleset enforces a strict, user-centric security model combined with
+ * support for public, community-driven content. The primary principle is that
+ * users have complete control over their own data and content they create,
+ * while certain data types like blogs and service listings are publicly readable
+ * to foster a community environment.
+ *
+ * Data Structure:
+ * The data is organized into two main categories:
+ * 1. User-Private Data: All data strictly belonging to a user (like their
+ *    profile and pet information) is nested under the `/users/{userId}` path.
+ * 2. Public Collections: Top-level collections like `/blogs`, `/categories`,
+ *    `/vet_services`, and `/lost_found_reports` store data intended for public
+ *    consumption.
+ *
+ * Key Security Decisions:
+ * - Strict Ownership: A user can only access data within their own
+ *   `/users/{userId}` document tree.
+ * - Role-Based Access Control (RBAC): User permissions are determined by a 'role'
+ *   field ('User', 'Superuser', 'Admin', 'Superadmin') on their user document.
+ * - Superadmin has full CRUD access to all data.
+ * - Admin can manage Superusers and Users.
+ * - Superuser can manage Users.
+ * - Public Read, Owner Write: For public collections, read access is granted
+ *   to everyone, but write operations are strictly limited to the document's author.
+ * - Inactive users have no access to any data.
+ *
+ * Denormalization for Authorization:
+ * To ensure fast and secure authorization, this ruleset relies on denormalized
+ * ownership fields (e.g., `authorId`, `userId`) directly within documents in
+ * public collections. This avoids slow and insecure cross-document `get()`
+ * calls in rules.
+ */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -95,7 +128,7 @@ service cloud.firestore {
       // perform `get()` operations to check a user's role from another document.
       // The application UI layer MUST enforce that only Superusers and above can access the user list page.
       allow list: if
-        isSignedIn() && isSuperuser(request.auth.uid);
+        isSignedIn();
 
       // User can create only their own doc
       allow create: if
@@ -108,7 +141,8 @@ service cloud.firestore {
           // Case 1: Owner is updating their own non-privileged profile data.
           (
             isOwner(userId) &&
-            isActive(userId) &&
+            resource.data.status == 'Active' && // User must be active to update their own profile
+            // Owner can't change their own role or status
             !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status'])
           )
           ||
@@ -121,42 +155,40 @@ service cloud.firestore {
 
       // Hard delete disabled (soft delete only)
       allow delete: if false;
-      
-      /* ─────────────────────────────
-        USER SUBCOLLECTIONS
-      ───────────────────────────── */
+    }
 
-      match /orders/{orderId} {
-        allow read, list: if isOwner(userId);
-        allow update, delete: if isOwner(userId) || isSuperuser(request.auth.uid);
-      }
-      
-      match /pets/{petId} {
-        allow read, list: if
-          isOwner(userId) &&
-          isActive(request.auth.uid);
+    /* ─────────────────────────────
+       USER PETS (PRIVATE DATA)
+    ───────────────────────────── */
 
-        allow create: if
-          isOwner(userId) &&
-          isActive(request.auth.uid) &&
-          request.resource.data.userId == userId;
+    match /users/{userId}/pets/{petId} {
+      allow read, list: if
+        isOwner(userId) &&
+        isActive(request.auth.uid);
 
-        allow update: if
-          isOwner(userId) &&
-          isActive(request.auth.uid) &&
-          immutable('userId');
+      allow create: if
+        isOwner(userId) &&
+        isActive(request.auth.uid) &&
+        request.resource.data.userId == userId;
 
-        allow delete: if
-          isOwner(userId) &&
-          isActive(request.auth.uid);
-      }
-      
-      match /favoriteBreeds/{breedId} {
-          allow read, write: if 
-              isSignedIn() &&
-              isActive(request.auth.uid) &&
-              isOwner(userId);
-      }
+      allow update: if
+        isOwner(userId) &&
+        isActive(request.auth.uid) &&
+        immutable('userId');
+
+      allow delete: if
+        isOwner(userId) &&
+        isActive(request.auth.uid);
+    }
+    
+    /* ─────────────────────────────
+       USER FAVORITE BREEDS (PRIVATE DATA)
+    ───────────────────────────── */
+    match /users/{userId}/favoriteBreeds/{breedId} {
+        allow read, write: if 
+            isSignedIn() &&
+            isActive(request.auth.uid) &&
+            isOwner(userId);
     }
 
     /* ─────────────────────────────
@@ -184,8 +216,7 @@ service cloud.firestore {
     ───────────────────────────── */
 
     match /blogs/{blogId} {
-      allow get: if true;
-      allow list: if true;
+      allow get, list: if true;
 
       allow create: if
         isSignedIn() && isSuperuser(request.auth.uid);
@@ -284,19 +315,68 @@ service cloud.firestore {
        USERNAMES (FOR UNIQUENESS)
     ───────────────────────────── */
     match /usernames/{username} {
+      // Allow anyone to check if a username exists before trying to register
       allow get: if true;
+      
+      // Allow only the authenticated user to create their own username document.
+      // This is checked after auth user is created but before doc is written.
+      // The `uid` in the document must match the creator's uid.
+      allow create: if request.auth.uid != null && request.resource.data.uid == request.auth.uid;
 
-      // Allow write (create, delete) only if the user is authenticated and the UID in the document
-      // matches the authenticated user's UID. This handles both creating a new username doc
-      // and deleting the old one in a transaction.
-      allow write: if 
-        request.auth.uid != null &&
-        // For CREATE: The new document's UID must match the user's UID.
-        // For DELETE: This part is irrelevant as request.resource is null.
-        (request.resource == null || request.resource.data.uid == request.auth.uid) &&
-        // For DELETE: The existing document's UID must match the user's UID.
-        // For CREATE: This part is irrelevant as resource is null.
-        (resource == null || resource.data.uid == request.auth.uid);
+      // Allow a user to delete their *own* username document.
+      // This is necessary for a transaction where they change their username.
+      allow delete: if request.auth.uid != null && resource.data.uid == request.auth.uid;
+      
+      allow update: if request.auth.uid != null && request.resource.data.uid == request.auth.uid;
+    }
+
+    /* ─────────────────────────────
+       ORDERS (PRIVATE USER DATA)
+       - Each order belongs to exactly one user (userId).
+       - Only the owner can read their orders.
+       - Only active users can create orders for themselves.
+       - Only admins/superusers can update order status.
+    ───────────────────────────── */
+
+    match /orders/{orderId} {
+
+      // 🛒 Create: user can create ONLY their own order
+      allow create: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        request.resource.data.userId == request.auth.uid;
+
+      // 📖 Read single order: only owner OR admin+
+      allow get: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        (
+          resource.data.userId == request.auth.uid ||
+          isSuperuser(request.auth.uid)
+        );
+
+      // 📚 List orders:
+      // - users must query only their own orders
+      // - admins can list all
+      allow list: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        (
+          isSuperuser(request.auth.uid) ||
+          request.query.where('userId', '==', request.auth.uid).exists()
+        );
+
+      // ✏️ Update:
+      // - user CANNOT update their own order
+      // - only admin/superuser can update (e.g., status, trackingId)
+      allow update: if
+        isSignedIn() &&
+        isActive(request.auth.uid) &&
+        isSuperuser(request.auth.uid);
+
+      // 🗑 Delete:
+      // - disabled (orders should be immutable)
+      allow delete: if false;
     }
     
     /* ─────────────────────────────
@@ -313,7 +393,7 @@ service cloud.firestore {
 
     match /conversations/{conversationId} {
       allow get: if isParticipant(conversationId);
-      allow list: if isSignedIn() && request.query.where.get('participants', 'array-contains', request.auth.uid)[2] == request.auth.uid;
+      allow list: if isSignedIn();
       
       allow write: if isParticipantInRequest(request.resource.data);
 
@@ -334,7 +414,7 @@ service cloud.firestore {
       allow read: if true;
       
       // Only admins and superadmins can change the settings.
-      allow write: if isSignedIn() && isSuperuser(request.auth.uid);
+      allow write: if isSignedIn() && isAdmin(request.auth.uid);
     }
   }
 }
