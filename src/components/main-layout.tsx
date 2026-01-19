@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -17,6 +18,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
   const [estimatedTime, setEstimatedTime] = useState('');
+  const [maintenanceEndTime, setMaintenanceEndTime] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -25,16 +27,35 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     const state = maintenanceStore.getState();
     setIsMaintenanceMode(state.isMaintenanceMode);
     setEstimatedTime(state.estimatedTime);
+    setMaintenanceEndTime(state.maintenanceEndTime);
     setIsClient(true);
 
     const unsubscribe = maintenanceStore.subscribe(
       (currentState) => {
         setIsMaintenanceMode(currentState.isMaintenanceMode);
         setEstimatedTime(currentState.estimatedTime);
+        setMaintenanceEndTime(currentState.maintenanceEndTime);
       }
     );
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    if (!isClient || !isMaintenanceMode || !maintenanceEndTime) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const end = new Date(maintenanceEndTime).getTime();
+      if (now >= end) {
+        maintenanceStore.setState({ isMaintenanceMode: false, maintenanceEndTime: null, automaticToggleTime: 'manual' });
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isClient, isMaintenanceMode, maintenanceEndTime]);
 
   // On the server, and during the initial client render before the useEffect runs,
   // isClient will be false. We must render the default layout to match the server.
@@ -53,7 +74,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   // After mounting on the client, we can now safely render based on the maintenance state.
   if (isMaintenanceMode && !isAdminPage) {
-    return <MaintenancePage estimatedTime={estimatedTime} />;
+    return <MaintenancePage estimatedTime={estimatedTime} maintenanceEndTime={maintenanceEndTime} />;
   }
 
   if (isAdminPage) {

@@ -1,13 +1,55 @@
 
 'use client';
 
-import { PawPrint, Cat, Dog, Bird } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { PawPrint, Cat, Dog, Bird, Timer } from 'lucide-react';
+import { differenceInSeconds, formatDuration, intervalToDuration } from 'date-fns';
 
 interface MaintenancePageProps {
   estimatedTime?: string;
+  maintenanceEndTime?: string | null;
 }
 
-export default function MaintenancePage({ estimatedTime }: MaintenancePageProps) {
+function Countdown({ endTime }: { endTime: string }) {
+  const [timeLeft, setTimeLeft] = useState('');
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      const end = new Date(endTime);
+      const secondsLeft = differenceInSeconds(end, now);
+
+      if (secondsLeft <= 0) {
+        setTimeLeft('Refreshing now...');
+        clearInterval(interval);
+        // The main-layout component will handle turning off maintenance mode
+        return;
+      }
+
+      const duration = intervalToDuration({ start: 0, end: secondsLeft * 1000 });
+      setTimeLeft(formatDuration(duration, {
+        format: ['hours', 'minutes', 'seconds'],
+        zero: false
+      }));
+
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [endTime]);
+
+  if (!timeLeft) {
+    return null;
+  }
+
+  return (
+    <p className="mt-6 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary flex items-center gap-2">
+      <Timer className="h-4 w-4" />
+      <span>Automatically back in: {timeLeft}</span>
+    </p>
+  );
+}
+
+export default function MaintenancePage({ estimatedTime, maintenanceEndTime }: MaintenancePageProps) {
   return (
     <div className="flex h-screen w-full flex-col items-center justify-center bg-secondary/50 p-4 text-center">
       <div className="flex items-center gap-4 text-primary">
@@ -22,8 +64,10 @@ export default function MaintenancePage({ estimatedTime }: MaintenancePageProps)
       <p className="mt-4 max-w-md text-lg text-muted-foreground">
         Our team is currently performing some essential maintenance to make PetVerse even better for you and our furry friends.
       </p>
-      {estimatedTime && (
-         <p className="mt-6 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary-foreground">
+      {maintenanceEndTime ? (
+        <Countdown endTime={maintenanceEndTime} />
+      ) : estimatedTime && (
+         <p className="mt-6 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
             We expect to be back in {estimatedTime}.
         </p>
       )}
