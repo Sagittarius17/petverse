@@ -28,7 +28,7 @@ export default function AdminSettingsPage() {
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
 
-  const [isMaintenanceMode, setIsMaintenanceMode] = useState(maintenanceStore.getState().isMaintenanceMode);
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState(maintenanceStore.getState().isMaintenanceMode || !!maintenanceStore.getState().maintenanceStartTime);
   const [bannerMessage, setBannerMessage] = useState(maintenanceStore.getState().bannerMessage);
   
   const [scheduleHours, setScheduleHours] = useState(0);
@@ -53,33 +53,57 @@ export default function AdminSettingsPage() {
     });
   };
 
+  const handleMaintenanceToggle = (checked: boolean) => {
+    setIsMaintenanceMode(checked);
+    if (!checked) {
+      // When turning off, clear all settings from the store
+      maintenanceStore.setState({
+        isMaintenanceMode: false,
+        maintenanceStartTime: null,
+        maintenanceEndTime: null,
+      });
+      toast({
+        title: 'Maintenance Mode Disabled',
+      });
+    }
+  };
+
   const handleSiteSettingsSave = () => {
+    if (!isMaintenanceMode) {
+      // If the main switch is off, ensure everything is cleared.
+      maintenanceStore.setState({
+        isMaintenanceMode: false,
+        maintenanceStartTime: null,
+        maintenanceEndTime: null,
+      });
+      toast({
+        title: 'Settings Saved',
+        description: 'Maintenance mode remains disabled.',
+      });
+      return;
+    }
+
+    // If the switch is ON, proceed with calculations.
     const now = new Date();
     const startOffsetMs = (scheduleHours * 60 * 60 + scheduleMinutes * 60) * 1000;
     const durationMs = (durationHours * 60 * 60 + durationMinutes * 60) * 1000;
-    
-    let startTime = null;
-    let endTime = null;
 
-    if (isMaintenanceMode) {
-      const calculatedStartTime = new Date(now.getTime() + startOffsetMs);
-      startTime = calculatedStartTime.toISOString();
-      
-      if (durationMs > 0) {
-        endTime = new Date(calculatedStartTime.getTime() + durationMs).toISOString();
-      }
+    const calculatedStartTime = new Date(now.getTime() + startOffsetMs);
+    let endTime: string | null = null;
+    if (durationMs > 0) {
+      endTime = new Date(calculatedStartTime.getTime() + durationMs).toISOString();
     }
 
     maintenanceStore.setState({ 
-        isMaintenanceMode: isMaintenanceMode && startOffsetMs === 0, // Enter mode only if scheduled for now
-        maintenanceStartTime: startTime,
+        isMaintenanceMode: startOffsetMs === 0,
+        maintenanceStartTime: calculatedStartTime.toISOString(),
         maintenanceEndTime: endTime,
         bannerMessage: bannerMessage,
     });
 
     toast({
       title: 'Settings Saved!',
-      description: 'Site settings have been saved.',
+      description: 'Maintenance schedule has been updated.',
     });
   };
 
@@ -90,9 +114,6 @@ export default function AdminSettingsPage() {
     });
   };
   
-  const isCurrentlyInMaintenanceOrScheduled = maintenanceStore.getState().isMaintenanceMode || !!maintenanceStore.getState().maintenanceStartTime;
-
-
   if (isUserLoading || !user) {
     return (
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -168,7 +189,7 @@ export default function AdminSettingsPage() {
             <Switch
               id="maintenance-mode"
               checked={isMaintenanceMode}
-              onCheckedChange={setIsMaintenanceMode}
+              onCheckedChange={handleMaintenanceToggle}
               showOnOff
             />
             <Label htmlFor="maintenance-mode" className="text-sm">

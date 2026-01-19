@@ -23,11 +23,11 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     // This effect runs only on the client, after the component has mounted.
     setIsClient(true);
-    // Immediately set the state from the store in case it was updated in another tab
-    setMaintenanceState(maintenanceStore.getState());
     
-    // Subscribe to future changes
+    // Subscribe to future changes and set the initial state.
     const unsubscribe = maintenanceStore.subscribe(setMaintenanceState);
+    setMaintenanceState(maintenanceStore.getState()); // Ensure state is synced after hydration
+    
     return unsubscribe;
   }, []);
 
