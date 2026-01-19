@@ -1,12 +1,12 @@
-
 'use client';
 
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { type Product } from '@/lib/shop-data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { ShoppingCart, Heart } from 'lucide-react';
+import { ShoppingCart, Heart, Zap } from 'lucide-react';
 import useCartStore from '@/lib/cart-store';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/localization';
@@ -16,6 +16,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const router = useRouter();
   const image = PlaceHolderImages.find(p => p.id === product.imageId);
   const { addToCart, toggleWishlist, isWishlisted } = useCartStore();
 
@@ -27,6 +28,12 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleToggleWishlist = (e: React.MouseEvent) => {
     e.stopPropagation();
     toggleWishlist(product);
+  };
+  
+  const handleBuyNow = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    addToCart(product);
+    router.push('/shop/checkout');
   };
 
   const wishlisted = isWishlisted(product.id);
@@ -54,17 +61,22 @@ export default function ProductCard({ product }: ProductCardProps) {
         <CardDescription className="text-sm text-muted-foreground line-clamp-2">{product.description}</CardDescription>
         <p className="mt-2 text-lg font-semibold">{formatCurrency(product.price)}</p>
       </CardContent>
-      <CardFooter className="p-4 pt-0 flex gap-2">
-        <Button className="w-full" onClick={handleAddToCart}>
-          <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
-        </Button>
-        <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={handleToggleWishlist}
-            className={cn(wishlisted && 'border-red-500 hover:bg-red-500/10')}
-        >
-          <Heart className={cn("h-5 w-5", wishlisted ? "text-red-500 fill-red-500" : "text-muted-foreground")} />
+      <CardFooter className="p-4 pt-0 flex flex-col gap-2">
+        <div className="flex w-full items-center gap-2">
+            <Button className="flex-1" onClick={handleAddToCart}>
+                <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
+            </Button>
+            <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={handleToggleWishlist}
+                className={cn(wishlisted && 'border-red-500 hover:bg-red-500/10')}
+            >
+                <Heart className={cn("h-5 w-5", wishlisted ? "text-red-500 fill-red-500" : "text-muted-foreground")} />
+            </Button>
+        </div>
+        <Button variant="secondary" className="w-full" onClick={handleBuyNow}>
+            <Zap className="mr-2 h-4 w-4" /> Buy Now
         </Button>
       </CardFooter>
     </Card>
