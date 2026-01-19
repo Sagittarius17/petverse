@@ -3,20 +3,26 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import useCartStore, { type CartItem } from '@/lib/cart-store';
+import Script from 'next/script';
+import useCartStore from '@/lib/cart-store';
 import { useUser, useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Building, Home, Loader2, Landmark, DollarSign, Wallet } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { formatCurrency } from '@/lib/localization';
+import { formatCurrency, config as localizationConfig } from '@/lib/localization';
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 function OrderSummary() {
     const { items, subtotal } = useCartStore();
@@ -52,7 +58,6 @@ function OrderSummary() {
 }
 
 function ShippingAddressStep({ onNext }: { onNext: () => void }) {
-    // This would fetch saved addresses for a logged-in user
     return (
         <div className="space-y-6">
             <Card>
@@ -85,21 +90,59 @@ function ShippingAddressStep({ onNext }: { onNext: () => void }) {
     )
 }
 
-function PaymentStep({ onPlaceOrder, isPlacingOrder }: { onPlaceOrder: (paymentMethod: string) => void, isPlacingOrder: boolean }) {
-    const [paymentMethod, setPaymentMethod] = useState('upi');
-    const [selectedUpi, setSelectedUpi] = useState('gpay');
-    const [selectedWallet, setSelectedWallet] = useState('petverse');
+function PaymentStep({ onPlaceOrder, isPlacingOrder }: { onPlaceOrder: (paymentMethod: string, razorpayPaymentId?: string) => void, isPlacingOrder: boolean }) {
+    const { subtotal } = useCartStore();
+    const { user } = useUser();
+    const { toast } = useToast();
 
-    const buttonText = paymentMethod === 'cod' ? 'Place Order' : 'Pay & Place Order';
-
-    const handlePlaceOrderClick = () => {
-        let finalPaymentMethod = paymentMethod;
-        if (paymentMethod === 'upi') {
-            finalPaymentMethod = `UPI: ${selectedUpi.charAt(0).toUpperCase() + selectedUpi.slice(1)}`;
-        } else if (paymentMethod === 'wallet') {
-            finalPaymentMethod = `Wallet: ${selectedWallet === 'petverse' ? 'PetVerse Wallet' : 'Amazon Pay'}`;
+    const handlePayment = async () => {
+        const key = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+        if (!key || key === 'YOUR_RAZORPAY_KEY_ID') {
+            toast({
+                variant: 'destructive',
+                title: 'Configuration Error',
+                description: 'Razorpay Key ID is not configured. Please contact support.',
+            });
+            return;
         }
-        onPlaceOrder(finalPaymentMethod);
+        
+        const options = {
+            key,
+            amount: subtotal * 100 * localizationConfig.priceMultiplier,
+            currency: localizationConfig.currency,
+            name: "PetVerse",
+            description: "Order Payment",
+            image: "https://picsum.photos/seed/petverse-logo/128/128",
+            handler: function (response: any) {
+                onPlaceOrder('Razorpay', response.razorpay_payment_id);
+            },
+            prefill: {
+                name: user?.displayName || "",
+                email: user?.email || "",
+            },
+            theme: {
+                color: "#3B82F6"
+            }
+        };
+
+        if (!window.Razorpay) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Razorpay SDK could not be loaded. Please check your connection and try again."
+            });
+            return;
+        }
+
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', function (response: any){
+            toast({
+                variant: 'destructive',
+                title: 'Payment Failed',
+                description: response.error.description || 'An unknown error occurred.',
+            });
+        });
+        rzp.open();
     };
 
     return (
@@ -108,79 +151,16 @@ function PaymentStep({ onPlaceOrder, isPlacingOrder }: { onPlaceOrder: (paymentM
                 <CardHeader>
                     <CardTitle>Payment Method</CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-4">
-                        {/* UPI */}
-                        <div className="rounded-md border p-4 has-[[data-state=checked]]:border-primary transition-colors">
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="upi" id="upi" />
-                                <Label htmlFor="upi" className="flex flex-1 items-center gap-2 font-medium cursor-pointer">
-                                    <Landmark /> UPI / QR Code
-                                </Label>
-                            </div>
-                            {paymentMethod === 'upi' && (
-                                <div className="pl-6 pt-4">
-                                    <p className="text-sm font-medium mb-2">Select UPI App</p>
-                                    <RadioGroup value={selectedUpi} onValueChange={setSelectedUpi} className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                        {['gpay', 'phonepe', 'paytm'].map((app) => (
-                                            <div key={app}>
-                                                <RadioGroupItem value={app} id={app} className="peer sr-only" />
-                                                <Label htmlFor={app} className="flex h-12 items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer capitalize">
-                                                    {app === 'gpay' ? 'GPay' : app === 'phonepe' ? 'PhonePe' : 'Paytm'}
-                                                </Label>
-                                            </div>
-                                        ))}
-                                    </RadioGroup>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Wallet */}
-                        <div className="rounded-md border p-4 has-[[data-state=checked]]:border-primary transition-colors">
-                             <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="wallet" id="wallet" />
-                                <Label htmlFor="wallet" className="flex flex-1 items-center gap-2 font-medium cursor-pointer">
-                                    <Wallet /> Wallet
-                                </Label>
-                            </div>
-                            {paymentMethod === 'wallet' && (
-                                <div className="pl-6 pt-4">
-                                    <p className="text-sm font-medium mb-2">Select Wallet</p>
-                                    <RadioGroup value={selectedWallet} onValueChange={setSelectedWallet} className="grid grid-cols-2 gap-2">
-                                        {[{id: 'petverse', name: 'PetVerse Wallet'}, {id: 'amazon', name: 'Amazon Pay'}].map((wallet) => (
-                                            <div key={wallet.id}>
-                                                <RadioGroupItem value={wallet.id} id={wallet.id} className="peer sr-only" />
-                                                <Label htmlFor={wallet.id} className="flex h-12 items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer capitalize">
-                                                    {wallet.name}
-                                                </Label>
-                                            </div>
-                                        ))}
-                                    </RadioGroup>
-                                </div>
-                            )}
-                        </div>
-                        
-                        <div className="flex items-center space-x-2 rounded-md border p-4 opacity-50">
-                            <RadioGroupItem value="card" id="card" disabled />
-                            <Label htmlFor="card" className="flex items-center gap-2 font-medium cursor-not-allowed">
-                                Credit / Debit Card (coming soon)
-                            </Label>
-                        </div>
-                        
-                        <div className="rounded-md border p-4 has-[[data-state=checked]]:border-primary transition-colors">
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="cod" id="cod" />
-                                <Label htmlFor="cod" className="flex flex-1 items-center gap-2 font-medium cursor-pointer">
-                                    <DollarSign /> Cash on Delivery
-                                </Label>
-                            </div>
-                        </div>
-                    </RadioGroup>
+                <CardContent className="space-y-4">
+                    <p className="text-muted-foreground">You will be redirected to Razorpay to complete your purchase securely.</p>
+                    <div className="rounded-md border p-4 flex items-center justify-center bg-background">
+                       <svg width="120" viewBox="0 0 110 26" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M78.625 20.732H88.055L79.522 13.016L87.875 5.48H78.341L73.13 10.976L67.886 5.48H58.456L67.022 13.016L58.636 20.732H68.169L73.13 15.728L78.625 20.732Z" fill="#3B82F6"></path><path d="M51.936 12.215C51.936 9.215 50.436 7.028 47.103 7.028C45.836 7.028 44.753 7.379 43.853 8.015L44.553 10.229C45.286 9.879 46.153 9.665 47.07 9.665C48.336 9.665 48.97 10.532 48.97 11.665V11.848C45.036 11.498 42.453 13.032 42.453 15.682C42.453 17.615 43.786 18.982 46.036 18.982C47.603 18.982 48.87 18.348 49.67 17.515L48.653 15.532C48.053 16.032 47.186 16.348 46.32 16.348C45.32 16.348 44.886 15.848 44.886 15.115C44.886 14.132 45.886 13.682 48.136 13.615H51.936V12.215Z" fill="#526484"></path><path d="M37.885 5.48H26.385V20.732H37.885V18.132H29.352V14.048H36.985V11.448H29.352V7.996H37.885V5.48Z" fill="#526484"></path><path d="M21.921 5.48L15.354 20.732H12.354L5.788 5.48H8.988L13.838 17.449L18.721 5.48H21.921Z" fill="#526484"></path><path d="M107.5 12.9C107.5 7.9 103.5 4 98.5 4S89.5 7.9 89.5 12.9C89.5 17.9 93.5 21.8 98.5 21.8S107.5 17.9 107.5 12.9ZM92.5 12.9C92.5 9.4 95.2 6.7 98.5 6.7S104.5 9.4 104.5 12.9C104.5 16.4 101.8 19.1 98.5 19.1S92.5 16.4 92.5 12.9Z" fill="#526484"></path></svg>
+                    </div>
+                    <Button onClick={handlePayment} className="w-full mt-4" disabled={isPlacingOrder}>
+                        {isPlacingOrder ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Processing...</> : 'Pay with Razorpay'}
+                    </Button>
                 </CardContent>
             </Card>
-            <Button onClick={handlePlaceOrderClick} className="w-full" disabled={isPlacingOrder}>
-                {isPlacingOrder ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Placing Order...</> : buttonText}
-            </Button>
         </div>
     )
 }
@@ -200,7 +180,7 @@ export default function CheckoutPage() {
         }
     }, [items, isPlacingOrder, router]);
     
-    const handlePlaceOrder = async (paymentMethod: string) => {
+    const handlePlaceOrder = async (paymentMethod: string, razorpayPaymentId?: string) => {
         if (!user || !firestore) {
             toast({ variant: 'destructive', title: 'You must be logged in to place an order.' });
             router.push('/login?redirect=/shop/checkout');
@@ -210,17 +190,18 @@ export default function CheckoutPage() {
         setIsPlacingOrder(true);
         try {
             const ordersCollection = collection(firestore, 'orders');
-            await addDoc(ordersCollection, {
+            const newOrderRef = await addDoc(ordersCollection, {
                 userId: user.uid,
                 items: items.map(item => ({ id: item.id, name: item.name, quantity: item.quantity, price: item.price })),
                 subtotal: subtotal,
                 paymentMethod: paymentMethod,
+                razorpayPaymentId: razorpayPaymentId || null,
                 status: 'Placed',
                 orderDate: serverTimestamp(),
             });
 
             clearCart();
-            router.push('/shop/checkout/success');
+            router.push(`/shop/checkout/success?orderId=${newOrderRef.id}`);
         } catch (error) {
             console.error("Error placing order:", error);
             toast({ variant: 'destructive', title: 'Order Failed', description: 'There was an error placing your order. Please try again.' });
@@ -238,27 +219,33 @@ export default function CheckoutPage() {
     }
 
     return (
-        <div className="container mx-auto px-4 py-12 max-w-4xl">
-            <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tight text-center mb-8">Checkout</h1>
-            <div className="grid md:grid-cols-2 gap-8 items-start">
-                <div className="md:order-2">
-                    <OrderSummary />
-                </div>
-                <div className="md:order-1">
-                    <Tabs value={step} onValueChange={setStep} className="w-full">
-                        <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="address" disabled={isPlacingOrder}>Shipping</TabsTrigger>
-                            <TabsTrigger value="payment" disabled={isPlacingOrder}>Payment</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="address" className="mt-6">
-                            <ShippingAddressStep onNext={() => setStep('payment')} />
-                        </TabsContent>
-                        <TabsContent value="payment" className="mt-6">
-                            <PaymentStep onPlaceOrder={handlePlaceOrder} isPlacingOrder={isPlacingOrder} />
-                        </TabsContent>
-                    </Tabs>
+        <>
+            <Script
+                id="razorpay-checkout-js"
+                src="https://checkout.razorpay.com/v1/checkout.js"
+            />
+            <div className="container mx-auto px-4 py-12 max-w-4xl">
+                <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tight text-center mb-8">Checkout</h1>
+                <div className="grid md:grid-cols-2 gap-8 items-start">
+                    <div className="md:order-2">
+                        <OrderSummary />
+                    </div>
+                    <div className="md:order-1">
+                        <Tabs value={step} onValueChange={setStep} className="w-full">
+                            <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="address" disabled={isPlacingOrder}>Shipping</TabsTrigger>
+                                <TabsTrigger value="payment" disabled={isPlacingOrder}>Payment</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="address" className="mt-6">
+                                <ShippingAddressStep onNext={() => setStep('payment')} />
+                            </TabsContent>
+                            <TabsContent value="payment" className="mt-6">
+                                <PaymentStep onPlaceOrder={handlePlaceOrder} isPlacingOrder={isPlacingOrder} />
+                            </TabsContent>
+                        </Tabs>
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
     )
 }

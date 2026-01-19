@@ -432,6 +432,7 @@
         },
         "subtotal": { "type": "number" },
         "paymentMethod": { "type": "string" },
+        "razorpayPaymentId": { "type": "string", "description": "The payment ID from Razorpay." },
         "status": { "type": "string", "enum": ["Placed", "Shipped", "Delivered", "Cancelled"] },
         "orderDate": { "type": "string", "format": "date-time" }
       },
