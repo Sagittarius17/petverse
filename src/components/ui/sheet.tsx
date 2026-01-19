@@ -42,7 +42,7 @@ const sheetVariants = cva(
         right:
           "inset-y-0 right-0 h-full w-full border-l p-6 data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-md",
         "floating-right":
-          "bottom-4 right-4 rounded-lg border w-full h-[70vh] max-h-[600px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:max-w-md",
+          "inset-0 h-full w-full rounded-none border-0 sm:inset-auto sm:bottom-4 sm:right-4 sm:h-[70vh] sm:max-h-[600px] sm:w-full sm:max-w-md sm:rounded-lg sm:border data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
       },
     },
     defaultVariants: {

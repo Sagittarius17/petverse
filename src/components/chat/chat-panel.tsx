@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -601,7 +600,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-        <SheetContent side="floating-right" className="p-0 w-full sm:max-w-md">
+        <SheetContent side="floating-right" className="p-0">
             {activeConversationId ? renderMessageView() : renderConversationList()}
         </SheetContent>
     </Sheet>
