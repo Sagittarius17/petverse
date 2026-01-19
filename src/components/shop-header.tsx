@@ -173,7 +173,7 @@ export default function ShopHeader() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/profile/orders">
+                  <Link href="/shop/order">
                     <Package className="mr-2 h-4 w-4" />
                     <span>Orders</span>
                   </Link>

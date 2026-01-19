@@ -34,7 +34,7 @@ function SuccessContent() {
                             <Link href="/shop">Continue Shopping</Link>
                         </Button>
                          <Button asChild variant="outline">
-                            <Link href="/profile/orders">View My Orders</Link>
+                            <Link href="/shop/order">View My Orders</Link>
                         </Button>
                     </div>
                 </CardContent>
