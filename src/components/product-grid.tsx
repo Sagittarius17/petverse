@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -8,18 +7,22 @@ import ProductCard from '@/components/product-card';
 import ProductFilters from '@/components/product-filters';
 import { PawPrint } from 'lucide-react';
 
+const MAX_PRICE_SLIDER = 65; // Matches the value in ProductFilters
+
 export default function ProductGrid() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('q');
 
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState<[number]>([100]);
+  const [priceRange, setPriceRange] = useState<[number]>([MAX_PRICE_SLIDER]);
   const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
 
   const filteredProducts = useMemo(() => {
     return allProducts.filter(product => {
       const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(product.category);
-      const matchesPrice = product.price <= priceRange[0];
+      
+      const matchesPrice = priceRange[0] >= MAX_PRICE_SLIDER ? true : product.price <= priceRange[0];
+
       const matchesRating = selectedRatings.length === 0 || selectedRatings.includes(Math.round(product.rating || 0));
       const matchesSearch = !searchQuery || product.name.toLowerCase().includes(searchQuery.toLowerCase()) || product.description.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesPrice && matchesRating && matchesSearch;

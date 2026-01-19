@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { formatCurrency } from '@/lib/localization';
+import { formatCurrency, config } from '@/lib/localization';
 
 interface ProductFiltersProps {
   selectedCategories: string[];
@@ -20,6 +20,7 @@ interface ProductFiltersProps {
 
 const categories = ['Food', 'Toys', 'Accessories', 'Bedding'];
 const ratings = [5, 4, 3, 2, 1];
+const MAX_PRICE_SLIDER = 65; // This value will represent "5000+"
 
 export default function ProductFilters({
   selectedCategories,
@@ -48,8 +49,21 @@ export default function ProductFilters({
   
   const clearFilters = () => {
     setSelectedCategories([]);
-    setPriceRange([100]);
+    setPriceRange([MAX_PRICE_SLIDER]);
     setSelectedRatings([]);
+  };
+
+  const displayPriceLabel = () => {
+    if (priceRange[0] >= MAX_PRICE_SLIDER) {
+      const formatter = new Intl.NumberFormat(config.locale, {
+        style: 'currency',
+        currency: config.currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      });
+      return `${formatter.format(5000)}+`;
+    }
+    return `Up to ${formatCurrency(priceRange[0])}`;
   };
 
   return (
@@ -82,13 +96,13 @@ export default function ProductFilters({
         <CardContent>
           <Slider
             min={0}
-            max={100}
+            max={MAX_PRICE_SLIDER}
             step={5}
             value={priceRange}
             onValueChange={(value) => setPriceRange(value as [number])}
           />
           <div className="mt-2 text-sm text-muted-foreground">
-            Up to {formatCurrency(priceRange[0])}
+            {displayPriceLabel()}
           </div>
         </CardContent>
       </Card>
