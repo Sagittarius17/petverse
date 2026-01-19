@@ -334,7 +334,7 @@ service cloud.firestore {
       allow read: if true;
       
       // Only admins and superadmins can change the settings.
-      allow write: if isSignedIn() && isAdmin(request.auth.uid);
+      allow write: if isSignedIn() && isSuperuser(request.auth.uid);
     }
   }
 }
