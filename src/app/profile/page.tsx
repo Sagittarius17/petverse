@@ -7,7 +7,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Edit, LogOut, Trash2, Eye, PlusCircle, Heart, Tag } from 'lucide-react';
+import { Edit, LogOut, Trash2, Eye, EyeOff, PlusCircle, Heart, Tag } from 'lucide-react';
 import PetCard from '@/components/pet-card';
 import { type Pet, type PetBreed } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -86,6 +86,7 @@ export default function ProfilePage() {
   const [favoritedBreeds, setFavoritedBreeds] = useState<PetBreed[]>([]);
   const [isFavoritesLoading, setIsFavoritesLoading] = useState(true);
   const [selectedBreed, setSelectedBreed] = useState<PetBreed | null>(null);
+  const [isIdVisible, setIsIdVisible] = useState(false);
   
   const userDocRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -299,6 +300,15 @@ export default function ProfilePage() {
         <div className="text-center sm:text-left flex-grow">
           <h1 className="text-3xl sm:text-4xl font-bold font-headline">{userProfile?.displayName || user.displayName || 'Anonymous User'}</h1>
           <p className="text-muted-foreground mt-1">@{userProfile?.username || user.email?.split('@')[0]}</p>
+          <div className="flex items-center gap-2 mt-2 justify-center sm:justify-start">
+            <p className="text-sm text-muted-foreground font-mono">
+              {isIdVisible ? user.uid : 'UID: ••••••••••••••••••••••••••••'}
+            </p>
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsIdVisible(!isIdVisible)}>
+              {isIdVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              <span className="sr-only">Toggle User ID visibility</span>
+            </Button>
+          </div>
           <p className="mt-4 max-w-prose">
             {userProfile?.bio || 'A passionate animal lover and advocate for pet adoption. In my free time, I volunteer at the local shelter and enjoy long walks with my two rescue dogs.'}
           </p>
