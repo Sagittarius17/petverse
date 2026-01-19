@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
-import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc, setDoc, getDoc, writeBatch } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -132,6 +131,8 @@ export default function AdminSettingsPage() {
   const [username, setUsername] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isProfileSubmitting, setIsProfileSubmitting] = useState(false);
+
 
   useEffect(() => {
     if (maintenanceSettings) {
@@ -153,25 +154,59 @@ export default function AdminSettingsPage() {
   
   const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !auth.currentUser) return;
+    if (!user || !auth.currentUser || !firestore) return;
 
-    setIsSubmitting(true);
+    setIsProfileSubmitting(true);
     try {
-        // Update Auth profile
+        const userDocRef = doc(firestore, 'users', user.uid);
+        
+        // Handle display name change
         if (auth.currentUser.displayName !== displayName) {
             await updateProfile(auth.currentUser, { displayName });
         }
-        // Update Firestore user document
-        updateDocumentNonBlocking(doc(firestore, 'users', user.uid), { displayName });
+        
+        const firestoreUpdates: any = { displayName: displayName };
+
+        // Handle username change
+        if (username !== userProfile?.username) {
+            const newUsernameRef = doc(firestore, 'usernames', username);
+            const newUsernameSnap = await getDoc(newUsernameRef);
+
+            if (newUsernameSnap.exists()) {
+                toast({ variant: 'destructive', title: 'Username Taken', description: 'This username is already in use.' });
+                setIsProfileSubmitting(false);
+                return;
+            }
+
+            const batch = writeBatch(firestore);
+            // Delete old username doc
+            if (userProfile?.username) {
+                const oldUsernameRef = doc(firestore, 'usernames', userProfile.username);
+                batch.delete(oldUsernameRef);
+            }
+            // Create new username doc
+            batch.set(newUsernameRef, { uid: user.uid });
+            // Add username to user doc update object
+            firestoreUpdates.username = username;
+            
+            // Update user doc and username doc in a batch
+            batch.update(userDocRef, firestoreUpdates);
+            await batch.commit();
+
+        } else {
+            // Only update the user document if username hasn't changed
+            await updateDoc(userDocRef, firestoreUpdates);
+        }
+
         toast({
             title: 'Profile Saved!',
-            description: 'Your display name has been updated.',
+            description: 'Your profile has been updated.',
         });
     } catch (error) {
         toast({ variant: 'destructive', title: 'Error', description: 'Could not update profile.' });
         console.error(error);
     } finally {
-        setIsSubmitting(false);
+        setIsProfileSubmitting(false);
     }
   };
 
@@ -251,7 +286,7 @@ export default function AdminSettingsPage() {
             </div>
             <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
-                <Input id="username" value={username} readOnly disabled />
+                <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="admin-email">Email</Label>
@@ -259,7 +294,10 @@ export default function AdminSettingsPage() {
             </div>
             </CardContent>
             <CardFooter className="border-t px-6 py-4">
-                <Button type="submit" disabled={isSubmitting}>Save Profile</Button>
+                <Button type="submit" disabled={isProfileSubmitting}>
+                  {isProfileSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Save Profile
+                </Button>
             </CardFooter>
         </form>
       </Card>
