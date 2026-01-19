@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Building, Home, Loader2, Landmark, DollarSign, Wallet } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { formatCurrency } from '@/lib/localization';
 
 function OrderSummary() {
     const { items, subtotal } = useCartStore();
@@ -36,14 +37,14 @@ function OrderSummary() {
                                 <p className="font-semibold">{item.name}</p>
                                 <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
                             </div>
-                            <p className="font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
+                            <p className="font-semibold">{formatCurrency(item.price * item.quantity)}</p>
                         </div>
                     )
                 })}
                 <Separator />
                 <div className="flex justify-between font-bold">
                     <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span>{formatCurrency(subtotal)}</span>
                 </div>
             </CardContent>
         </Card>

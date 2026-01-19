@@ -5,6 +5,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Heart, DollarSign } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { formatCurrency } from '@/lib/localization';
 
 const oneTimeTiers = [
   { amount: 10, description: 'Provides a bag of food for a shelter pet.', id: 'one-time-10' },
@@ -79,9 +80,9 @@ export default function DonatePage() {
                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         {oneTimeTiers.map(tier => (
                             <Card key={tier.id} className="text-center p-4 flex flex-col items-center justify-between">
-                                <p className="text-4xl font-bold text-primary">${tier.amount}</p>
+                                <p className="text-4xl font-bold text-primary">{formatCurrency(tier.amount)}</p>
                                 <p className="text-sm text-muted-foreground my-4 flex-grow">{tier.description}</p>
-                                <Button className="w-full">Donate ${tier.amount}</Button>
+                                <Button className="w-full">Donate {formatCurrency(tier.amount)}</Button>
                             </Card>
                         ))}
                     </div>
@@ -90,7 +91,7 @@ export default function DonatePage() {
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         {monthlyTiers.map(tier => (
                             <Card key={tier.id} className="text-center p-4 flex flex-col items-center justify-between">
-                                <p className="text-4xl font-bold text-accent">${tier.amount}<span className="text-base font-normal text-muted-foreground">/mo</span></p>
+                                <p className="text-4xl font-bold text-accent">{formatCurrency(tier.amount)}<span className="text-base font-normal text-muted-foreground">/mo</span></p>
                                 <p className="text-sm text-muted-foreground my-4 flex-grow">{tier.description}</p>
                                 <Button variant="secondary" className="w-full">Sponsor</Button>
                             </Card>

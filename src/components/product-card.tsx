@@ -9,6 +9,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ShoppingCart, Heart } from 'lucide-react';
 import useCartStore from '@/lib/cart-store';
 import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/lib/localization';
 
 interface ProductCardProps {
   product: Product;
@@ -51,7 +52,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           {product.name}
         </CardTitle>
         <CardDescription className="text-sm text-muted-foreground line-clamp-2">{product.description}</CardDescription>
-        <p className="mt-2 text-lg font-semibold">${product.price.toFixed(2)}</p>
+        <p className="mt-2 text-lg font-semibold">{formatCurrency(product.price)}</p>
       </CardContent>
       <CardFooter className="p-4 pt-0 flex gap-2">
         <Button className="w-full" onClick={handleAddToCart}>

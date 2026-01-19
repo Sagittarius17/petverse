@@ -11,6 +11,7 @@ import useCartStore from '@/lib/cart-store';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Trash2, Plus, Minus, ShoppingCart, Heart, Forward } from 'lucide-react';
 import type { Product } from '@/lib/shop-data';
+import { formatCurrency } from '@/lib/localization';
 
 interface CartSheetProps {
   isOpen: boolean;
@@ -71,7 +72,7 @@ export default function CartSheet({ isOpen, onOpenChange }: CartSheetProps) {
                           </div>
                           <div className="flex-1">
                             <p className="font-semibold">{item.name}</p>
-                            <p className="text-sm text-muted-foreground">${item.price.toFixed(2)}</p>
+                            <p className="text-sm text-muted-foreground">{formatCurrency(item.price)}</p>
                             <div className="flex items-center gap-2 mt-2">
                               <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => decrementQuantity(item.id)}>
                                 <Minus className="h-4 w-4" />
@@ -83,7 +84,7 @@ export default function CartSheet({ isOpen, onOpenChange }: CartSheetProps) {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold">${(item.price * item.quantity).toFixed(2)}</p>
+                            <p className="font-bold">{formatCurrency(item.price * item.quantity)}</p>
                             <Button variant="ghost" size="icon" className="h-8 w-8 mt-2 text-muted-foreground hover:text-destructive" onClick={() => removeFromCart(item.id)}>
                                 <Trash2 className="h-4 w-4" />
                             </Button>
@@ -97,7 +98,7 @@ export default function CartSheet({ isOpen, onOpenChange }: CartSheetProps) {
                   <div>
                     <div className="flex justify-between text-lg font-semibold">
                         <span>Subtotal</span>
-                        <span>${subtotal.toFixed(2)}</span>
+                        <span>{formatCurrency(subtotal)}</span>
                     </div>
                     <SheetDescription>
                         Shipping and taxes calculated at checkout.
@@ -130,7 +131,7 @@ export default function CartSheet({ isOpen, onOpenChange }: CartSheetProps) {
                           </div>
                            <div className="flex-1">
                             <p className="font-semibold">{item.name}</p>
-                            <p className="text-sm text-muted-foreground">${item.price.toFixed(2)}</p>
+                            <p className="text-sm text-muted-foreground">{formatCurrency(item.price)}</p>
                             <div className="flex items-center gap-2 mt-2">
                                 <Button size="sm" onClick={() => handleMoveToCart(item)}>
                                     <Forward className="mr-2 h-4 w-4" /> Move to Cart

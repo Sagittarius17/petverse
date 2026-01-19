@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Mail, Phone, MapPin, Loader2 } from 'lucide-react';
+import { config } from '@/lib/localization';
 
 const contactFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -58,11 +59,11 @@ export default function ContactPage() {
                     </div>
                     <div className="flex items-center gap-4">
                         <Phone className="h-6 w-6 text-primary" />
-                        <span>(555) 123-4567</span>
+                        <span>{config.contact.phone}</span>
                     </div>
                     <div className="flex items-center gap-4">
                         <MapPin className="h-6 w-6 text-primary" />
-                        <span>123 Pet Lane, Animal City, USA</span>
+                        <span>{config.contact.address}</span>
                     </div>
                 </div>
             </div>
