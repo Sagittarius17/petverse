@@ -29,19 +29,18 @@ export default function AdminSettingsPage() {
   const { toast } = useToast();
 
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(maintenanceStore.getState().isMaintenanceMode);
-  const [estimatedTime, setEstimatedTime] = useState(maintenanceStore.getState().estimatedTime);
-  const [maintenanceEndTime, setMaintenanceEndTime] = useState(maintenanceStore.getState().maintenanceEndTime);
-  const [durationHours, setDurationHours] = useState(maintenanceStore.getState().durationHours);
-  const [durationMinutes, setDurationMinutes] = useState(maintenanceStore.getState().durationMinutes);
+  const [bannerMessage, setBannerMessage] = useState(maintenanceStore.getState().bannerMessage);
+  
+  const [scheduleHours, setScheduleHours] = useState(0);
+  const [scheduleMinutes, setScheduleMinutes] = useState(0);
+  const [durationHours, setDurationHours] = useState(0);
+  const [durationMinutes, setDurationMinutes] = useState(0);
 
   useEffect(() => {
     const unsubscribe = maintenanceStore.subscribe(
       (state) => {
-        setIsMaintenanceMode(state.isMaintenanceMode);
-        setEstimatedTime(state.estimatedTime);
-        setMaintenanceEndTime(state.maintenanceEndTime);
-        setDurationHours(state.durationHours);
-        setDurationMinutes(state.durationMinutes);
+        setIsMaintenanceMode(state.isMaintenanceMode || !!state.maintenanceStartTime);
+        setBannerMessage(state.bannerMessage);
       }
     );
     return unsubscribe;
@@ -55,21 +54,27 @@ export default function AdminSettingsPage() {
   };
 
   const handleSiteSettingsSave = () => {
-    let endTime: string | null = null;
     const now = new Date();
+    const startOffsetMs = (scheduleHours * 60 * 60 + scheduleMinutes * 60) * 1000;
+    const durationMs = (durationHours * 60 * 60 + durationMinutes * 60) * 1000;
     
-    const totalMinutes = (durationHours * 60) + durationMinutes;
+    let startTime = null;
+    let endTime = null;
 
-    if (isMaintenanceMode && totalMinutes > 0) {
-      endTime = addMinutes(now, totalMinutes).toISOString();
+    if (isMaintenanceMode) {
+      const calculatedStartTime = new Date(now.getTime() + startOffsetMs);
+      startTime = calculatedStartTime.toISOString();
+      
+      if (durationMs > 0) {
+        endTime = new Date(calculatedStartTime.getTime() + durationMs).toISOString();
+      }
     }
 
     maintenanceStore.setState({ 
-        isMaintenanceMode, 
-        estimatedTime, 
-        durationHours,
-        durationMinutes,
+        isMaintenanceMode: isMaintenanceMode && startOffsetMs === 0, // Enter mode only if scheduled for now
+        maintenanceStartTime: startTime,
         maintenanceEndTime: endTime,
+        bannerMessage: bannerMessage,
     });
 
     toast({
@@ -84,6 +89,9 @@ export default function AdminSettingsPage() {
       description: 'Notification settings have been updated.',
     });
   };
+  
+  const isCurrentlyInMaintenanceOrScheduled = maintenanceStore.getState().isMaintenanceMode || !!maintenanceStore.getState().maintenanceStartTime;
+
 
   if (isUserLoading || !user) {
     return (
@@ -169,15 +177,38 @@ export default function AdminSettingsPage() {
           </div>
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             <div className="space-y-2">
-                <Label>Turn Off Automatically</Label>
+                <Label>Start in</Label>
+                <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                        <Label htmlFor="schedule-hours" className="text-xs text-muted-foreground">Hours</Label>
+                        <Input 
+                            id="schedule-hours" 
+                            type="number" min="0" placeholder="0"
+                            value={scheduleHours || ''}
+                            onChange={(e) => setScheduleHours(parseInt(e.target.value, 10) || 0)}
+                            disabled={!isMaintenanceMode}
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <Label htmlFor="schedule-minutes" className="text-xs text-muted-foreground">Minutes</Label>
+                        <Input 
+                            id="schedule-minutes" 
+                            type="number" min="0" max="59" placeholder="0"
+                            value={scheduleMinutes || ''}
+                            onChange={(e) => setScheduleMinutes(parseInt(e.target.value, 10) || 0)}
+                            disabled={!isMaintenanceMode}
+                        />
+                    </div>
+                </div>
+            </div>
+            <div className="space-y-2">
+                <Label>Duration</Label>
                 <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
                         <Label htmlFor="duration-hours" className="text-xs text-muted-foreground">Hours</Label>
                         <Input 
                             id="duration-hours" 
-                            type="number"
-                            min="0"
-                            placeholder="0"
+                            type="number" min="0" placeholder="0"
                             value={durationHours || ''}
                             onChange={(e) => setDurationHours(parseInt(e.target.value, 10) || 0)}
                             disabled={!isMaintenanceMode}
@@ -187,10 +218,7 @@ export default function AdminSettingsPage() {
                         <Label htmlFor="duration-minutes" className="text-xs text-muted-foreground">Minutes</Label>
                         <Input 
                             id="duration-minutes" 
-                            type="number"
-                            min="0"
-                            max="59"
-                            placeholder="0"
+                            type="number" min="0" max="59" placeholder="0"
                             value={durationMinutes || ''}
                             onChange={(e) => setDurationMinutes(parseInt(e.target.value, 10) || 0)}
                             disabled={!isMaintenanceMode}
@@ -198,17 +226,17 @@ export default function AdminSettingsPage() {
                     </div>
                 </div>
             </div>
-            <div className="space-y-2">
-                <Label htmlFor="estimated-time">Downtime Message</Label>
+          </div>
+           <div className="space-y-2">
+                <Label htmlFor="banner-message">Maintenance Message</Label>
                 <Input 
-                id="estimated-time" 
-                placeholder="e.g., 'about 30 minutes'"
-                value={estimatedTime}
-                onChange={(e) => setEstimatedTime(e.target.value)}
-                disabled={!isMaintenanceMode}
+                  id="banner-message" 
+                  placeholder="e.g., Deploying new features..."
+                  value={bannerMessage}
+                  onChange={(e) => setBannerMessage(e.target.value)}
+                  disabled={!isMaintenanceMode}
                 />
             </div>
-          </div>
         </CardContent>
         <CardFooter className="border-t px-6 py-4">
           <Button onClick={handleSiteSettingsSave}>Save Settings</Button>

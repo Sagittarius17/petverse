@@ -6,7 +6,7 @@ import { PawPrint, Cat, Dog, Bird, Timer } from 'lucide-react';
 import { differenceInSeconds, formatDuration, intervalToDuration } from 'date-fns';
 
 interface MaintenancePageProps {
-  estimatedTime?: string;
+  message?: string;
   maintenanceEndTime?: string | null;
 }
 
@@ -49,7 +49,7 @@ function Countdown({ endTime }: { endTime: string }) {
   );
 }
 
-export default function MaintenancePage({ estimatedTime, maintenanceEndTime }: MaintenancePageProps) {
+export default function MaintenancePage({ message, maintenanceEndTime }: MaintenancePageProps) {
   return (
     <div className="flex h-screen w-full flex-col items-center justify-center bg-secondary/50 p-4 text-center">
       <div className="flex items-center gap-4 text-primary">
@@ -62,14 +62,10 @@ export default function MaintenancePage({ estimatedTime, maintenanceEndTime }: M
         We'll be right back!
       </h1>
       <p className="mt-4 max-w-md text-lg text-muted-foreground">
-        Our team is currently performing some essential maintenance to make PetVerse even better for you and our furry friends.
+        {message || "Our team is currently performing some essential maintenance to make PetVerse even better for you and our furry friends."}
       </p>
-      {maintenanceEndTime ? (
+      {maintenanceEndTime && (
         <Countdown endTime={maintenanceEndTime} />
-      ) : estimatedTime && (
-         <p className="mt-6 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
-            We expect to be back in {estimatedTime}.
-        </p>
       )}
     </div>
   );

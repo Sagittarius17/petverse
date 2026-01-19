@@ -4,10 +4,9 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface MaintenanceState {
   isMaintenanceMode: boolean;
-  estimatedTime: string;
-  durationHours: number;
-  durationMinutes: number;
-  maintenanceEndTime: string | null; // ISO string for when to turn off
+  bannerMessage: string;
+  maintenanceStartTime: string | null; // When maintenance is scheduled to START
+  maintenanceEndTime: string | null;   // When maintenance is scheduled to END
   setState: (newState: Partial<MaintenanceState>) => void;
 }
 
@@ -15,9 +14,8 @@ export const maintenanceStore = create<MaintenanceState>()(
   persist(
     (set) => ({
       isMaintenanceMode: false,
-      estimatedTime: 'a few minutes',
-      durationHours: 0,
-      durationMinutes: 0,
+      bannerMessage: 'We are performing scheduled maintenance.',
+      maintenanceStartTime: null,
       maintenanceEndTime: null,
       setState: (newState) => set(newState),
     }),
