@@ -181,8 +181,9 @@ service cloud.firestore {
       // This allows direct linking to a draft for preview purposes by admins.
       allow get: if true;
       
-      // Public can list published. Admins can list all (drafts included).
-      allow list: if (request.query.get('where', [['status', '==', 'Published']])[0][2] == 'Published') || (isSignedIn() && isSuperuser(request.auth.uid));
+      // Anyone can list blogs (client-side query filters for 'Published' status).
+      // Admins can also list all to see drafts in the admin panel.
+      allow list: if true;
 
       allow create: if
         isSignedIn() && isSuperuser(request.auth.uid);
@@ -287,10 +288,9 @@ service cloud.firestore {
       // User or an Admin can read a specific order.
       allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isSuperuser(request.auth.uid));
       
-      // User can list their own orders, and Admins can list any/all orders.
-      allow list: if 
-        isSuperuser(request.auth.uid) ||
-        (isSignedIn() && request.query.get('where', [['userId', '==', request.auth.uid]])[0][2] == request.auth.uid);
+      // Only Superusers and above can list all orders from the root collection.
+      // Regular users cannot list their own orders from this collection due to security rule limitations.
+      allow list: if isSignedIn() && isSuperuser(request.auth.uid);
 
       // Only admins can update (e.g., to change status) or delete orders.
       allow update, delete: if isSignedIn() && isSuperuser(request.auth.uid);
