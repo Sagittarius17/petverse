@@ -45,31 +45,26 @@ service cloud.firestore {
 
     /* ─────────────────────────────
        ROLE MANAGEMENT RULE
-       (NO if / let / blocks)
+       (Takes resource to avoid self-read in update)
     ───────────────────────────── */
-
-    function canManageUser(requesterId, targetId) {
+    
+    function canManageUser(requesterId, targetUserResource) {
+      let targetRole = targetUserResource.data.role;
       return
-        // Superadmin → everyone
         isSuperadmin(requesterId)
-
         ||
-
-        // Admin → Users & Superusers
         (
           role(requesterId) == 'Admin' &&
-          role(targetId) != 'Admin' &&
-          role(targetId) != 'Superadmin'
+          targetRole != 'Admin' &&
+          targetRole != 'Superadmin'
         )
-
         ||
-
-        // Superuser → Users only
         (
           role(requesterId) == 'Superuser' &&
-          role(targetId) == 'User'
+          targetRole == 'User'
         );
     }
+
 
     /* ─────────────────────────────
        COMMON WRITE VALIDATORS
@@ -108,10 +103,21 @@ service cloud.firestore {
       // Owner OR role managers can update
       allow update: if
         isSignedIn() &&
-        isActive(request.auth.uid) &&
         (
-          isOwner(userId) ||
-          canManageUser(request.auth.uid, userId)
+          // Case 1: Owner is updating their own non-privileged profile data.
+          (
+            isOwner(userId) &&
+            resource.data.status == 'Active' && // Check status from existing doc
+            // They can't change their own role or status.
+            request.resource.data.role == resource.data.role &&
+            request.resource.data.status == resource.data.status
+          )
+          ||
+          // Case 2: A privileged user is managing another user.
+          (
+            isActive(request.auth.uid) && // Check if the ADMIN is active
+            canManageUser(request.auth.uid, resource) // Pass the resource, not userId
+          )
         );
 
       // Hard delete disabled (soft delete only)
