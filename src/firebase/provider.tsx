@@ -3,9 +3,10 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { Firestore, doc, onSnapshot, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
+import { toast } from '@/hooks/use-toast';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -89,6 +90,36 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     );
     return () => unsubscribe(); // Cleanup
   }, [auth, firestore]); // Depends on the auth instance and firestore
+  
+    // Effect to listen for user status changes (e.g., being disabled by an admin)
+  useEffect(() => {
+    if (!userAuthState.user || !firestore || !auth) {
+      return;
+    }
+
+    const userDocRef = doc(firestore, 'users', userAuthState.user.uid);
+
+    const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+      if (docSnap.exists() && docSnap.data().status === 'Inactive') {
+        // Check if the user is still logged in before trying to sign out
+        // This prevents race conditions on initial load or if already signed out.
+        if (auth.currentUser && auth.currentUser.uid === userAuthState.user?.uid) {
+            toast({
+                variant: 'destructive',
+                title: 'Account Disabled',
+                description: 'Your account has been suspended by an administrator. You have been logged out.',
+                duration: 10000,
+            });
+            // Delay sign-out slightly to ensure toast is visible
+            setTimeout(() => {
+                auth.signOut();
+            }, 500);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [userAuthState.user, firestore, auth]);
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
