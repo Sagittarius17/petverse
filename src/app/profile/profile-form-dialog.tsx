@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -15,11 +15,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const profileSchema = z.object({
   displayName: z.string().min(2, 'Display name must be at least 2 characters.').max(50),
   username: z.string().min(3, "Must be 3-20 characters").max(20).regex(/^[a-z0-9_.]+$/, "Only lowercase letters, numbers, '.', and '_' allowed."),
   bio: z.string().max(280, 'Bio cannot exceed 280 characters.').optional(),
+  pfp: z.any().optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -43,9 +45,21 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
   const firestore = useFirestore();
   const auth = useAuth();
   const { toast } = useToast();
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ProfileFormData>({
+  const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting } } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
   });
+  
+  const [preview, setPreview] = useState<string | null>(null);
+  const pfpFile = watch('pfp');
+
+  useEffect(() => {
+    if (pfpFile && pfpFile.length > 0) {
+      const file = pfpFile[0];
+      const newPreview = URL.createObjectURL(file);
+      setPreview(newPreview);
+      return () => URL.revokeObjectURL(newPreview);
+    }
+  }, [pfpFile]);
 
   useEffect(() => {
     if (isOpen && user) {
@@ -53,7 +67,9 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
         displayName: userProfile?.displayName || user.displayName || '',
         username: userProfile?.username || '',
         bio: userProfile?.bio || '',
+        pfp: undefined,
       });
+      setPreview(user.photoURL || null);
     }
   }, [user, userProfile, isOpen, reset]);
 
@@ -68,12 +84,42 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
     }
 
     const userDocRef = doc(firestore, 'users', auth.currentUser.uid);
+    let photoURL: string | null = null;
+    
+    // Handle new profile picture
+    if (data.pfp && data.pfp.length > 0) {
+        const file = data.pfp[0];
+        try {
+            photoURL = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result as string);
+                reader.onerror = (error) => reject(error);
+            });
+        } catch (error) {
+            toast({ variant: "destructive", title: "Image Upload Failed", description: "Could not process the image file." });
+            return;
+        }
+    }
+
 
     try {
       // Update Firebase Auth profile
-      if (auth.currentUser.displayName !== data.displayName) {
-          await updateProfile(auth.currentUser, { displayName: data.displayName });
+      if (photoURL || auth.currentUser.displayName !== data.displayName) {
+          await updateProfile(auth.currentUser, { 
+              displayName: data.displayName,
+              ...(photoURL && { photoURL: photoURL }),
+           });
       }
+      
+      const firestoreUpdateData: any = {
+          displayName: data.displayName,
+          bio: data.bio,
+      };
+      if (photoURL) {
+          firestoreUpdateData.profilePicture = photoURL;
+      }
+
 
       // If username has changed, handle uniqueness and update flow
       if (data.username !== userProfile?.username) {
@@ -87,30 +133,26 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
         
         const batch = writeBatch(firestore);
 
-        // 1. Delete old username document
+        // Delete old username document
         if (userProfile?.username) {
             const oldUsernameRef = doc(firestore, 'usernames', userProfile.username);
             batch.delete(oldUsernameRef);
         }
 
-        // 2. Create new username document
+        // Create new username document
         batch.set(newUsernameRef, { uid: auth.currentUser.uid });
 
-        // 3. Update user document with all new data
+        // Update user document with all new data
         batch.update(userDocRef, {
             username: data.username,
-            displayName: data.displayName,
-            bio: data.bio,
+            ...firestoreUpdateData
         });
 
         await batch.commit();
 
       } else {
         // Username has not changed, just update the other fields
-        await updateDoc(userDocRef, {
-            displayName: data.displayName,
-            bio: data.bio,
-        });
+        await updateDoc(userDocRef, firestoreUpdateData);
       }
       
       onSuccess();
@@ -135,6 +177,17 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-6 py-6">
+             <div className="flex items-center gap-6">
+              <Avatar className="h-24 w-24">
+                <AvatarImage src={preview || undefined} />
+                <AvatarFallback>{user?.displayName?.[0] || 'U'}</AvatarFallback>
+              </Avatar>
+              <div className="grid w-full max-w-sm items-center gap-1.5">
+                <Label htmlFor="pfp">Update Picture</Label>
+                <Input id="pfp" type="file" accept="image/*" {...register('pfp')} />
+                {errors.pfp && <p className="text-sm text-destructive">{(errors.pfp as any).message}</p>}
+              </div>
+            </div>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div className="space-y-2">
                     <Label htmlFor="displayName">Display Name</Label>
