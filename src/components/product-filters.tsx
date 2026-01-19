@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Star } from 'lucide-react';
@@ -8,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/lib/localization';
 
 interface ProductFiltersProps {
   selectedCategories: string[];
@@ -88,7 +88,7 @@ export default function ProductFilters({
             onValueChange={(value) => setPriceRange(value as [number])}
           />
           <div className="mt-2 text-sm text-muted-foreground">
-            Up to ${priceRange[0]}
+            Up to {formatCurrency(priceRange[0])}
           </div>
         </CardContent>
       </Card>
