@@ -127,7 +127,7 @@ service cloud.firestore {
       ───────────────────────────── */
 
       match /orders/{orderId} {
-        allow create, read, list: if isOwner(userId);
+        allow read, list: if isOwner(userId);
         allow update, delete: if isOwner(userId) || isSuperuser(request.auth.uid);
       }
       
@@ -284,19 +284,19 @@ service cloud.firestore {
        USERNAMES (FOR UNIQUENESS)
     ───────────────────────────── */
     match /usernames/{username} {
-      // Allow anyone to check if a username exists before trying to register
       allow get: if true;
-      
-      // Allow only the authenticated user to create their own username document.
-      // This is checked after auth user is created but before doc is written.
-      // The `uid` in the document must match the creator's uid.
-      allow create: if request.auth.uid != null && request.resource.data.uid == request.auth.uid;
 
-      // Allow a user to delete their *own* username document.
-      // This is necessary for a transaction where they change their username.
-      allow delete: if request.auth.uid != null && resource.data.uid == request.auth.uid;
-      
-      allow update: if false; // No reason to update a username doc.
+      // Allow write (create, delete) only if the user is authenticated and the UID in the document
+      // matches the authenticated user's UID. This handles both creating a new username doc
+      // and deleting the old one in a transaction.
+      allow write: if 
+        request.auth.uid != null &&
+        // For CREATE: The new document's UID must match the user's UID.
+        // For DELETE: This part is irrelevant as request.resource is null.
+        (request.resource == null || request.resource.data.uid == request.auth.uid) &&
+        // For DELETE: The existing document's UID must match the user's UID.
+        // For CREATE: This part is irrelevant as resource is null.
+        (resource == null || resource.data.uid == request.auth.uid);
     }
     
     /* ─────────────────────────────
