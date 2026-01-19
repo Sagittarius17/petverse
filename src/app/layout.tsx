@@ -1,4 +1,3 @@
-
 'use client';
 
 import { usePathname } from 'next/navigation';
@@ -9,6 +8,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import MainLayout from '@/components/main-layout';
 import Chat from '@/components/chat/chat';
 import BilluChatLauncher from '@/components/chat/billu-chat-launcher';
+import MaintenanceManager from '@/components/maintenance-manager';
 
 function ChatController() {
   const pathname = usePathname();
@@ -56,6 +56,7 @@ export default function RootLayout({
           themes={['light', 'dark', 'system', 'dark-forest', 'light-rose']}
         >
           <FirebaseClientProvider>
+            <MaintenanceManager />
             <MainLayout>
               {children}
             </MainLayout>
