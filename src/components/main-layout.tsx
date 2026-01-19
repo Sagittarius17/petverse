@@ -49,7 +49,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       const now = new Date().getTime();
       const end = new Date(maintenanceEndTime).getTime();
       if (now >= end) {
-        maintenanceStore.setState({ isMaintenanceMode: false, maintenanceEndTime: null, automaticToggleTime: 'manual' });
+        maintenanceStore.setState({ isMaintenanceMode: false, maintenanceEndTime: null, durationHours: 0, durationMinutes: 0 });
         clearInterval(interval);
       }
     }, 1000);

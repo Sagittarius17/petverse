@@ -21,17 +21,7 @@ import { Sun, Moon, Trees, Flower, Monitor } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { maintenanceStore } from '@/lib/maintenance-store';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { addMinutes, addHours } from 'date-fns';
-
-const timeOptions = [
-    { value: 'manual', label: 'Manual Toggle' },
-    { value: '5m', label: '5 minutes' },
-    { value: '1h', label: '1 hour' },
-    { value: '6h', label: '6 hours' },
-    { value: '24h', label: '24 hours' },
-];
-
 
 export default function AdminSettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -40,14 +30,18 @@ export default function AdminSettingsPage() {
 
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(maintenanceStore.getState().isMaintenanceMode);
   const [estimatedTime, setEstimatedTime] = useState(maintenanceStore.getState().estimatedTime);
-  const [automaticToggleTime, setAutomaticToggleTime] = useState(maintenanceStore.getState().automaticToggleTime);
+  const [maintenanceEndTime, setMaintenanceEndTime] = useState(maintenanceStore.getState().maintenanceEndTime);
+  const [durationHours, setDurationHours] = useState(maintenanceStore.getState().durationHours);
+  const [durationMinutes, setDurationMinutes] = useState(maintenanceStore.getState().durationMinutes);
 
   useEffect(() => {
     const unsubscribe = maintenanceStore.subscribe(
       (state) => {
         setIsMaintenanceMode(state.isMaintenanceMode);
         setEstimatedTime(state.estimatedTime);
-        setAutomaticToggleTime(state.automaticToggleTime);
+        setMaintenanceEndTime(state.maintenanceEndTime);
+        setDurationHours(state.durationHours);
+        setDurationMinutes(state.durationMinutes);
       }
     );
     return unsubscribe;
@@ -63,30 +57,18 @@ export default function AdminSettingsPage() {
   const handleSiteSettingsSave = () => {
     let endTime: string | null = null;
     const now = new Date();
+    
+    const totalMinutes = (durationHours * 60) + durationMinutes;
 
-    if (isMaintenanceMode) {
-      switch (automaticToggleTime) {
-        case '5m':
-          endTime = addMinutes(now, 5).toISOString();
-          break;
-        case '1h':
-          endTime = addHours(now, 1).toISOString();
-          break;
-        case '6h':
-          endTime = addHours(now, 6).toISOString();
-          break;
-        case '24h':
-          endTime = addHours(now, 24).toISOString();
-          break;
-        default:
-          endTime = null;
-      }
+    if (isMaintenanceMode && totalMinutes > 0) {
+      endTime = addMinutes(now, totalMinutes).toISOString();
     }
 
     maintenanceStore.setState({ 
         isMaintenanceMode, 
         estimatedTime, 
-        automaticToggleTime,
+        durationHours,
+        durationMinutes,
         maintenanceEndTime: endTime,
     });
 
@@ -187,23 +169,34 @@ export default function AdminSettingsPage() {
           </div>
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             <div className="space-y-2">
-                <Label htmlFor="automatic-off">Turn Off Automatically</Label>
-                <Select
-                    value={automaticToggleTime}
-                    onValueChange={setAutomaticToggleTime}
-                    disabled={!isMaintenanceMode}
-                >
-                    <SelectTrigger id="automatic-off">
-                        <SelectValue placeholder="Select duration" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {timeOptions.map(option => (
-                            <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                <Label>Turn Off Automatically</Label>
+                <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                        <Label htmlFor="duration-hours" className="text-xs text-muted-foreground">Hours</Label>
+                        <Input 
+                            id="duration-hours" 
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            value={durationHours || ''}
+                            onChange={(e) => setDurationHours(parseInt(e.target.value, 10) || 0)}
+                            disabled={!isMaintenanceMode}
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <Label htmlFor="duration-minutes" className="text-xs text-muted-foreground">Minutes</Label>
+                        <Input 
+                            id="duration-minutes" 
+                            type="number"
+                            min="0"
+                            max="59"
+                            placeholder="0"
+                            value={durationMinutes || ''}
+                            onChange={(e) => setDurationMinutes(parseInt(e.target.value, 10) || 0)}
+                            disabled={!isMaintenanceMode}
+                        />
+                    </div>
+                </div>
             </div>
             <div className="space-y-2">
                 <Label htmlFor="estimated-time">Downtime Message</Label>
