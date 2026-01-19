@@ -29,6 +29,7 @@ interface UserProfile extends DocumentData {
     username: string;
     email: string;
     bio?: string;
+    profilePicture?: string;
 }
 
 interface FavoriteBreedDoc {
@@ -284,13 +285,13 @@ export default function ProfilePage() {
         <Dialog>
             <DialogTrigger asChild>
                 <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-primary cursor-pointer">
-                    {user.photoURL && <AvatarImage src={user.photoURL} alt="User Avatar" />}
+                    { (userProfile?.profilePicture || user.photoURL) && <AvatarImage src={userProfile?.profilePicture || user.photoURL} alt="User Avatar" /> }
                     <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
                 </Avatar>
             </DialogTrigger>
-            {user.photoURL && (
+            { (userProfile?.profilePicture || user.photoURL) && (
                 <DialogContent className="p-0 border-0 max-w-md">
-                    <Image src={user.photoURL} alt="User Avatar Preview" width={512} height={512} className="rounded-lg w-full h-auto" />
+                    <Image src={userProfile?.profilePicture || user.photoURL!} alt="User Avatar Preview" width={512} height={512} className="rounded-lg w-full h-auto" />
                 </DialogContent>
             )}
         </Dialog>

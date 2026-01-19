@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -43,6 +42,7 @@ const menuItems = [
 interface UserProfile {
   role?: 'Admin' | 'Superuser' | 'User' | 'Superadmin';
   username?: string;
+  profilePicture?: string;
 }
 
 function AccessDeniedScreen() {
@@ -145,7 +145,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <div className="p-2 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:aspect-square">
                   <div className="flex items-center gap-2 p-2 group-data-[collapsible=icon]:justify-center">
                     <Avatar className="h-8 w-8">
-                        <AvatarImage src={user?.photoURL || undefined} alt={userProfile?.username} />
+                        <AvatarImage src={userProfile?.profilePicture || user?.photoURL || undefined} alt={userProfile?.username} />
                         <AvatarFallback>{user?.email?.[0].toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col text-sm group-data-[collapsible=icon]:hidden">
@@ -164,7 +164,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   >
                     <Link href="/admin/settings">
                       <Settings />
-                      <span>Settings</span>
+                      <span>{user?.displayName}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

@@ -69,7 +69,7 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
         bio: userProfile?.bio || '',
         pfp: undefined,
       });
-      setPreview(user.photoURL || null);
+      setPreview(userProfile?.profilePicture || user.photoURL || null);
     }
   }, [user, userProfile, isOpen, reset]);
 
@@ -84,13 +84,13 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
     }
 
     const userDocRef = doc(firestore, 'users', auth.currentUser.uid);
-    let photoURL: string | null = null;
+    let photoDataUri: string | null = null;
     
     // Handle new profile picture
     if (data.pfp && data.pfp.length > 0) {
         const file = data.pfp[0];
         try {
-            photoURL = await new Promise<string>((resolve, reject) => {
+            photoDataUri = await new Promise<string>((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
                 reader.onload = () => resolve(reader.result as string);
@@ -104,20 +104,17 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
 
 
     try {
-      // Update Firebase Auth profile
-      if (photoURL || auth.currentUser.displayName !== data.displayName) {
-          await updateProfile(auth.currentUser, { 
-              displayName: data.displayName,
-              ...(photoURL && { photoURL: photoURL }),
-           });
+      // Update Firebase Auth profile displayName ONLY
+      if (auth.currentUser.displayName !== data.displayName) {
+        await updateProfile(auth.currentUser, { displayName: data.displayName });
       }
       
       const firestoreUpdateData: any = {
           displayName: data.displayName,
           bio: data.bio,
       };
-      if (photoURL) {
-          firestoreUpdateData.profilePicture = photoURL;
+      if (photoDataUri) {
+          firestoreUpdateData.profilePicture = photoDataUri;
       }
 
 

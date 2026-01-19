@@ -32,7 +32,6 @@ interface UserProfile extends DocumentData {
     displayName: string;
     username: string;
     profilePicture?: string;
-    photoURL?: string;
 }
 
 function PetOwnerInfo({ ownerId }: { ownerId: string }) {
@@ -72,7 +71,7 @@ function PetOwnerInfo({ ownerId }: { ownerId: string }) {
     return (
         <div className="flex items-center space-x-4">
             <Avatar className="h-12 w-12">
-                <AvatarImage src={ownerProfile.photoURL || ownerProfile.profilePicture} alt={ownerProfile.displayName} />
+                <AvatarImage src={ownerProfile.profilePicture} alt={ownerProfile.displayName} />
                 <AvatarFallback>{ownerProfile.displayName?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
             <div>
