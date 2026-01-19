@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -38,7 +37,7 @@ export default function MaintenanceBanner({ startTime, message }: MaintenanceBan
   }, [startTime]);
 
   return (
-    <div className="bg-destructive text-destructive-foreground py-2 text-sm text-center font-medium animate-in fade-in">
+    <div className="sticky top-16 z-40 bg-destructive text-destructive-foreground py-2 text-sm text-center font-medium animate-in fade-in">
       <div className="container mx-auto flex items-center justify-center gap-2">
         <Timer className="h-4 w-4" />
         <p>{message} Maintenance will begin in: {timeLeft}</p>
