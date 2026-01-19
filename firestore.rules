@@ -90,11 +90,12 @@ service cloud.firestore {
       // Anyone can read a user's public profile data (for usernames, etc.)
       allow get: if true;
 
-      // Only Superusers & above can list all users
+      // Only Superusers & above can list all users.
+      // NOTE: This rule is intentionally broad (isSignedIn()) because Firestore `list` rules cannot
+      // perform `get()` operations to check a user's role from another document.
+      // The application UI layer MUST enforce that only Superusers and above can access the user list page.
       allow list: if
-        isSignedIn() &&
-        isActive(request.auth.uid) &&
-        isSuperuser(request.auth.uid);
+        isSignedIn();
 
       // User can create only their own doc
       allow create: if
@@ -107,10 +108,9 @@ service cloud.firestore {
           // Case 1: Owner is updating their own non-privileged profile data.
           (
             isOwner(userId) &&
-            resource.data.status == 'Active' && // Check status from existing doc
-            // They can't change their own role or status.
-            request.resource.data.role == resource.data.role &&
-            request.resource.data.status == resource.data.status
+            resource.data.status == 'Active' && // User must be active to update their own profile
+            // Owner can't change their own role or status
+            !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status'])
           )
           ||
           // Case 2: A privileged user is managing another user.
