@@ -216,7 +216,13 @@ service cloud.firestore {
     ───────────────────────────── */
 
     match /blogs/{blogId} {
-      allow get, list: if true;
+      // Public users can only see 'Published' posts.
+      // Superusers can see any post.
+      allow get: if resource.data.status == 'Published' || (isSignedIn() && isSuperuser(request.auth.uid));
+
+      // Public list queries must filter by status == 'Published'.
+      // Superusers can list all blogs.
+      allow list: if request.query.where.status == 'Published' || (isSignedIn() && isSuperuser(request.auth.uid));
 
       allow create: if
         isSignedIn() && isSuperuser(request.auth.uid);
@@ -316,9 +322,11 @@ service cloud.firestore {
     ───────────────────────────── */
     match /usernames/{username} {
       allow get: if true;
+      // Allow write if the user is a superuser, or if they own the new/old username document.
+      // This handles the "move" operation which is a batched delete and create.
       allow write: if request.auth.uid != null && (isSuperuser(request.auth.uid) || request.resource.data.uid == request.auth.uid || resource.data.uid == request.auth.uid);
     }
-
+    
     /* ─────────────────────────────
        ORDERS (PRIVATE USER DATA)
        - Each order belongs to exactly one user (userId).
@@ -402,7 +410,7 @@ service cloud.firestore {
       // Anyone can read the settings to check for maintenance mode.
       allow read: if true;
       
-      // Only admins and superadmins can change the settings.
+      // Only superusers and above can change the settings.
       allow write: if isSignedIn() && isSuperuser(request.auth.uid);
     }
   }

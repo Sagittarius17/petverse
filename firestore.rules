@@ -237,7 +237,13 @@ service cloud.firestore {
     ───────────────────────────── */
 
     match /blogs/{blogId} {
-      allow get, list: if true;
+      // Public users can only see 'Published' posts.
+      // Superusers can see any post.
+      allow get: if resource.data.status == 'Published' || (isSignedIn() && isSuperuser(request.auth.uid));
+
+      // Public list queries must filter by status == 'Published'.
+      // Superusers can list all blogs.
+      allow list: if request.query.where.status == 'Published' || (isSignedIn() && isSuperuser(request.auth.uid));
 
       allow create: if
         isSignedIn() && isSuperuser(request.auth.uid);
