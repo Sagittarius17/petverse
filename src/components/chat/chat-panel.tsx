@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -51,6 +52,7 @@ interface Message {
 
 interface UserProfile extends DocumentData {
     id: string;
+    username: string;
     displayName: string;
     photoURL?: string;
     isOnline?: boolean;
@@ -179,7 +181,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
             const userData = userDoc.data();
             otherParticipant = {
               id: userDoc.id,
-              displayName: userData.displayName || userData.username || 'User',
+              displayName: userData.username || userData.displayName || 'User',
               photoURL: userData.profilePicture || '',
               isOnline: userData.isOnline || false,
             };
