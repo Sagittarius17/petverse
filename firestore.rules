@@ -177,12 +177,7 @@ service cloud.firestore {
     ───────────────────────────── */
 
     match /blogs/{blogId} {
-      // Anyone can GET a specific blog post, regardless of status.
-      // This allows direct linking to a draft for preview purposes by admins.
       allow get: if true;
-      
-      // Anyone can list blogs (client-side query filters for 'Published' status).
-      // Admins can also list all to see drafts in the admin panel.
       allow list: if true;
 
       allow create: if
@@ -276,6 +271,25 @@ service cloud.firestore {
     match /animalBreeds/{breedId} {
       allow read, list: if true;
       allow create, update, delete: if isSignedIn() && isSuperuser(request.auth.uid);
+    }
+
+    /* ─────────────────────────────
+       USERNAMES (FOR UNIQUENESS)
+    ───────────────────────────── */
+    match /usernames/{username} {
+      // Allow anyone to check if a username exists before trying to register
+      allow get: if true;
+      
+      // Allow only the authenticated user to create their own username document.
+      // This is checked after auth user is created but before doc is written.
+      // The `uid` in the document must match the creator's uid.
+      allow create: if request.auth.uid != null && request.resource.data.uid == request.auth.uid;
+
+      // Allow a user to delete their *own* username document.
+      // This is necessary for a transaction where they change their username.
+      allow delete: if request.auth.uid != null && resource.data.uid == request.auth.uid;
+      
+      allow update: if false; // No reason to update a username doc.
     }
 
     /* ─────────────────────────────

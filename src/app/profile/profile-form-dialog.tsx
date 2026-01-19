@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useFirestore, useAuth } from '@/firebase';
-import { doc, updateDoc, DocumentData } from 'firebase/firestore';
+import { doc, updateDoc, DocumentData, getDoc, writeBatch } from 'firebase/firestore';
 import { updateProfile, User } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,8 +17,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
 const profileSchema = z.object({
-  displayName: z.string().min(2, 'Display name must be at least 2 characters.'),
-  username: z.string().min(2, 'Username must be at least 2 characters.'),
+  displayName: z.string().min(2, 'Display name must be at least 2 characters.').max(50),
+  username: z.string().min(3, "Must be 3-20 characters").max(20).regex(/^[a-z0-9_.]+$/, "Only lowercase letters, numbers, '.', and '_' allowed."),
   bio: z.string().max(280, 'Bio cannot exceed 280 characters.').optional(),
 });
 
@@ -26,6 +26,7 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 
 interface UserProfile extends DocumentData {
     username: string;
+    displayName: string;
     email: string;
     bio?: string;
 }
@@ -49,7 +50,7 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
   useEffect(() => {
     if (isOpen && user) {
       reset({
-        displayName: user.displayName || '',
+        displayName: userProfile?.displayName || user.displayName || '',
         username: userProfile?.username || '',
         bio: userProfile?.bio || '',
       });
@@ -66,22 +67,50 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
       return;
     }
 
-    try {
-      const userDocRef = doc(firestore, 'users', auth.currentUser.uid);
-      
-      // Update Firestore document
-      await updateDoc(userDocRef, {
-        username: data.username,
-        bio: data.bio,
-        // Also update name parts if your schema uses them
-        displayName: data.displayName,
-        firstName: data.displayName.split(' ')[0] || '',
-        lastName: data.displayName.split(' ').slice(1).join(' ') || '',
-      });
+    const userDocRef = doc(firestore, 'users', auth.currentUser.uid);
 
+    try {
       // Update Firebase Auth profile
       if (auth.currentUser.displayName !== data.displayName) {
           await updateProfile(auth.currentUser, { displayName: data.displayName });
+      }
+
+      // If username has changed, handle uniqueness and update flow
+      if (data.username !== userProfile?.username) {
+        const newUsernameRef = doc(firestore, 'usernames', data.username);
+        const newUsernameSnap = await getDoc(newUsernameRef);
+
+        if (newUsernameSnap.exists()) {
+            toast({ variant: "destructive", title: "Username already taken" });
+            return;
+        }
+        
+        const batch = writeBatch(firestore);
+
+        // 1. Delete old username document
+        if (userProfile?.username) {
+            const oldUsernameRef = doc(firestore, 'usernames', userProfile.username);
+            batch.delete(oldUsernameRef);
+        }
+
+        // 2. Create new username document
+        batch.set(newUsernameRef, { uid: auth.currentUser.uid });
+
+        // 3. Update user document with all new data
+        batch.update(userDocRef, {
+            username: data.username,
+            displayName: data.displayName,
+            bio: data.bio,
+        });
+
+        await batch.commit();
+
+      } else {
+        // Username has not changed, just update the other fields
+        await updateDoc(userDocRef, {
+            displayName: data.displayName,
+            bio: data.bio,
+        });
       }
       
       onSuccess();

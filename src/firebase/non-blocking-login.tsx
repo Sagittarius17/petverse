@@ -1,3 +1,4 @@
+
 'use client';
 import {
   Auth, // Import Auth type for type hinting
@@ -8,7 +9,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
 } from 'firebase/auth';
-import { Firestore, doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { Firestore, doc, setDoc, serverTimestamp, getDoc, writeBatch, query, collection, where, getDocs } from 'firebase/firestore';
 
 /** Initiate anonymous sign-in. This is an async operation. */
 export function initiateAnonymousSignIn(authInstance: Auth): Promise<void> {
@@ -23,7 +24,8 @@ export async function initiateEmailSignUp(
   firestore: Firestore,
   email: string,
   password: string,
-  fullName: string
+  fullName: string,
+  username: string
 ): Promise<void> {
   try {
     const userCredential = await createUserWithEmailAndPassword(authInstance, email, password);
@@ -31,12 +33,15 @@ export async function initiateEmailSignUp(
 
     // Update the user's profile with their full name
     await updateProfile(user, { displayName: fullName });
-
-    // Create a corresponding user document in Firestore
+    
+    // Use a batch to write to users and usernames collections atomically
+    const batch = writeBatch(firestore);
+    
     const userDocRef = doc(firestore, 'users', user.uid);
-    await setDoc(userDocRef, {
+    batch.set(userDocRef, {
       id: user.uid,
-      username: fullName, // Or derive from email if needed
+      username: username,
+      displayName: fullName,
       email: user.email,
       firstName: fullName.split(' ')[0] || '',
       lastName: fullName.split(' ').slice(1).join(' ') || '',
@@ -45,8 +50,12 @@ export async function initiateEmailSignUp(
       role: 'User', // Default role
       status: 'Active', // Default status
     });
+    
+    const usernameDocRef = doc(firestore, 'usernames', username);
+    batch.set(usernameDocRef, { uid: user.uid });
 
-  } catch (error) {
+    await batch.commit();
+  } catch (error) { 
     console.error("Error during sign-up process:", error);
     // Re-throw the error so the calling component can handle it
     throw error;
@@ -60,6 +69,26 @@ export function initiateEmailSignIn(authInstance: Auth, email: string, password:
     // Return void on success to match the function signature.
     return;
   });
+}
+
+async function findUniqueUsername(firestore: Firestore, baseUsername: string): Promise<string> {
+    let username = baseUsername.toLowerCase().replace(/[^a-z0-9_.]/g, '');
+    if (!username) username = 'user'; // fallback
+    let attempts = 0;
+    let finalUsername = username;
+
+    while (attempts < 5) {
+        const usernameRef = doc(firestore, "usernames", finalUsername);
+        const snapshot = await getDoc(usernameRef);
+        if (!snapshot.exists()) {
+            return finalUsername;
+        }
+        // If username exists, append a random number and try again
+        finalUsername = `${username}_${Math.floor(Math.random() * 1000)}`;
+        attempts++;
+    }
+    // Fallback if we can't find a unique username after a few tries
+    return `${username}_${Date.now()}`;
 }
 
 /** Initiate Google sign-in and create user document if new (non-blocking). */
@@ -79,9 +108,14 @@ export async function initiateGoogleSignIn(auth: Auth, firestore: Firestore): Pr
       const firstName = displayName ? displayName.split(' ')[0] : '';
       const lastName = displayName ? displayName.split(' ').slice(1).join(' ') : '';
       
-      await setDoc(userDocRef, {
+      const baseUsername = email ? email.split('@')[0] : displayName?.replace(/\s/g, '') || 'user';
+      const username = await findUniqueUsername(firestore, baseUsername);
+
+      const batch = writeBatch(firestore);
+      batch.set(userDocRef, {
         id: uid,
-        username: displayName || email,
+        username: username,
+        displayName: displayName || email,
         email: email,
         firstName: firstName,
         lastName: lastName,
@@ -90,6 +124,11 @@ export async function initiateGoogleSignIn(auth: Auth, firestore: Firestore): Pr
         role: 'User',
         status: 'Active',
       });
+
+      const usernameDocRef = doc(firestore, 'usernames', username);
+      batch.set(usernameDocRef, { uid: uid });
+
+      await batch.commit();
     }
   } catch (error) {
     // Re-throw to be handled by the UI, without logging here.

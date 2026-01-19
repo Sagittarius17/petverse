@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -12,9 +13,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { FirebaseError } from 'firebase/app';
+import { doc, getDoc } from 'firebase/firestore';
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  username: z.string().min(3, "Username must be at least 3 characters.").regex(/^[a-z0-9_.]+$/, "Only lowercase letters, numbers, '.', and '_' allowed."),
   email: z.string().email({ message: "Please enter a valid email." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
 });
@@ -65,7 +68,20 @@ export default function RegisterPage() {
 
   const onEmailSubmit = async (data: FormValues) => {
     try {
-      await initiateEmailSignUp(auth, firestore, data.email, data.password, data.fullName);
+      // Check for username uniqueness
+      if (firestore) {
+        const usernameRef = doc(firestore, "usernames", data.username);
+        const usernameSnap = await getDoc(usernameRef);
+        if (usernameSnap.exists()) {
+            toast({
+                variant: "destructive",
+                title: "Username Taken",
+                description: "This username is already in use. Please choose another one.",
+            });
+            return;
+        }
+      }
+      await initiateEmailSignUp(auth, firestore, data.email, data.password, data.fullName, data.username);
       toast({
         title: 'Account Created!',
         description: "You have been successfully registered.",
@@ -106,9 +122,11 @@ export default function RegisterPage() {
             description = "An account already exists with this email address. Please sign in with the original method you used.";
             break;
         default:
-          description = `A registration error occurred: ${error.message}`;
+          description = error.message || `A registration error occurred.`;
           break;
       }
+    } else if (error instanceof Error) {
+        description = error.message;
     }
     toast({
       variant: "destructive",
@@ -142,6 +160,11 @@ export default function RegisterPage() {
               <Label htmlFor="full-name">Full Name</Label>
               <Input id="full-name" placeholder="Max Robinson" {...register('fullName')} />
               {errors.fullName && <p className="text-destructive text-sm mt-1">{errors.fullName.message}</p>}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="username">Username</Label>
+              <Input id="username" placeholder="max_robinson" {...register('username')} />
+              {errors.username && <p className="text-destructive text-sm mt-1">{errors.username.message}</p>}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>

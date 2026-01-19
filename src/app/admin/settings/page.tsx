@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,6 +22,7 @@ import { Sun, Moon, Trees, Flower, Monitor, Loader2, Timer } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { differenceInSeconds, formatDuration, intervalToDuration } from 'date-fns';
+import { updateProfile } from 'firebase/auth';
 
 interface MaintenanceSettings {
   isMaintenanceMode?: boolean;
@@ -29,6 +30,12 @@ interface MaintenanceSettings {
   maintenanceStartTime?: string | null;
   maintenanceEndTime?: string | null;
 }
+
+interface UserProfile {
+    username?: string;
+    displayName?: string;
+}
+
 
 function AdminCountdown({ settings }: { settings: MaintenanceSettings | null }) {
   const [timeLeft, setTimeLeft] = useState('');
@@ -97,6 +104,7 @@ function AdminCountdown({ settings }: { settings: MaintenanceSettings | null }) 
 export default function AdminSettingsPage() {
   const { theme, setTheme } = useTheme();
   const { user, isUserLoading } = useUser();
+  const auth = useAuth();
   const { toast } = useToast();
   const firestore = useFirestore();
 
@@ -105,6 +113,12 @@ export default function AdminSettingsPage() {
     return doc(firestore, 'settings', 'maintenance');
   }, [firestore]);
 
+  const userDocRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [firestore, user]);
+
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
   const { data: maintenanceSettings, isLoading: isSettingsLoading } = useDoc<MaintenanceSettings>(settingsDocRef);
   
   const [isMaintenanceOn, setIsMaintenanceOn] = useState(false);
@@ -113,6 +127,10 @@ export default function AdminSettingsPage() {
   const [scheduleMinutes, setScheduleMinutes] = useState(0);
   const [durationHours, setDurationHours] = useState(0);
   const [durationMinutes, setDurationMinutes] = useState(0);
+  
+  const [displayName, setDisplayName] = useState('');
+  const [username, setUsername] = useState('');
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -127,13 +145,34 @@ export default function AdminSettingsPage() {
         setIsMaintenanceOn(false);
         setMessage('We are performing scheduled maintenance.');
     }
-  }, [maintenanceSettings]);
+    if (userProfile) {
+        setDisplayName(userProfile.displayName || user?.displayName || '');
+        setUsername(userProfile.username || '');
+    }
+  }, [maintenanceSettings, userProfile, user]);
   
-  const handleProfileSave = () => {
-    toast({
-      title: 'Settings Saved!',
-      description: 'Your profile has been updated.',
-    });
+  const handleProfileSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !auth.currentUser) return;
+
+    setIsSubmitting(true);
+    try {
+        // Update Auth profile
+        if (auth.currentUser.displayName !== displayName) {
+            await updateProfile(auth.currentUser, { displayName });
+        }
+        // Update Firestore user document
+        updateDocumentNonBlocking(doc(firestore, 'users', user.uid), { displayName });
+        toast({
+            title: 'Profile Saved!',
+            description: 'Your display name has been updated.',
+        });
+    } catch (error) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not update profile.' });
+        console.error(error);
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   const handleSiteSettingsSave = async () => {
@@ -185,7 +224,7 @@ export default function AdminSettingsPage() {
     });
   };
   
-  const isLoading = isUserLoading || isSettingsLoading;
+  const isLoading = isUserLoading || isSettingsLoading || isProfileLoading;
 
   if (isLoading || !user) {
     return (
@@ -204,19 +243,25 @@ export default function AdminSettingsPage() {
           <CardTitle>Admin Profile</CardTitle>
           <CardDescription>Manage your personal admin information.</CardDescription>
         </CardHeader>
-        <CardContent className="flex-grow grid gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="full-name">Full Name</Label>
-            <Input id="full-name" defaultValue={user.displayName || 'Admin'} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="admin-email">Email</Label>
-            <Input id="admin-email" type="email" defaultValue={user.email || 'admin@petverse.com'} readOnly />
-          </div>
-        </CardContent>
-        <CardFooter className="border-t px-6 py-4">
-          <Button onClick={handleProfileSave}>Save Profile</Button>
-        </CardFooter>
+        <form onSubmit={handleProfileSave}>
+            <CardContent className="flex-grow grid gap-6">
+            <div className="space-y-2">
+                <Label htmlFor="display-name">Display Name</Label>
+                <Input id="display-name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input id="username" value={username} readOnly disabled />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="admin-email">Email</Label>
+                <Input id="admin-email" type="email" value={user.email || 'admin@petverse.com'} readOnly disabled />
+            </div>
+            </CardContent>
+            <CardFooter className="border-t px-6 py-4">
+                <Button type="submit" disabled={isSubmitting}>Save Profile</Button>
+            </CardFooter>
+        </form>
       </Card>
 
       <Card className="flex flex-col lg:col-span-2">
