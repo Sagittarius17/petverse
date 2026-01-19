@@ -5,16 +5,16 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   updateProfile,
-  onAuthStateChanged,
-  Unsubscribe,
   GoogleAuthProvider,
   signInWithPopup,
 } from 'firebase/auth';
 import { Firestore, doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 
-/** Initiate anonymous sign-in (non-blocking). */
-export function initiateAnonymousSignIn(authInstance: Auth): void {
-  signInAnonymously(authInstance);
+/** Initiate anonymous sign-in. This is an async operation. */
+export function initiateAnonymousSignIn(authInstance: Auth): Promise<void> {
+  // signInAnonymously returns a promise, which should be returned to the caller.
+  // Map the UserCredential result to void to match the promise signature.
+  return signInAnonymously(authInstance).then(() => {});
 }
 
 /** Initiate email/password sign-up and create user document (non-blocking). */
@@ -55,10 +55,10 @@ export async function initiateEmailSignUp(
 
 /** Initiate email/password sign-in (non-blocking). */
 export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    signInWithEmailAndPassword(authInstance, email, password)
-      .then(() => resolve())
-      .catch((error) => reject(error));
+  // Simplified promise handling. signInWithEmailAndPassword already returns a promise.
+  return signInWithEmailAndPassword(authInstance, email, password).then(() => {
+    // Return void on success to match the function signature.
+    return;
   });
 }
 
@@ -96,5 +96,3 @@ export async function initiateGoogleSignIn(auth: Auth, firestore: Firestore): Pr
     throw error;
   }
 }
-
-    
