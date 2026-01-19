@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useSyncExternalStore } from 'react';
 import { usePathname } from 'next/navigation';
 import AdoptionHeader from '@/components/adoption-header';
 import AdoptionFooter from '@/components/adoption-footer';
@@ -12,38 +12,41 @@ import MaintenancePage from './maintenance-page';
 import AdoptionNotifier from './adoption-notifier';
 import MaintenanceBanner from './maintenance-banner';
 
+const getServerSnapshot = () => {
+  return maintenanceStore.getState();
+};
+
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdminPage = pathname.startsWith('/admin');
   const isShopPage = pathname.startsWith('/shop');
 
-  const [maintenanceState, setMaintenanceState] = useState(maintenanceStore.getState());
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    // This effect runs only on the client, after the component has mounted.
     setIsClient(true);
-    
-    // On mount, immediately sync with the possibly-hydrated store state
-    setMaintenanceState(maintenanceStore.getState());
-    
-    // Then subscribe for subsequent changes
-    const unsubscribe = maintenanceStore.subscribe(setMaintenanceState);
-    
-    return unsubscribe;
   }, []);
 
-  // On the server, and during initial client render, render a non-maintenance layout
+  // Use useSyncExternalStore to safely subscribe to the external store.
+  // This is the idiomatic React way to handle external state and prevent hydration mismatches.
+  const maintenanceState = useSyncExternalStore(
+    maintenanceStore.subscribe,
+    () => maintenanceStore.getState(),
+    getServerSnapshot
+  );
+
+  // On the server, and during the initial client render before hydration is guaranteed,
+  // we render the basic layout to avoid mismatches.
   if (!isClient) {
     if (isAdminPage) {
-        return <main className="flex-grow">{children}</main>;
+      return <main className="flex-grow">{children}</main>;
     }
     return (
-        <div className="flex min-h-screen flex-col">
-          {isShopPage ? <ShopHeader /> : <AdoptionHeader />}
-          <main className="flex-grow">{children}</main>
-          {isShopPage ? <ShopFooter /> : <AdoptionFooter />}
-        </div>
+      <div className="flex min-h-screen flex-col">
+        {isShopPage ? <ShopHeader /> : <AdoptionHeader />}
+        <main className="flex-grow">{children}</main>
+        {isShopPage ? <ShopFooter /> : <AdoptionFooter />}
+      </div>
     );
   }
 
