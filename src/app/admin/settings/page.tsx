@@ -138,6 +138,7 @@ export default function AdminSettingsPage() {
               id="maintenance-mode"
               checked={isMaintenanceMode}
               onCheckedChange={setIsMaintenanceMode}
+              showOnOff
             />
             <Label htmlFor="maintenance-mode" className="text-sm">
               Enable Maintenance Mode
@@ -166,13 +167,13 @@ export default function AdminSettingsPage() {
         </CardHeader>
         <CardContent className="flex-grow grid gap-6">
           <div className="flex items-center space-x-2">
-            <Switch id="new-user-noti" defaultChecked />
+            <Switch id="new-user-noti" defaultChecked showOnOff />
             <Label htmlFor="new-user-noti" className="text-sm">
               Email on new user registration
             </Label>
           </div>
           <div className="flex items-center space-x-2">
-            <Switch id="adoption-noti" defaultChecked />
+            <Switch id="adoption-noti" defaultChecked showOnOff />
             <Label htmlFor="adoption-noti" className="text-sm">
               Email on successful adoption
             </Label>
