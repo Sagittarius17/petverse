@@ -22,7 +22,7 @@ function Countdown({ endTime }: { endTime: string }) {
       if (secondsLeft <= 0) {
         setTimeLeft('Refreshing now...');
         clearInterval(interval);
-        // The main-layout component will handle turning off maintenance mode
+        window.location.reload();
         return;
       }
 

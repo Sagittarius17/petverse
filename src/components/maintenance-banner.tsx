@@ -22,6 +22,7 @@ export default function MaintenanceBanner({ startTime, message }: MaintenanceBan
       if (secondsLeft <= 0) {
         setTimeLeft('starting now...');
         clearInterval(interval);
+        window.location.reload();
         return;
       }
 
