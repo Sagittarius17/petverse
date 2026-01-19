@@ -28,6 +28,7 @@ interface Conversation {
     displayName: string;
     photoURL?: string;
     isOnline?: boolean;
+    status?: 'Active' | 'Inactive';
   } | null;
   lastMessage?: {
     text: string;
@@ -57,6 +58,7 @@ interface UserProfile extends DocumentData {
     photoURL?: string;
     isOnline?: boolean;
     lastSeen?: Timestamp;
+    status?: 'Active' | 'Inactive';
 }
 
 
@@ -94,6 +96,8 @@ function PresenceIndicator({ userId }: { userId: string }) {
       [firestore, userId]
     );
     const { data: userProfile } = useDoc<UserProfile>(userDocRef);
+
+    if (userProfile?.status === 'Inactive') return null;
   
     if (userProfile?.isOnline) {
       return <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-green-500 ring-2 ring-background" />;
@@ -113,6 +117,10 @@ function OtherParticipantStatus({ otherParticipantId, typingStatus }: { otherPar
 
   if (isLoading) {
     return <Skeleton className="h-4 w-20" />;
+  }
+
+  if (userProfile?.status === 'Inactive') {
+      return <p className="text-sm text-destructive">Suspended</p>;
   }
 
   if (typingStatus) {
@@ -184,6 +192,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
               displayName: userData.username || userData.displayName || 'User',
               photoURL: userData.profilePicture || '',
               isOnline: userData.isOnline || false,
+              status: userData.status || 'Active',
             };
           }
         }
@@ -368,6 +377,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
       displayName: 'Ask Billu!',
       photoURL: billuAvatar.imageUrl,
       isOnline: true,
+      status: 'Active',
     },
     lastMessage: {
       text: "Your AI companion for anything pet-related!",
@@ -399,6 +409,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
             {allConversations.map(convo => {
               const unread = convo.unreadCount?.[currentUser.uid] || 0;
               const isActive = activeConversationId === convo.id;
+              const isSuspended = convo.otherParticipant?.status === 'Inactive';
               return (
                 <div
                   key={convo.id}
@@ -412,8 +423,8 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                 >
                   <div className="relative">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={convo.otherParticipant?.photoURL} />
-                      <AvatarFallback>{convo.otherParticipant?.displayName[0] || 'U'}</AvatarFallback>
+                      <AvatarImage src={isSuspended ? undefined : convo.otherParticipant?.photoURL} />
+                      <AvatarFallback>{isSuspended ? '?' : convo.otherParticipant?.displayName[0] || 'U'}</AvatarFallback>
                     </Avatar>
                     {convo.otherParticipant && convo.id !== BILLU_CONVERSATION_ID && (
                        <PresenceIndicator userId={convo.otherParticipant.id} />
@@ -427,7 +438,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                   <div className="flex-1 overflow-hidden min-w-0">
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="outline">{convo.otherParticipant?.displayName || 'Unknown User'}</Badge>
+                          <Badge variant="outline">{isSuspended ? '[User Deleted/Suspended]' : (convo.otherParticipant?.displayName || 'Unknown User')}</Badge>
                           {unread > 0 && (
                               <Badge variant="destructive" className="h-5 w-5 p-0 flex items-center justify-center">{unread}</Badge>
                           )}
@@ -458,6 +469,8 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   const renderMessageView = () => {
     if (activeConversationId === BILLU_CONVERSATION_ID) return renderBilluChatView();
     
+    const isSuspended = selectedConversation?.otherParticipant?.status === 'Inactive';
+
     return (
         <div className="flex flex-col h-full">
             {selectedConversation && selectedConversation.otherParticipant ? (
@@ -467,15 +480,15 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                         <ArrowLeft />
                     </Button>
                     <Avatar>
-                        <AvatarImage src={selectedConversation.otherParticipant.photoURL} />
-                        <AvatarFallback>{selectedConversation.otherParticipant.displayName[0] || 'U'}</AvatarFallback>
+                        <AvatarImage src={isSuspended ? undefined : selectedConversation.otherParticipant.photoURL} />
+                        <AvatarFallback>{isSuspended ? '?' : selectedConversation.otherParticipant.displayName[0] || 'U'}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 overflow-hidden">
-                        <SheetTitle className="truncate">{selectedConversation.otherParticipant.displayName || 'Chat'}</SheetTitle>
+                        <SheetTitle className="truncate">{isSuspended ? '[User Deleted/Suspended]' : (selectedConversation.otherParticipant.displayName || 'Chat')}</SheetTitle>
                         <SheetDescription asChild>
                              <OtherParticipantStatus 
                                 otherParticipantId={selectedConversation.otherParticipant.id} 
-                                typingStatus={selectedConversation.typing?.[selectedConversation.otherParticipant.id]}
+                                typingStatus={isSuspended ? false : selectedConversation.typing?.[selectedConversation.otherParticipant.id]}
                             />
                         </SheetDescription>
                     </div>
