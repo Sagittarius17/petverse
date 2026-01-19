@@ -31,6 +31,7 @@ interface UserProfile extends DocumentData {
     displayName: string;
     email: string;
     bio?: string;
+    profilePicture?: string;
 }
 
 interface ProfileFormDialogProps {
@@ -217,3 +218,4 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
     </Dialog>
   );
 }
+
