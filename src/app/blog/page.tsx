@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -70,14 +71,25 @@ export default function BlogPage() {
         [firestore]
     );
 
+    // Remove orderBy to avoid needing a composite index which can cause permission errors if not set up.
+    // Sorting will be done client-side.
     const publishedBlogsQuery = useMemoFirebase(
         () => blogsCollection 
-            ? query(blogsCollection, where('status', '==', 'Published'), orderBy('createdAt', 'desc'))
+            ? query(blogsCollection, where('status', '==', 'Published'))
             : null,
         [blogsCollection]
     );
 
     const { data: posts, isLoading } = useCollection<Blog>(publishedBlogsQuery);
+
+    const sortedPosts = useMemo(() => {
+        if (!posts) return [];
+        return [...posts].sort((a, b) => {
+            const timeA = a.createdAt?.toMillis() || 0;
+            const timeB = b.createdAt?.toMillis() || 0;
+            return timeB - timeA;
+        });
+    }, [posts]);
 
     return (
         <div className="container mx-auto px-4 py-6 md:py-8">
@@ -107,9 +119,9 @@ export default function BlogPage() {
                         </Card>
                     ))}
                 </div>
-            ) : posts && posts.length > 0 ? (
+            ) : sortedPosts && sortedPosts.length > 0 ? (
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                    {posts.map(post => (
+                    {sortedPosts.map(post => (
                        <BlogCard key={post.id} post={post} />
                     ))}
                 </div>
