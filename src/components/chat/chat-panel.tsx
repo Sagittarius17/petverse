@@ -296,6 +296,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
       senderId: currentUser.uid,
       text: newMessage,
       timestamp: Timestamp.now(),
+      isRead: true, // Bot "reads" instantly
     };
     
     setBilluChatHistory(prev => [...prev, userMessage]);
@@ -600,7 +601,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-        <SheetContent side="floating-right" className="p-0">
+        <SheetContent side="floating-right" className="p-0 flex flex-col">
             {activeConversationId ? renderMessageView() : renderConversationList()}
         </SheetContent>
     </Sheet>
