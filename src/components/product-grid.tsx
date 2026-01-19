@@ -16,9 +16,10 @@ export default function ProductGrid() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number]>([MAX_PRICE_SLIDER]);
   const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
+  const [priceSort, setPriceSort] = useState<'asc' | 'desc' | null>(null);
 
   const filteredProducts = useMemo(() => {
-    return allProducts.filter(product => {
+    let products = allProducts.filter(product => {
       const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(product.category);
       
       const matchesPrice = priceRange[0] >= MAX_PRICE_SLIDER ? true : product.price <= priceRange[0];
@@ -27,7 +28,19 @@ export default function ProductGrid() {
       const matchesSearch = !searchQuery || product.name.toLowerCase().includes(searchQuery.toLowerCase()) || product.description.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesPrice && matchesRating && matchesSearch;
     });
-  }, [searchQuery, selectedCategories, priceRange, selectedRatings]);
+
+    if (priceSort) {
+      products.sort((a, b) => {
+        if (priceSort === 'asc') {
+          return a.price - b.price;
+        } else {
+          return b.price - a.price;
+        }
+      });
+    }
+
+    return products;
+  }, [searchQuery, selectedCategories, priceRange, selectedRatings, priceSort]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -40,6 +53,8 @@ export default function ProductGrid() {
             setPriceRange={setPriceRange}
             selectedRatings={selectedRatings}
             setSelectedRatings={setSelectedRatings}
+            priceSort={priceSort}
+            setPriceSort={setPriceSort}
           />
         </div>
         <div className="lg:col-span-3">

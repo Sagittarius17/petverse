@@ -8,6 +8,7 @@ import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { formatCurrency, config } from '@/lib/localization';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface ProductFiltersProps {
   selectedCategories: string[];
@@ -16,6 +17,8 @@ interface ProductFiltersProps {
   setPriceRange: (range: [number]) => void;
   selectedRatings: number[];
   setSelectedRatings: (ratings: number[]) => void;
+  priceSort: 'asc' | 'desc' | null;
+  setPriceSort: (sort: 'asc' | 'desc' | null) => void;
 }
 
 const categories = ['Food', 'Toys', 'Accessories', 'Bedding'];
@@ -29,6 +32,8 @@ export default function ProductFilters({
   setPriceRange,
   selectedRatings,
   setSelectedRatings,
+  priceSort,
+  setPriceSort,
 }: ProductFiltersProps) {
 
   const handleCategoryChange = (category: string) => {
@@ -51,6 +56,7 @@ export default function ProductFilters({
     setSelectedCategories([]);
     setPriceRange([MAX_PRICE_SLIDER]);
     setSelectedRatings([]);
+    setPriceSort(null);
   };
 
   const displayPriceLabel = () => {
@@ -89,23 +95,41 @@ export default function ProductFilters({
           ))}
         </CardContent>
       </Card>
+
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Price Range</CardTitle>
+          <CardTitle className="text-lg">Price</CardTitle>
         </CardHeader>
-        <CardContent>
-          <Slider
-            min={0}
-            max={MAX_PRICE_SLIDER}
-            step={5}
-            value={priceRange}
-            onValueChange={(value) => setPriceRange(value as [number])}
-          />
-          <div className="mt-2 text-sm text-muted-foreground">
-            {displayPriceLabel()}
+        <CardContent className="space-y-6">
+          <div>
+            <p className="text-sm font-medium mb-2">Price Range</p>
+            <Slider
+              min={0}
+              max={MAX_PRICE_SLIDER}
+              step={5}
+              value={priceRange}
+              onValueChange={(value) => setPriceRange(value as [number])}
+            />
+            <div className="mt-2 text-sm text-muted-foreground">
+              {displayPriceLabel()}
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-medium mb-4">Sort by</p>
+            <RadioGroup value={priceSort || ""} onValueChange={(value) => setPriceSort(value as 'asc' | 'desc')}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="asc" id="asc" />
+                <Label htmlFor="asc" className="cursor-pointer">Low to High</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="desc" id="desc" />
+                <Label htmlFor="desc" className="cursor-pointer">High to Low</Label>
+              </div>
+            </RadioGroup>
           </div>
         </CardContent>
       </Card>
+      
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Rating</CardTitle>
