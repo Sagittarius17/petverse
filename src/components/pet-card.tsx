@@ -5,11 +5,9 @@ import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import type { Pet } from '@/lib/data';
+import type { Pet, UserProfile } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Eye, AtSign } from 'lucide-react';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, DocumentData } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -18,43 +16,10 @@ interface PetCardProps {
   pet: Pet;
   onPetSelect?: (pet: Pet) => void;
   actions?: React.ReactNode;
+  owner?: UserProfile;
 }
 
-interface UserProfile extends DocumentData {
-    username?: string;
-}
-
-function PetOwnerUsername({ userId }: { userId: string }) {
-    const firestore = useFirestore();
-    const userDocRef = useMemoFirebase(() => {
-        if (!firestore || !userId) return null;
-        return doc(firestore, 'users', userId);
-    }, [firestore, userId]);
-    
-    const { data: userProfile, isLoading } = useDoc<UserProfile>(userDocRef);
-
-    if (isLoading) {
-        return (
-            <div className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
-                <Skeleton className="h-3 w-12" />
-            </div>
-        );
-    }
-
-    if (!userProfile?.username) {
-        return null;
-    }
-    
-    return (
-        <div className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
-            <AtSign className="h-3 w-3" />
-            <span className="font-semibold">{userProfile.username}</span>
-        </div>
-    );
-}
-
-
-export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
+export default function PetCard({ pet, onPetSelect, actions, owner }: PetCardProps) {
     const image = useMemo(() => {
         if (pet.imageId?.startsWith('data:image')) {
             return {
@@ -101,7 +66,12 @@ export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
                 </div>
             )}
           </div>
-          {pet.userId && <PetOwnerUsername userId={pet.userId} />}
+          {owner?.username && (
+            <div className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
+                <AtSign className="h-3 w-3" />
+                <span className="font-semibold">{owner.username}</span>
+            </div>
+          )}
           <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
             <Eye className="h-3 w-3" />
             <span className="font-semibold">{pet.viewCount || 0}</span>

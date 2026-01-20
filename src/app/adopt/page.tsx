@@ -2,7 +2,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import type { Pet } from '@/lib/data';
+import type { Pet, UserProfile } from '@/lib/data';
 import AdoptionList from '@/components/adoption-list';
 import PetFilters from '@/components/pet-filters';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -63,7 +63,6 @@ export default function AdoptPage() {
     [firestore]
   );
   
-  // Fetch all pets. We will sort and filter on the client.
   const petsQuery = useMemoFirebase(
     () => petsCollection ? query(petsCollection) : null,
     [petsCollection]
@@ -71,7 +70,6 @@ export default function AdoptPage() {
 
   const { data: unsortedPets, isLoading, error } = useCollection<Pet>(petsQuery);
 
-  // Sort the pets by creation date on the client side
   const allPets = useMemo(() => {
     if (!unsortedPets) return null;
     return [...unsortedPets].sort((a, b) => {
@@ -83,6 +81,7 @@ export default function AdoptPage() {
 
 
   const [activePets, setActivePets] = useState<Pet[] | null>(null);
+  const [userProfilesMap, setUserProfilesMap] = useState<Map<string, UserProfile>>(new Map());
   const [isFilteringUsers, setIsFilteringUsers] = useState(true);
 
   useEffect(() => {
@@ -99,27 +98,29 @@ export default function AdoptPage() {
       const userIds = [...new Set(allPets.map(pet => pet.userId).filter((id): id is string => !!id))];
       
       if (userIds.length === 0) {
-        setActivePets(allPets.filter(p => !p.userId)); // Only show pets with no owner if no userIds found
+        setActivePets(allPets.filter(p => !p.userId));
         setIsFilteringUsers(false);
         return;
       }
 
-      // Firestore 'in' query can take up to 30 elements per query. We need to batch them.
       const userChunks: string[][] = [];
       for (let i = 0; i < userIds.length; i += 30) {
           userChunks.push(userIds.slice(i, i + 30));
       }
 
-      const activeUserIds = new Set<string>();
+      const activeUserProfiles = new Map<string, UserProfile>();
 
       try {
         await Promise.all(userChunks.map(async (chunk) => {
             const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chunk), where('status', '==', 'Active'));
             const usersSnapshot = await getDocs(usersQuery);
-            usersSnapshot.forEach(doc => activeUserIds.add(doc.id));
+            usersSnapshot.forEach(doc => {
+              activeUserProfiles.set(doc.id, { id: doc.id, ...doc.data() } as UserProfile);
+            });
         }));
         
-        const filtered = allPets.filter(pet => !pet.userId || activeUserIds.has(pet.userId));
+        setUserProfilesMap(activeUserProfiles);
+        const filtered = allPets.filter(pet => !pet.userId || activeUserProfiles.has(pet.userId));
         setActivePets(filtered);
 
       } catch (e) {
@@ -209,7 +210,7 @@ export default function AdoptPage() {
           />
         </div>
         <div className="lg:col-span-3">
-            <AdoptionList pets={filteredPets} />
+            <AdoptionList pets={filteredPets} userProfiles={userProfilesMap} />
         </div>
       </div>
     </div>

@@ -1,16 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import type { Pet } from '@/lib/data';
+import type { Pet, UserProfile } from '@/lib/data';
 import PetCard from './pet-card';
 import { PawPrint } from 'lucide-react';
 import PetDetailDialog from './pet-detail-dialog';
 
 interface AdoptionListProps {
   pets: Pet[];
+  userProfiles: Map<string, UserProfile>;
 }
 
-export default function AdoptionList({ pets }: AdoptionListProps) {
+export default function AdoptionList({ pets, userProfiles }: AdoptionListProps) {
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
 
   const handlePetSelect = (pet: Pet) => {
@@ -26,7 +27,12 @@ export default function AdoptionList({ pets }: AdoptionListProps) {
       {pets.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {pets.map(pet => (
-            <PetCard key={pet.id} pet={pet} onPetSelect={handlePetSelect} />
+            <PetCard
+              key={pet.id}
+              pet={pet}
+              onPetSelect={handlePetSelect}
+              owner={pet.userId ? userProfiles.get(pet.userId) : undefined}
+            />
           ))}
         </div>
       ) : (
