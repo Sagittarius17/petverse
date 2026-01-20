@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -316,6 +317,13 @@ export default function CheckoutPage() {
         setStep('address');
     };
     
+    const handleStepChange = (newStep: string) => {
+        if (newStep === 'payment' && !address.streetAddress && userProfile?.address) {
+            setAddress(userProfile.address);
+        }
+        setStep(newStep);
+    };
+
     if (isLoadingAddress || (items.length === 0 && !isPlacingOrder)) {
         return (
             <div className="container mx-auto px-4 py-12 text-center">
@@ -338,10 +346,10 @@ export default function CheckoutPage() {
                         <OrderSummary />
                     </div>
                     <div className="md:order-1">
-                        <Tabs value={step} onValueChange={setStep} className="w-full">
+                        <Tabs value={step} onValueChange={handleStepChange} className="w-full">
                             <TabsList className="grid w-full grid-cols-2">
                                 <TabsTrigger value="address" disabled={isPlacingOrder}>Shipping</TabsTrigger>
-                                <TabsTrigger value="payment" disabled={isPlacingOrder || !address.streetAddress}>Payment</TabsTrigger>
+                                <TabsTrigger value="payment" disabled={isPlacingOrder || (!address.streetAddress && !userProfile?.address)}>Payment</TabsTrigger>
                             </TabsList>
                             <TabsContent value="address" className="mt-6">
                                 <ShippingAddressStep onNext={() => setStep('payment')} address={address} setAddress={setAddress} />
