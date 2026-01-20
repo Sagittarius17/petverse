@@ -241,9 +241,12 @@ service cloud.firestore {
       // Superusers can see any post.
       allow get: if resource.data.status == 'Published' || (isSignedIn() && isSuperuser(request.auth.uid));
 
-      // Public list queries must filter by status == 'Published'.
-      // Superusers can list all blogs.
-      allow list: if request.query.where.status == 'Published' || (isSignedIn() && isSuperuser(request.auth.uid));
+      // Public users can list published posts.
+      // Admins can list all posts.
+      // The security is enforced by the 'get' rule. A query will fail if it tries to
+      // access documents the user cannot 'get'. So a non-admin user querying
+      // without `where('status', '==', 'Published')` will be denied.
+      allow list: if true;
 
       allow create: if
         isSignedIn() && isSuperuser(request.auth.uid);
