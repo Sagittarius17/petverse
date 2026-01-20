@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect, use } from 'react';
@@ -229,7 +228,8 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
             onBreedFound={handleBreedFound} 
             searchTerm={localSearchTerm}
             setSearchTerm={setLocalSearchTerm}
-            placeholder={`Search for a ${currentPetType?.name} breed (e.g., "Siberian Husky")`}
+            placeholder={`Search or type a new ${currentPetType?.name.toLowerCase()} breed for AI to find...`}
+            existingBreeds={allBreeds}
           />
         </div>
 
@@ -249,7 +249,7 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
           ) : (
             !loading && <div className="text-center py-16 text-muted-foreground">
                 <p>No breeds found matching &quot;{localSearchTerm}&quot;.</p>
-                <p className="text-sm mt-2">Try a different search term or use the AI search above to find and add it to our database.</p>
+                <p className="text-sm mt-2">If you type a new breed name, our AI will try to discover it for you!</p>
             </div>
           )}
         </section>
