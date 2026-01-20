@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from 'react';
@@ -81,11 +80,12 @@ export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
     <Card 
       className="flex flex-col overflow-hidden transition-all hover:shadow-lg group"
     >
+      <div 
+        className="flex-grow cursor-pointer"
+        onClick={() => onPetSelect?.(pet)}
+      >
         <CardHeader className="relative h-48 w-full p-0">
-          <div 
-            className="cursor-pointer h-full w-full"
-            onClick={() => onPetSelect?.(pet)}
-          >
+          <div className="h-full w-full">
             {image ? (
               <Image
                 src={image.imageUrl}
@@ -108,8 +108,7 @@ export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
           </div>
         </CardHeader>
         <CardContent 
-            className="flex-grow p-4 cursor-pointer"
-            onClick={() => onPetSelect?.(pet)}
+            className="flex-grow p-4"
         >
           <div className="flex items-center justify-between mb-2">
             <CardTitle className="text-xl font-headline group-hover:underline">
@@ -126,7 +125,11 @@ export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
           </div>
           <p className="mt-3 text-sm line-clamp-2">{pet.description}</p>
         </CardContent>
-      <CardFooter className="p-4 pt-0">
+      </div>
+      <CardFooter 
+        className="p-4 pt-0"
+        onClick={(e) => {if(actions) { e.stopPropagation() }}}
+      >
         {actions ? (
           <div className="w-full">{actions}</div>
         ) : (
