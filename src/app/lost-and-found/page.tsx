@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useMemo, useEffect } from 'react';
 import LostPetForm from "@/components/lost-pet-form";
 import { ClientTabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/client-tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +8,7 @@ import { PawPrint, Search } from "lucide-react";
 import type { LostPetReport } from '@/lib/data';
 import LostPetReportCard from '@/components/lost-pet-report-card';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function LostAndFoundPage() {
@@ -16,7 +17,62 @@ export default function LostAndFoundPage() {
     () => firestore ? query(collection(firestore, 'lost_found_reports'), orderBy('reportDate', 'desc')) : null,
     [firestore]
   );
-  const { data: reports, isLoading } = useCollection<LostPetReport>(reportsQuery);
+  const { data: allReports, isLoading } = useCollection<LostPetReport>(reportsQuery);
+
+  const [activeReports, setActiveReports] = useState<LostPetReport[] | null>(null);
+  const [isFilteringUsers, setIsFilteringUsers] = useState(true);
+
+  useEffect(() => {
+    const filterReportsByActiveUsers = async () => {
+      if (!allReports || !firestore) {
+        if (!isLoading) {
+            setIsFilteringUsers(false);
+            setActiveReports([]);
+        }
+        return;
+      };
+
+      setIsFilteringUsers(true);
+      const userIds = [...new Set(allReports.map(report => report.userId).filter((id): id is string => !!id))];
+      
+      if (userIds.length === 0) {
+        setActiveReports(allReports.filter(r => !r.userId)); // Only show reports with no user if no userIds found
+        setIsFilteringUsers(false);
+        return;
+      }
+
+      // Firestore 'in' query can take up to 30 elements per query. We need to batch them.
+      const userChunks: string[][] = [];
+      for (let i = 0; i < userIds.length; i += 30) {
+          userChunks.push(userIds.slice(i, i + 30));
+      }
+
+      const activeUserIds = new Set<string>();
+
+      try {
+        await Promise.all(userChunks.map(async (chunk) => {
+            const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chunk), where('status', '==', 'Active'));
+            const usersSnapshot = await getDocs(usersQuery);
+            usersSnapshot.forEach(doc => activeUserIds.add(doc.id));
+        }));
+        
+        const filtered = allReports.filter(report => !report.userId || activeUserIds.has(report.userId));
+        setActiveReports(filtered);
+
+      } catch (e) {
+          console.error("Error filtering reports by user status:", e);
+          setActiveReports(allReports); // Fallback to showing all reports on error
+      } finally {
+        setIsFilteringUsers(false);
+      }
+    };
+
+    if (!isLoading) {
+        filterReportsByActiveUsers();
+    }
+  }, [allReports, firestore, isLoading]);
+
+  const finalIsLoading = isLoading || isFilteringUsers;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -58,7 +114,7 @@ export default function LostAndFoundPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {isLoading ? (
+              {finalIsLoading ? (
                 Array.from({ length: 2 }).map((_, i) => (
                   <Card key={i} className="overflow-hidden">
                     <div className="grid grid-cols-1 md:grid-cols-3">
@@ -72,8 +128,8 @@ export default function LostAndFoundPage() {
                     </div>
                   </Card>
                 ))
-              ) : reports && reports.length > 0 ? (
-                reports.map(report => (
+              ) : activeReports && activeReports.length > 0 ? (
+                activeReports.map(report => (
                   <LostPetReportCard key={report.id} report={report} />
                 ))
               ) : (

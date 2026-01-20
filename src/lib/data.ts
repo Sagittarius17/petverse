@@ -76,6 +76,7 @@ export interface LostPetReport {
   petImage: string; // URL of the uploaded image
   analysis: AnalyzePetImageForMatchingOutput;
   reportDate?: Timestamp;
+  userId?: string;
 }
 
 export interface OrderItem {

@@ -1,8 +1,7 @@
-
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 import type { Pet } from '@/lib/data';
 import AdoptionList from '@/components/adoption-list';
 import PetFilters from '@/components/pet-filters';
@@ -65,15 +64,67 @@ export default function AdoptPage() {
   );
   
   const petsQuery = useMemoFirebase(
-    () => petsCollection ? query(petsCollection, orderBy('createdAt', 'desc')) : null,
+    () => petsCollection ? query(petsCollection, where('isAdoptable', '==', true), orderBy('createdAt', 'desc')) : null,
     [petsCollection]
   );
 
   const { data: allPets, isLoading, error } = useCollection<Pet>(petsQuery);
+  const [activePets, setActivePets] = useState<Pet[] | null>(null);
+  const [isFilteringUsers, setIsFilteringUsers] = useState(true);
+
+  useEffect(() => {
+    const filterPetsByActiveUsers = async () => {
+      if (!allPets || !firestore) {
+        if (!isLoading) {
+            setIsFilteringUsers(false);
+            setActivePets([]);
+        }
+        return;
+      };
+
+      setIsFilteringUsers(true);
+      const userIds = [...new Set(allPets.map(pet => pet.userId).filter((id): id is string => !!id))];
+      
+      if (userIds.length === 0) {
+        setActivePets(allPets.filter(p => !p.userId)); // Only show pets with no owner if no userIds found
+        setIsFilteringUsers(false);
+        return;
+      }
+
+      // Firestore 'in' query can take up to 30 elements per query. We need to batch them.
+      const userChunks: string[][] = [];
+      for (let i = 0; i < userIds.length; i += 30) {
+          userChunks.push(userIds.slice(i, i + 30));
+      }
+
+      const activeUserIds = new Set<string>();
+
+      try {
+        await Promise.all(userChunks.map(async (chunk) => {
+            const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chunk), where('status', '==', 'Active'));
+            const usersSnapshot = await getDocs(usersQuery);
+            usersSnapshot.forEach(doc => activeUserIds.add(doc.id));
+        }));
+        
+        const filtered = allPets.filter(pet => !pet.userId || activeUserIds.has(pet.userId));
+        setActivePets(filtered);
+
+      } catch (e) {
+          console.error("Error filtering pets by user status:", e);
+          setActivePets(allPets); // Fallback to showing all pets on error
+      } finally {
+        setIsFilteringUsers(false);
+      }
+    };
+
+    if (!isLoading) {
+        filterPetsByActiveUsers();
+    }
+  }, [allPets, firestore, isLoading]);
 
   const filteredPets = useMemo(() => {
-    if (!allPets) return [];
-    return allPets.filter(pet => {
+    if (!activePets) return [];
+    return activePets.filter(pet => {
       const matchesSearch =
         pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pet.breed.toLowerCase().includes(searchTerm.toLowerCase());
@@ -84,9 +135,12 @@ export default function AdoptPage() {
       
       return matchesSearch && matchesCategory && matchesGender && matchesAge;
     });
-  }, [allPets, searchTerm, categoryFilter, genderFilter, ageRange]);
+  }, [activePets, searchTerm, categoryFilter, genderFilter, ageRange]);
+  
+  const finalIsLoading = isLoading || isFilteringUsers;
 
-  if (isLoading) {
+
+  if (finalIsLoading) {
     return (
         <div className="container mx-auto px-4 py-6 md:py-8">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
