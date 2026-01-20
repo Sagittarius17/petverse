@@ -50,6 +50,8 @@ export interface UserProfile {
     id: string;
     username: string;
     email: string;
+    displayName?: string;
+    profilePicture?: string;
     firstName?: string;
     lastName?: string;
     createdAt?: Timestamp;

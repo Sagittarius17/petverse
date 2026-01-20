@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, Timestamp } from 'firebase/firestore';
+import { useCollection, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, query, orderBy, Timestamp, doc } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -18,6 +18,7 @@ import {
   ListCollapse,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import type { UserProfile } from '@/lib/data';
 
 type ActivityType = 'User' | 'Blog' | 'Pet';
 type BadgeVariant = 'default' | 'secondary' | 'destructive';
@@ -37,20 +38,6 @@ interface Activity {
   iconName: IconName;
 }
 
-const actionIcons = {
-  ShieldCheck,
-  ShieldOff,
-  Edit,
-  Trash2,
-  PlusCircle,
-  ChangedRole: ShieldCheck,
-  'Enabled User': ShieldCheck,
-  'Disabled User': ShieldOff,
-  'Edited Blog Post': Edit,
-  'Deleted Blog Post': Trash2,
-  'Added New Pet': PlusCircle,
-};
-
 const typeIcons = {
   User: <User className="h-4 w-4" />,
   Blog: <FileText className="h-4 w-4" />,
@@ -62,6 +49,56 @@ function formatRelativeTime(timestamp?: Timestamp): string {
     return `${formatDistanceToNow(timestamp.toDate())} ago`;
 }
 
+function ActivityItem({ activity }: { activity: Activity }) {
+  const firestore = useFirestore();
+  const userDocRef = useMemoFirebase(
+    () => (firestore ? doc(firestore, 'users', activity.userId) : null),
+    [firestore, activity.userId]
+  );
+  const { data: userProfile } = useDoc<UserProfile>(userDocRef);
+
+  const iconMap: Record<string, React.ElementType> = useMemo(() => ({
+    ShieldCheck: ShieldCheck,
+    ShieldOff: ShieldOff,
+    Edit: Edit,
+    Trash2: Trash2,
+    PlusCircle: PlusCircle,
+  }), []);
+
+  const ActionIcon = iconMap[activity.iconName] || Edit;
+  
+  const displayName = userProfile?.displayName || activity.userName;
+  const avatarUrl = userProfile?.profilePicture || activity.userAvatar;
+
+  return (
+    <div className="grid items-start grid-cols-[auto_1fr_auto] gap-x-4">
+        <Avatar className="h-10 w-10">
+            <AvatarImage src={avatarUrl} />
+            <AvatarFallback>{displayName?.charAt(0) || 'A'}</AvatarFallback>
+        </Avatar>
+        <div className="text-sm">
+            <div>
+                <span className="font-semibold">{displayName}</span>
+                <span className="text-muted-foreground"> performed action </span>
+                <Badge variant={activity.badgeVariant || 'secondary'} className="mx-1">
+                    <ActionIcon className="h-3 w-3 mr-1" />
+                    {activity.action}
+                </Badge>
+            </div>
+            <div className="flex items-center gap-2 mt-1 text-muted-foreground">
+                {typeIcons[activity.targetType as keyof typeof typeIcons]}
+                <span className="font-medium truncate">{activity.target}</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">{activity.details}</p>
+        </div>
+        <div className="text-xs text-muted-foreground self-start">
+            {formatRelativeTime(activity.timestamp)}
+        </div>
+    </div>
+  );
+}
+
+
 export default function ActivityLog() {
   const firestore = useFirestore();
 
@@ -71,14 +108,6 @@ export default function ActivityLog() {
   }, [firestore]);
 
   const { data: activities, isLoading } = useCollection<Activity>(activitiesQuery);
-
-  const iconMap: Record<string, React.ElementType> = useMemo(() => ({
-    ShieldCheck: ShieldCheck,
-    ShieldOff: ShieldOff,
-    Edit: Edit,
-    Trash2: Trash2,
-    PlusCircle: PlusCircle,
-  }), []);
 
   if (isLoading) {
     return (
@@ -111,35 +140,9 @@ export default function ActivityLog() {
 
   return (
     <div className="space-y-8 pr-4">
-      {activities.map(activity => {
-        const ActionIcon = iconMap[activity.iconName] || Edit;
-        return (
-            <div key={activity.id} className="grid items-start grid-cols-[auto_1fr_auto] gap-x-4">
-                <Avatar className="h-10 w-10">
-                    <AvatarImage src={activity.userAvatar} />
-                    <AvatarFallback>{activity.userName?.charAt(0) || 'A'}</AvatarFallback>
-                </Avatar>
-                <div className="text-sm">
-                    <div>
-                        <span className="font-semibold">{activity.userName}</span>
-                        <span className="text-muted-foreground"> performed action </span>
-                        <Badge variant={activity.badgeVariant || 'secondary'} className="mx-1">
-                            <ActionIcon className="h-3 w-3 mr-1" />
-                            {activity.action}
-                        </Badge>
-                    </div>
-                    <div className="flex items-center gap-2 mt-1 text-muted-foreground">
-                        {typeIcons[activity.targetType as keyof typeof typeIcons]}
-                        <span className="font-medium truncate">{activity.target}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">{activity.details}</p>
-                </div>
-                <div className="text-xs text-muted-foreground self-start">
-                    {formatRelativeTime(activity.timestamp)}
-                </div>
-            </div>
-        )
-      })}
+      {activities.map(activity => (
+        <ActivityItem key={activity.id} activity={activity} />
+      ))}
     </div>
   );
 }
