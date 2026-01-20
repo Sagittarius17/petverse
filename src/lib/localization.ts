@@ -16,7 +16,7 @@ const localizationData: Record<Region, LocalizationConfig> = {
   India: {
     locale: 'en-IN',
     currency: 'INR',
-    priceMultiplier: 83, // Approx conversion rate
+    priceMultiplier: 85, // Approx conversion rate
     contact: {
       address: '123 Pet Gully, Paw Nagar, India',
       phone: '(+91) 98765 43210',
