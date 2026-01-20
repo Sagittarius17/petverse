@@ -123,6 +123,7 @@ function PaymentStep({ onPlaceOrder, isPlacingOrder, address, onChangeAddress }:
     const { subtotal } = useCartStore();
     const { user } = useUser();
     const { toast } = useToast();
+    const petverseLogo = PlaceHolderImages.find(p => p.id === 'petverse-logo');
 
     const handlePayment = async () => {
         const key = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
@@ -141,7 +142,7 @@ function PaymentStep({ onPlaceOrder, isPlacingOrder, address, onChangeAddress }:
             currency: localizationConfig.currency,
             name: "PetVerse",
             description: "Order Payment",
-            image: "https://picsum.photos/seed/petverse-logo/128/128",
+            image: petverseLogo?.imageUrl || "https://picsum.photos/seed/petverse-logo/128/128",
             handler: function (response: any) {
                 onPlaceOrder('Razorpay', response.razorpay_payment_id);
             },

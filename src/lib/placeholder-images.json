@@ -1,6 +1,12 @@
 {
   "placeholderImages": [
     {
+      "id": "petverse-logo",
+      "description": "A person holding a dog's paw, representing the PetVerse brand.",
+      "imageUrl": "https://images.unsplash.com/photo-1560743643-d02c6080a71f?w=128&h=128&fit=crop&q=80",
+      "imageHint": "paw hand"
+    },
+    {
       "id": "billu-avatar",
       "description": "A cute, cartoonish cat avatar for Billu the chatbot.",
       "imageUrl": "https://images.unsplash.com/photo-1596854407944-bf87f6fdd49e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjdXRlJTIwY2F0fGVufDB8fHx8MTc2Nzc0MDIyMnww&ixlib=rb-4.1.0&q=80&w=200",
