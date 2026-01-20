@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Script from 'next/script';
 import useCartStore from '@/lib/cart-store';
-import { useUser, useFirestore } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { collection, addDoc, serverTimestamp, doc, updateDoc, DocumentData } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -14,7 +14,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency, config as localizationConfig } from '@/lib/localization';
 
@@ -22,6 +22,18 @@ declare global {
   interface Window {
     Razorpay: any;
   }
+}
+
+interface Address {
+    fullName: string;
+    streetAddress: string;
+    city: string;
+    zip: string;
+}
+
+interface UserProfile extends DocumentData {
+    address?: Address;
+    displayName?: string;
 }
 
 function OrderSummary() {
@@ -57,7 +69,12 @@ function OrderSummary() {
     )
 }
 
-function ShippingAddressStep({ onNext }: { onNext: () => void }) {
+function ShippingAddressStep({ onNext, address, setAddress }: { onNext: () => void; address: Address; setAddress: (address: Address) => void; }) {
+    
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setAddress({ ...address, [e.target.id]: e.target.value });
+    };
+    
     return (
         <div className="space-y-6">
             <Card>
@@ -66,21 +83,21 @@ function ShippingAddressStep({ onNext }: { onNext: () => void }) {
                 </CardHeader>
                 <CardContent className="space-y-4">
                      <div className="space-y-2">
-                        <Label htmlFor="name">Full Name</Label>
-                        <Input id="name" placeholder="John Doe" />
+                        <Label htmlFor="fullName">Full Name</Label>
+                        <Input id="fullName" placeholder="John Doe" value={address.fullName} onChange={handleChange} />
                     </div>
                      <div className="space-y-2">
-                        <Label htmlFor="address">Street Address</Label>
-                        <Input id="address" placeholder="123 Pet Lane" />
+                        <Label htmlFor="streetAddress">Street Address</Label>
+                        <Input id="streetAddress" placeholder="123 Pet Lane" value={address.streetAddress} onChange={handleChange}/>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="city">City</Label>
-                            <Input id="city" placeholder="Animal City" />
+                            <Input id="city" placeholder="Animal City" value={address.city} onChange={handleChange} />
                         </div>
                          <div className="space-y-2">
                             <Label htmlFor="zip">ZIP Code</Label>
-                            <Input id="zip" placeholder="12345" />
+                            <Input id="zip" placeholder="12345" value={address.zip} onChange={handleChange}/>
                         </div>
                     </div>
                 </CardContent>
@@ -90,7 +107,7 @@ function ShippingAddressStep({ onNext }: { onNext: () => void }) {
     )
 }
 
-function PaymentStep({ onPlaceOrder, isPlacingOrder }: { onPlaceOrder: (paymentMethod: string, razorpayPaymentId?: string) => void, isPlacingOrder: boolean }) {
+function PaymentStep({ onPlaceOrder, isPlacingOrder, address, onChangeAddress }: { onPlaceOrder: (paymentMethod: string, razorpayPaymentId?: string) => void, isPlacingOrder: boolean, address: Address, onChangeAddress: () => void }) {
     const { subtotal } = useCartStore();
     const { user } = useUser();
     const { toast } = useToast();
@@ -147,6 +164,20 @@ function PaymentStep({ onPlaceOrder, isPlacingOrder }: { onPlaceOrder: (paymentM
 
     return (
         <div className="space-y-6">
+             <Card>
+                <CardHeader className="flex flex-row justify-between items-start">
+                    <CardTitle>Shipping To</CardTitle>
+                    <Button variant="outline" size="sm" onClick={onChangeAddress}>
+                        <Edit className="mr-2 h-4 w-4" /> Change
+                    </Button>
+                </CardHeader>
+                <CardContent className="text-muted-foreground">
+                    <p className="font-semibold text-foreground">{address.fullName}</p>
+                    <p>{address.streetAddress}</p>
+                    <p>{address.city}, {address.zip}</p>
+                </CardContent>
+            </Card>
+
             <Card>
                 <CardHeader>
                     <CardTitle>Payment Method</CardTitle>
@@ -171,8 +202,41 @@ export default function CheckoutPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
     const { items, subtotal, clearCart } = useCartStore();
+    
     const [step, setStep] = useState('address');
     const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+    const [isLoadingAddress, setIsLoadingAddress] = useState(true);
+    const [address, setAddress] = useState<Address>({
+        fullName: '',
+        streetAddress: '',
+        city: '',
+        zip: '',
+    });
+
+    const userDocRef = useMemoFirebase(
+        () => (user ? doc(firestore, 'users', user.uid) : null),
+        [user, firestore]
+    );
+    const { data: userProfile } = useDoc<UserProfile>(userDocRef);
+
+    useEffect(() => {
+        if (userProfile) {
+            if (userProfile.address) {
+                setAddress(userProfile.address);
+                setStep('payment');
+            } else {
+                // If user has a profile but no address, set their name
+                setAddress(prev => ({...prev, fullName: userProfile.displayName || ''}));
+            }
+            setIsLoadingAddress(false);
+        } else if (user) {
+            // User is logged in, but profile is still loading or doesn't exist yet
+            setAddress(prev => ({...prev, fullName: user.displayName || ''}));
+             setIsLoadingAddress(false);
+        } else if (!user && !isLoadingAddress) {
+            setIsLoadingAddress(false);
+        }
+    }, [userProfile, user, isLoadingAddress]);
 
     useEffect(() => {
         if (items.length === 0 && !isPlacingOrder) {
@@ -189,7 +253,10 @@ export default function CheckoutPage() {
 
         setIsPlacingOrder(true);
         try {
-            const ordersCollection = collection(firestore, 'users', user.uid, 'orders');
+            const userDocRef = doc(firestore, 'users', user.uid);
+            
+            // 1. Save order
+            const ordersCollection = collection(userDocRef, 'orders');
             const newOrderRef = await addDoc(ordersCollection, {
                 userId: user.uid,
                 items: items.map(item => ({ id: item.id, name: item.name, quantity: item.quantity, price: item.price })),
@@ -198,6 +265,12 @@ export default function CheckoutPage() {
                 razorpayPaymentId: razorpayPaymentId || null,
                 status: 'Placed',
                 orderDate: serverTimestamp(),
+                shippingAddress: address, // Save address with order
+            });
+
+            // 2. Save address to user profile for next time
+            await updateDoc(userDocRef, {
+                address: address
             });
 
             clearCart();
@@ -209,11 +282,11 @@ export default function CheckoutPage() {
         }
     }
     
-    if (items.length === 0) {
+    if (isLoadingAddress || (items.length === 0 && !isPlacingOrder)) {
         return (
             <div className="container mx-auto px-4 py-12 text-center">
                 <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
-                <p className="mt-4 text-muted-foreground">Your cart is empty. Redirecting...</p>
+                <p className="mt-4 text-muted-foreground">Loading checkout...</p>
             </div>
         );
     }
@@ -234,13 +307,13 @@ export default function CheckoutPage() {
                         <Tabs value={step} onValueChange={setStep} className="w-full">
                             <TabsList className="grid w-full grid-cols-2">
                                 <TabsTrigger value="address" disabled={isPlacingOrder}>Shipping</TabsTrigger>
-                                <TabsTrigger value="payment" disabled={isPlacingOrder}>Payment</TabsTrigger>
+                                <TabsTrigger value="payment" disabled={isPlacingOrder || !address.streetAddress}>Payment</TabsTrigger>
                             </TabsList>
                             <TabsContent value="address" className="mt-6">
-                                <ShippingAddressStep onNext={() => setStep('payment')} />
+                                <ShippingAddressStep onNext={() => setStep('payment')} address={address} setAddress={setAddress} />
                             </TabsContent>
                             <TabsContent value="payment" className="mt-6">
-                                <PaymentStep onPlaceOrder={handlePlaceOrder} isPlacingOrder={isPlacingOrder} />
+                                <PaymentStep onPlaceOrder={handlePlaceOrder} isPlacingOrder={isPlacingOrder} address={address} onChangeAddress={() => setStep('address')} />
                             </TabsContent>
                         </Tabs>
                     </div>

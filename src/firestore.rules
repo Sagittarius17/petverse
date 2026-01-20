@@ -155,6 +155,27 @@ service cloud.firestore {
 
       // Hard delete disabled (soft delete only)
       allow delete: if false;
+      
+      /* ─────────────────────────────
+       USER ORDERS (PRIVATE DATA)
+      ───────────────────────────── */
+      match /orders/{orderId} {
+          allow list, read: if
+              isOwner(userId) &&
+              isActive(request.auth.uid);
+
+          allow create: if
+              isOwner(userId) &&
+              isActive(request.auth.uid) &&
+              request.resource.data.userId == userId;
+          
+          allow update: if
+              isSignedIn() &&
+              isActive(request.auth.uid) &&
+              isSuperuser(request.auth.uid);
+
+          allow delete: if false;
+      }
     }
 
     /* ─────────────────────────────
@@ -328,55 +349,6 @@ service cloud.firestore {
       // Allow write if the user is a superuser, or if they own the new/old username document.
       // This handles the "move" operation which is a batched delete and create.
       allow write: if request.auth.uid != null && (isSuperuser(request.auth.uid) || request.resource.data.uid == request.auth.uid || resource.data.uid == request.auth.uid);
-    }
-    
-    /* ─────────────────────────────
-       ORDERS (PRIVATE USER DATA)
-       - Each order belongs to exactly one user (userId).
-       - Only the owner can read their orders.
-       - Only active users can create orders for themselves.
-       - Only admins/superusers can update order status.
-    ───────────────────────────── */
-
-    match /orders/{orderId} {
-
-      // 🛒 Create: user can create ONLY their own order
-      allow create: if
-        isSignedIn() &&
-        isActive(request.auth.uid) &&
-        request.resource.data.userId == request.auth.uid;
-
-      // 📖 Read single order: only owner OR admin+
-      allow get: if
-        isSignedIn() &&
-        isActive(request.auth.uid) &&
-        (
-          resource.data.userId == request.auth.uid ||
-          isSuperuser(request.auth.uid)
-        );
-
-      // 📚 List orders:
-      // - users must query only their own orders
-      // - admins can list all
-      allow list: if
-        isSignedIn() &&
-        isActive(request.auth.uid) &&
-        (
-          isSuperuser(request.auth.uid) ||
-          request.query.where('userId', '==', request.auth.uid).exists()
-        );
-
-      // ✏️ Update:
-      // - user CANNOT update their own order
-      // - only admin/superuser can update (e.g., status, trackingId)
-      allow update: if
-        isSignedIn() &&
-        isActive(request.auth.uid) &&
-        isSuperuser(request.auth.uid);
-
-      // 🗑 Delete:
-      // - disabled (orders should be immutable)
-      allow delete: if false;
     }
     
     /* ─────────────────────────────
