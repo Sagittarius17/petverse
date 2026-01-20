@@ -1,7 +1,6 @@
-
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { useFirestore, useMemoFirebase, updateDocumentNonBlocking, useUser, useDoc } from '@/firebase';
 import { doc, increment, DocumentData, collection, getDoc, query, where, addDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
@@ -189,14 +188,23 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
   const isOwner = currentUser?.uid === pet.userId;
   const isAvailable = pet.isAdoptable !== false;
 
-  const image = PlaceHolderImages.find(p => p.id === pet.imageId);
+  const image = useMemo(() => {
+    if (pet.imageId?.startsWith('data:image')) {
+        return {
+            imageUrl: pet.imageId,
+            description: pet.name,
+            imageHint: pet.breed.toLowerCase(),
+        };
+    }
+    return PlaceHolderImages.find(p => p.id === pet.imageId);
+  }, [pet.imageId, pet.name, pet.breed]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl p-0 overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-2">
             <div className="relative h-96 w-full md:h-full min-h-[300px]">
-                {image && (
+                {image ? (
                 <Image
                     src={image.imageUrl}
                     alt={`Photo of ${pet.name}`}
@@ -205,6 +213,10 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
                     data-ai-hint={image.imageHint}
                     priority
                 />
+                ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-secondary">
+                        <p className="text-muted-foreground">No Image Available</p>
+                    </div>
                 )}
                 {ownerProfile?.username && (
                     <div className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
@@ -267,5 +279,3 @@ export default function PetDetailDialog({ pet, isOpen, onClose }: PetDetailDialo
     </Dialog>
   );
 }
-
-    
