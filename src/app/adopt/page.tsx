@@ -1,7 +1,7 @@
 'use client';
 import { useState, useMemo, useEffect } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import type { Pet } from '@/lib/data';
 import AdoptionList from '@/components/adoption-list';
 import PetFilters from '@/components/pet-filters';
@@ -63,12 +63,25 @@ export default function AdoptPage() {
     [firestore]
   );
   
+  // Simplified query to avoid needing a composite index. Sorting is handled client-side.
   const petsQuery = useMemoFirebase(
-    () => petsCollection ? query(petsCollection, where('isAdoptable', '==', true), orderBy('createdAt', 'desc')) : null,
+    () => petsCollection ? query(petsCollection, where('isAdoptable', '==', true)) : null,
     [petsCollection]
   );
 
-  const { data: allPets, isLoading, error } = useCollection<Pet>(petsQuery);
+  const { data: unsortedPets, isLoading, error } = useCollection<Pet>(petsQuery);
+
+  // Sort the pets by creation date on the client side
+  const allPets = useMemo(() => {
+    if (!unsortedPets) return null;
+    return [...unsortedPets].sort((a, b) => {
+      const timeA = a.createdAt?.toMillis() || 0;
+      const timeB = b.createdAt?.toMillis() || 0;
+      return timeB - timeA; // Sort descending (newest first)
+    });
+  }, [unsortedPets]);
+
+
   const [activePets, setActivePets] = useState<Pet[] | null>(null);
   const [isFilteringUsers, setIsFilteringUsers] = useState(true);
 
