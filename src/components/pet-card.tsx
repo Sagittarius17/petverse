@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -56,7 +56,17 @@ function PetOwnerUsername({ userId }: { userId: string }) {
 
 
 export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
-  const image = PlaceHolderImages.find(p => p.id === pet.imageId);
+    const image = useMemo(() => {
+        if (pet.imageId?.startsWith('data:image')) {
+            return {
+                imageUrl: pet.imageId,
+                description: pet.name,
+                imageHint: pet.breed.toLowerCase(),
+            };
+        }
+        return PlaceHolderImages.find(p => p.id === pet.imageId);
+    }, [pet.imageId, pet.name, pet.breed]);
+
   const isAvailable = pet.isAdoptable !== false;
 
   const adoptionStatusText = () => {
@@ -76,7 +86,7 @@ export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
             className="cursor-pointer h-full w-full"
             onClick={() => onPetSelect?.(pet)}
           >
-            {image && (
+            {image ? (
               <Image
                 src={image.imageUrl}
                 alt={pet.name}
@@ -85,6 +95,10 @@ export default function PetCard({ pet, onPetSelect, actions }: PetCardProps) {
                 data-ai-hint={image.imageHint}
                 className="transition-transform duration-300 group-hover:scale-105"
               />
+            ) : (
+                <div className="h-full w-full bg-secondary flex items-center justify-center">
+                    <p className="text-xs text-muted-foreground">No Image</p>
+                </div>
             )}
           </div>
           {pet.userId && <PetOwnerUsername userId={pet.userId} />}

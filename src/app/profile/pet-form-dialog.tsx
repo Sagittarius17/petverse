@@ -78,6 +78,7 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
                 ageMonths: 0,
                 gender: 'Male',
                 description: '',
+                petImage: undefined,
             });
         }
     }
@@ -99,9 +100,36 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
     if (data.ageMonths) ageString += `${data.ageMonths} month${data.ageMonths > 1 ? 's' : ''}`;
     ageString = ageString.trim();
 
+    // New image handling logic
+    let imageToStore: string | undefined = pet?.imageId; // Default to existing image if in edit mode
+    
+    if (data.petImage && data.petImage.length > 0) {
+      const file = data.petImage[0];
+      try {
+        const dataUri = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = (error) => reject(error);
+        });
+        imageToStore = dataUri;
+      } catch (error) {
+        toast({ variant: "destructive", title: "Image Upload Failed", description: "Could not process image file." });
+        return;
+      }
+    } else if (!isEditMode) {
+      // If creating a new pet and no image is provided, use a default placeholder.
+      imageToStore = `${data.species.toLowerCase()}-1`;
+    }
+
     try {
       const { petImage, ageYears, ageMonths, ...restOfData } = data;
-      const petData = { ...restOfData, age: ageString, breed: restOfData.species }; // Set breed to species
+      const petData = { 
+        ...restOfData, 
+        age: ageString, 
+        breed: restOfData.species,
+        imageId: imageToStore
+      };
 
       if (isEditMode) {
         // Update existing pet
@@ -114,7 +142,6 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
         await addDoc(petsCollection, {
           ...petData,
           userId: user.uid,
-          imageId: `${data.species.toLowerCase()}-1`, // Generic placeholder
           viewCount: 0,
           createdAt: serverTimestamp(),
           isAdoptable: true,
@@ -211,7 +238,7 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
              <div className="space-y-2">
                 <Label htmlFor="petImage">Pet's Photo</Label>
                 <Input id="petImage" type="file" {...register('petImage')} accept="image/*" />
-                <p className="text-xs text-muted-foreground">For now, a placeholder image will be used. Photo uploads coming soon!</p>
+                 {errors.petImage && <p className="text-sm text-destructive">{(errors.petImage as any).message}</p>}
               </div>
           </div>
           <DialogFooter>
