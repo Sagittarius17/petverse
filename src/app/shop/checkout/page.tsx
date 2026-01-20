@@ -8,13 +8,13 @@ import useCartStore from '@/lib/cart-store';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, serverTimestamp, doc, updateDoc, DocumentData } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Loader2, Edit } from 'lucide-react';
+import { Loader2, Edit, PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency, config as localizationConfig } from '@/lib/localization';
 
@@ -119,7 +119,7 @@ function ShippingAddressStep({ onNext, address, setAddress }: { onNext: () => vo
     )
 }
 
-function PaymentStep({ onPlaceOrder, isPlacingOrder, address, onChangeAddress }: { onPlaceOrder: (paymentMethod: string, razorpayPaymentId?: string) => void, isPlacingOrder: boolean, address: Address, onChangeAddress: () => void }) {
+function PaymentStep({ onPlaceOrder, isPlacingOrder, address, onChangeAddress, onAddNewAddress }: { onPlaceOrder: (paymentMethod: string, razorpayPaymentId?: string) => void, isPlacingOrder: boolean, address: Address, onChangeAddress: () => void, onAddNewAddress: () => void }) {
     const { subtotal } = useCartStore();
     const { user } = useUser();
     const { toast } = useToast();
@@ -191,6 +191,11 @@ function PaymentStep({ onPlaceOrder, isPlacingOrder, address, onChangeAddress }:
                     <p>{address.city}, {address.state} {address.zip}</p>
                     <p>{address.phone}</p>
                 </CardContent>
+                <CardFooter>
+                    <Button variant="secondary" className="w-full" onClick={onAddNewAddress}>
+                        <PlusCircle className="mr-2 h-4 w-4" /> Add a New Address
+                    </Button>
+                </CardFooter>
             </Card>
 
             <Card>
@@ -298,6 +303,18 @@ export default function CheckoutPage() {
             setIsPlacingOrder(false);
         }
     }
+
+    const handleAddNewAddress = () => {
+        setAddress({
+            fullName: userProfile?.displayName || user?.displayName || '',
+            streetAddress: '',
+            city: '',
+            state: '',
+            zip: '',
+            phone: '',
+        });
+        setStep('address');
+    };
     
     if (isLoadingAddress || (items.length === 0 && !isPlacingOrder)) {
         return (
@@ -330,7 +347,7 @@ export default function CheckoutPage() {
                                 <ShippingAddressStep onNext={() => setStep('payment')} address={address} setAddress={setAddress} />
                             </TabsContent>
                             <TabsContent value="payment" className="mt-6">
-                                <PaymentStep onPlaceOrder={handlePlaceOrder} isPlacingOrder={isPlacingOrder} address={address} onChangeAddress={() => setStep('address')} />
+                                <PaymentStep onPlaceOrder={handlePlaceOrder} isPlacingOrder={isPlacingOrder} address={address} onChangeAddress={() => setStep('address')} onAddNewAddress={handleAddNewAddress} />
                             </TabsContent>
                         </Tabs>
                     </div>
