@@ -28,7 +28,9 @@ interface Address {
     fullName: string;
     streetAddress: string;
     city: string;
+    state: string;
     zip: string;
+    phone: string;
 }
 
 interface UserProfile extends DocumentData {
@@ -96,8 +98,18 @@ function ShippingAddressStep({ onNext, address, setAddress }: { onNext: () => vo
                             <Input id="city" placeholder="Animal City" value={address.city} onChange={handleChange} />
                         </div>
                          <div className="space-y-2">
+                            <Label htmlFor="state">State</Label>
+                            <Input id="state" placeholder="CA" value={address.state} onChange={handleChange}/>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                         <div className="space-y-2">
                             <Label htmlFor="zip">ZIP Code</Label>
                             <Input id="zip" placeholder="12345" value={address.zip} onChange={handleChange}/>
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="phone">Phone Number</Label>
+                            <Input id="phone" type="tel" placeholder="(555) 123-4567" value={address.phone} onChange={handleChange}/>
                         </div>
                     </div>
                 </CardContent>
@@ -136,6 +148,7 @@ function PaymentStep({ onPlaceOrder, isPlacingOrder, address, onChangeAddress }:
             prefill: {
                 name: user?.displayName || "",
                 email: user?.email || "",
+                contact: address.phone || "",
             },
             theme: {
                 color: "#3B82F6"
@@ -174,7 +187,8 @@ function PaymentStep({ onPlaceOrder, isPlacingOrder, address, onChangeAddress }:
                 <CardContent className="text-muted-foreground">
                     <p className="font-semibold text-foreground">{address.fullName}</p>
                     <p>{address.streetAddress}</p>
-                    <p>{address.city}, {address.zip}</p>
+                    <p>{address.city}, {address.state} {address.zip}</p>
+                    <p>{address.phone}</p>
                 </CardContent>
             </Card>
 
@@ -210,7 +224,9 @@ export default function CheckoutPage() {
         fullName: '',
         streetAddress: '',
         city: '',
+        state: '',
         zip: '',
+        phone: '',
     });
 
     const userDocRef = useMemoFirebase(

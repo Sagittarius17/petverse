@@ -67,7 +67,9 @@
             "fullName": { "type": "string" },
             "streetAddress": { "type": "string" },
             "city": { "type": "string" },
-            "zip": { "type": "string" }
+            "state": { "type": "string" },
+            "zip": { "type": "string" },
+            "phone": { "type": "string" }
           }
         }
       },
