@@ -53,7 +53,7 @@ function ShopContent() {
           </p>
           <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center">
             <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
-              <Link href="/shop/toys">
+              <Link href="/shop/products?category=Toys">
                 Shop Toys
               </Link>
             </Button>
@@ -77,7 +77,7 @@ function ShopContent() {
                 Our interactive puzzle toys are designed to challenge your pet, prevent boredom, and reward them with treats. It's a fantastic way to stimulate their brain and strengthen your bond.
               </p>
               <Button asChild size="lg">
-                <Link href="/shop/toys">Shop Interactive Toys</Link>
+                <Link href="/shop/products?category=Toys">Shop Interactive Toys</Link>
               </Button>
             </div>
              <div className="relative h-80 w-full overflow-hidden rounded-xl shadow-lg">
@@ -105,7 +105,7 @@ function ShopContent() {
                 Give your pet the best with our range of organic and grain-free foods. Packed with high-quality proteins and essential nutrients, our formulas support everything from puppy growth to senior vitality.
               </p>
               <Button asChild size="lg">
-                <Link href="/shop/food">Explore Pet Food</Link>
+                <Link href="/shop/products?category=Food">Explore Pet Food</Link>
               </Button>
             </div>
             <div className="relative h-80 w-full overflow-hidden rounded-xl shadow-lg">
@@ -133,7 +133,7 @@ function ShopContent() {
                 From plush orthopedic beds that support aging joints to cozy cat caves perfect for a quiet nap, our bedding provides the perfect spot for your pet to rest and recharge.
               </p>
               <Button asChild size="lg">
-                <Link href="/shop/bedding">Discover Cozy Beds</Link>
+                <Link href="/shop/products?category=Bedding">Discover Cozy Beds</Link>
               </Button>
             </div>
              <div className="relative h-80 w-full overflow-hidden rounded-xl shadow-lg">

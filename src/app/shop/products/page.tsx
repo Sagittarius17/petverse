@@ -1,14 +1,20 @@
-
 'use client';
 
 import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import ProductGrid from '@/components/product-grid';
 import { Skeleton } from '@/components/ui/skeleton';
+
+function ProductsPageContent() {
+  const searchParams = useSearchParams();
+  // Using searchParams as a key will force remount when URL query changes
+  return <ProductGrid key={searchParams.toString()} />;
+}
 
 export default function ProductsPage() {
   return (
     <Suspense fallback={<PageSkeleton />}>
-      <ProductGrid />
+      <ProductsPageContent />
     </Suspense>
   );
 }

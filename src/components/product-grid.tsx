@@ -12,8 +12,11 @@ const MAX_PRICE_SLIDER = 65; // Matches the value in ProductFilters
 export default function ProductGrid() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('q');
+  const categoryQuery = searchParams.get('category');
 
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    categoryQuery ? [categoryQuery] : []
+  );
   const [priceRange, setPriceRange] = useState<[number]>([MAX_PRICE_SLIDER]);
   const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
   const [priceSort, setPriceSort] = useState<'asc' | 'desc' | null>(null);

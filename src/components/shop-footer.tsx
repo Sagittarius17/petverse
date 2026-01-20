@@ -1,4 +1,3 @@
-
 import Link from 'next/link';
 import { PawPrint, Twitter, Facebook, Instagram } from 'lucide-react';
 
@@ -22,10 +21,10 @@ export default function ShopFooter() {
           <div>
             <h3 className="text-md font-semibold font-headline mb-4">Shop by Category</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/shop/food" className="text-muted-foreground hover:text-primary">Food</Link></li>
-              <li><Link href="/shop/toys" className="text-muted-foreground hover:text-primary">Toys</Link></li>
-              <li><Link href="/shop/accessories" className="text-muted-foreground hover:text-primary">Accessories</Link></li>
-              <li><Link href="/shop/bedding" className="text-muted-foreground hover:text-primary">Bedding</Link></li>
+              <li><Link href="/shop/products?category=Food" className="text-muted-foreground hover:text-primary">Food</Link></li>
+              <li><Link href="/shop/products?category=Toys" className="text-muted-foreground hover:text-primary">Toys</Link></li>
+              <li><Link href="/shop/products?category=Accessories" className="text-muted-foreground hover:text-primary">Accessories</Link></li>
+              <li><Link href="/shop/products?category=Bedding" className="text-muted-foreground hover:text-primary">Bedding</Link></li>
             </ul>
           </div>
 
