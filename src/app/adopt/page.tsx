@@ -63,9 +63,9 @@ export default function AdoptPage() {
     [firestore]
   );
   
-  // Simplified query to avoid needing a composite index. Sorting is handled client-side.
+  // Fetch all pets. We will sort and filter on the client.
   const petsQuery = useMemoFirebase(
-    () => petsCollection ? query(petsCollection, where('isAdoptable', '==', true)) : null,
+    () => petsCollection ? query(petsCollection) : null,
     [petsCollection]
   );
 
