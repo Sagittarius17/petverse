@@ -61,9 +61,20 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
 
   const availableBreeds = useMemo(() => {
     if (!watchedSpecies) return [];
+    
+    // Map form species value to the name used in the data structure
+    const speciesNameToDataName: Record<string, string> = {
+        'Dog': 'Dogs',
+        'Cat': 'Cats',
+        'Bird': 'Parrots',
+        'Lizard': 'Lizards',
+        'Fish': 'Freshwater Fish',
+    };
+    const dataSpeciesName = speciesNameToDataName[watchedSpecies] || watchedSpecies;
+
     const speciesData = initialPetCategories
       .flatMap(category => category.species)
-      .find(s => s.name === watchedSpecies);
+      .find(s => s.name === dataSpeciesName); // Use the mapped name
     return speciesData?.breeds?.map(b => b.name) || [];
   }, [watchedSpecies]);
 
