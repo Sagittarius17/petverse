@@ -1,12 +1,16 @@
 'use client';
-import { useState, useMemo, useEffect } from 'react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, query, where, getDocs, orderBy, limit, startAfter, DocumentSnapshot, DocumentData } from 'firebase/firestore';
 import type { Pet, UserProfile } from '@/lib/data';
 import AdoptionList from '@/components/adoption-list';
 import PetFilters from '@/components/pet-filters';
 import { Skeleton } from '@/components/ui/skeleton';
 import { petCategories } from '@/lib/data';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
+
+const PAGE_SIZE = 8;
 
 // Helper function to parse age string into total months
 const getAgeInMonths = (ageString: string): number => {
@@ -26,7 +30,6 @@ const getAgeInMonths = (ageString: string): number => {
   
   return totalMonths;
 };
-
 
 // Create a mapping from species to category for efficient lookup
 const speciesToCategoryMap = new Map<string, string>();
@@ -58,87 +61,78 @@ export default function AdoptPage() {
   const [genderFilter, setGenderFilter] = useState<string[]>([]);
   const [ageRange, setAgeRange] = useState<[number]>([180]); // Max age in months (15 years)
 
-  const petsCollection = useMemoFirebase(
-    () => collection(firestore, 'pets'),
-    [firestore]
-  );
-  
-  const petsQuery = useMemoFirebase(
-    () => petsCollection ? query(petsCollection) : null,
-    [petsCollection]
-  );
-
-  const { data: unsortedPets, isLoading, error } = useCollection<Pet>(petsQuery);
-
-  const allPets = useMemo(() => {
-    if (!unsortedPets) return null;
-    return [...unsortedPets].sort((a, b) => {
-      const timeA = a.createdAt?.toMillis() || 0;
-      const timeB = b.createdAt?.toMillis() || 0;
-      return timeB - timeA; // Sort descending (newest first)
-    });
-  }, [unsortedPets]);
-
-
-  const [activePets, setActivePets] = useState<Pet[] | null>(null);
+  const [allPets, setAllPets] = useState<Pet[]>([]);
   const [userProfilesMap, setUserProfilesMap] = useState<Map<string, UserProfile>>(new Map());
-  const [isFilteringUsers, setIsFilteringUsers] = useState(true);
+  const [lastVisible, setLastVisible] = useState<DocumentSnapshot<DocumentData> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
-  useEffect(() => {
-    const filterPetsByActiveUsers = async () => {
-      if (!allPets || !firestore) {
-        if (!isLoading) {
-            setIsFilteringUsers(false);
-            setActivePets([]);
-        }
-        return;
-      };
+  const fetchPets = useCallback(async (lastDoc: DocumentSnapshot<DocumentData> | null) => {
+    if (!firestore) return;
+    
+    let petsQuery;
+    const petsCollection = collection(firestore, 'pets');
+    
+    if (lastDoc) {
+        petsQuery = query(petsCollection, orderBy('createdAt', 'desc'), startAfter(lastDoc), limit(PAGE_SIZE));
+    } else {
+        petsQuery = query(petsCollection, orderBy('createdAt', 'desc'), limit(PAGE_SIZE));
+    }
 
-      setIsFilteringUsers(true);
-      const userIds = [...new Set(allPets.map(pet => pet.userId).filter((id): id is string => !!id))];
-      
-      if (userIds.length === 0) {
-        setActivePets(allPets.filter(p => !p.userId));
-        setIsFilteringUsers(false);
-        return;
-      }
+    const documentSnapshots = await getDocs(petsQuery);
+    
+    const newPets = documentSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as Pet));
+    const newLastVisible = documentSnapshots.docs[documentSnapshots.docs.length - 1];
 
-      const userChunks: string[][] = [];
-      for (let i = 0; i < userIds.length; i += 30) {
-          userChunks.push(userIds.slice(i, i + 30));
-      }
+    setLastVisible(newLastVisible);
+    setHasMore(documentSnapshots.docs.length === PAGE_SIZE);
 
+    if (newPets.length > 0) {
+      // Filter by active users
+      const userIds = [...new Set(newPets.map(pet => pet.userId).filter((id): id is string => !!id))];
       const activeUserProfiles = new Map<string, UserProfile>();
 
-      try {
-        await Promise.all(userChunks.map(async (chunk) => {
-            const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chunk), where('status', '==', 'Active'));
-            const usersSnapshot = await getDocs(usersQuery);
-            usersSnapshot.forEach(doc => {
-              activeUserProfiles.set(doc.id, { id: doc.id, ...doc.data() } as UserProfile);
-            });
-        }));
-        
-        setUserProfilesMap(activeUserProfiles);
-        const filtered = allPets.filter(pet => !pet.userId || activeUserProfiles.has(pet.userId));
-        setActivePets(filtered);
+      if (userIds.length > 0) {
+          const userChunks: string[][] = [];
+          for (let i = 0; i < userIds.length; i += 30) {
+              userChunks.push(userIds.slice(i, i + 30));
+          }
 
-      } catch (e) {
-          console.error("Error filtering pets by user status:", e);
-          setActivePets(allPets); // Fallback to showing all pets on error
-      } finally {
-        setIsFilteringUsers(false);
+          try {
+              await Promise.all(userChunks.map(async (chunk) => {
+                  const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chunk), where('status', '==', 'Active'));
+                  const usersSnapshot = await getDocs(usersQuery);
+                  usersSnapshot.forEach(doc => {
+                    activeUserProfiles.set(doc.id, { id: doc.id, ...doc.data() } as UserProfile);
+                  });
+              }));
+          } catch (e) {
+              console.error("Error fetching user statuses:", e);
+          }
       }
-    };
+      
+      const petsFromActiveUsers = newPets.filter(pet => !pet.userId || activeUserProfiles.has(pet.userId));
 
-    if (!isLoading) {
-        filterPetsByActiveUsers();
+      setAllPets(prev => lastDoc ? [...prev, ...petsFromActiveUsers] : petsFromActiveUsers);
+      setUserProfilesMap(prev => new Map([...prev, ...activeUserProfiles]));
     }
-  }, [allPets, firestore, isLoading]);
+  }, [firestore]);
+  
+  useEffect(() => {
+    setIsLoading(true);
+    fetchPets(null).finally(() => setIsLoading(false));
+  }, [fetchPets]);
+
+  const handleLoadMore = () => {
+    if (!lastVisible) return;
+    setIsLoadingMore(true);
+    fetchPets(lastVisible).finally(() => setIsLoadingMore(false));
+  };
+
 
   const filteredPets = useMemo(() => {
-    if (!activePets) return [];
-    return activePets.filter(pet => {
+    return allPets.filter(pet => {
       const matchesSearch =
         pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pet.breed.toLowerCase().includes(searchTerm.toLowerCase());
@@ -149,12 +143,10 @@ export default function AdoptPage() {
       
       return matchesSearch && matchesCategory && matchesGender && matchesAge;
     });
-  }, [activePets, searchTerm, categoryFilter, genderFilter, ageRange]);
+  }, [allPets, searchTerm, categoryFilter, genderFilter, ageRange]);
   
-  const finalIsLoading = isLoading || isFilteringUsers;
 
-
-  if (finalIsLoading) {
+  if (isLoading) {
     return (
         <div className="container mx-auto px-4 py-6 md:py-8">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
@@ -176,14 +168,6 @@ export default function AdoptPage() {
                 </div>
             </div>
       </div>
-    );
-  }
-
-  if (error) {
-    return (
-        <div className="container mx-auto px-4 py-8 text-center text-destructive">
-            <p>Error loading pets: {error.message}</p>
-        </div>
     );
   }
 
@@ -211,6 +195,13 @@ export default function AdoptPage() {
         </div>
         <div className="lg:col-span-3">
             <AdoptionList pets={filteredPets} userProfiles={userProfilesMap} />
+            <div className="mt-8 text-center">
+              {hasMore && (
+                <Button onClick={handleLoadMore} disabled={isLoadingMore}>
+                  {isLoadingMore ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading...</> : 'Load More Pets'}
+                </Button>
+              )}
+            </div>
         </div>
       </div>
     </div>

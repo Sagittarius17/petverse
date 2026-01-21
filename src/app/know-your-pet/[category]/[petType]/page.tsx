@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, use } from 'react';
 import Image from 'next/image';
-import { getPetCategories } from './actions';
+import { getSpeciesData } from './actions';
 import { PetBreed, PetCategory, PetSpecies } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -124,10 +124,9 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
   const resolvedParams = use(params);
   const [selectedPet, setSelectedPet] = useState<PetBreed | null>(null);
   const [localSearchTerm, setLocalSearchTerm] = useState('');
+  const [currentSpecies, setCurrentSpecies] = useState<PetSpecies | null>(null);
   const [allBreeds, setAllBreeds] = useState<PetBreed[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentCategory, setCurrentCategory] = useState<PetCategory | null>(null);
-  const [currentPetType, setCurrentPetType] = useState<PetSpecies | null>(null);
 
   const categoryName = useMemo(() => decodeURIComponent(resolvedParams.category), [resolvedParams.category]);
   const petTypeName = useMemo(() => decodeURIComponent(resolvedParams.petType), [resolvedParams.petType]);
@@ -136,23 +135,13 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const allPetData: PetCategory[] = await getPetCategories();
+        const speciesData = await getSpeciesData(categoryName, petTypeName);
         
-        const category = allPetData.find(
-          (cat) => cat.category.toLowerCase() === categoryName.toLowerCase()
-        );
-        
-        const petType = category?.species.find(
-          (s) => s.name.toLowerCase() === petTypeName.toLowerCase()
-        );
-
-        if (category && petType) {
-          setCurrentCategory(category);
-          setCurrentPetType(petType);
-          setAllBreeds(petType.breeds || []);
+        if (speciesData) {
+          setCurrentSpecies(speciesData);
+          setAllBreeds(speciesData.breeds || []);
         } else {
-          setCurrentCategory(null);
-          setCurrentPetType(null);
+          setCurrentSpecies(null);
           setAllBreeds([]);
         }
       } catch (error) {
@@ -184,7 +173,7 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
     );
   }, [allBreeds, localSearchTerm]);
 
-  if (!loading && (!currentCategory || !currentPetType)) {
+  if (!loading && !currentSpecies) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <h1 className="text-4xl font-bold font-headline tracking-tight">Not Found</h1>
@@ -217,18 +206,18 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
           Go Back
         </Button>
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold font-headline tracking-tight">{currentPetType?.name} Breeds</h1>
-          <p className="mt-2 text-lg text-muted-foreground">Explore different breeds of {currentPetType?.name}.</p>
+          <h1 className="text-4xl font-bold font-headline tracking-tight">{currentSpecies?.name} Breeds</h1>
+          <p className="mt-2 text-lg text-muted-foreground">Explore different breeds of {currentSpecies?.name}.</p>
         </div>
 
         <div className="mb-8 max-w-2xl mx-auto">
           <BreedSearch 
-            speciesName={currentPetType?.name || ''} 
-            categoryName={currentCategory?.category}
+            speciesName={currentSpecies?.name || ''} 
+            categoryName={categoryName}
             onBreedFound={handleBreedFound} 
             searchTerm={localSearchTerm}
             setSearchTerm={setLocalSearchTerm}
-            placeholder={`Search or type a new ${currentPetType?.name.toLowerCase()} breed for AI to find...`}
+            placeholder={`Search or type a new ${currentSpecies?.name.toLowerCase()} breed for AI to find...`}
             existingBreeds={allBreeds}
           />
         </div>
@@ -241,8 +230,8 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
                     key={breed.name} 
                     breed={breed} 
                     onSelect={setSelectedPet}
-                    speciesName={currentPetType?.name || ''} 
-                    speciesImageId={currentPetType?.imageId || ''}
+                    speciesName={currentSpecies?.name || ''} 
+                    speciesImageId={currentSpecies?.imageId || ''}
                   />
               ))}
             </div>

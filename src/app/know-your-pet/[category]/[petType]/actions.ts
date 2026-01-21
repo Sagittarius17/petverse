@@ -1,53 +1,65 @@
-"use server";
 
-import { PetBreed, PetCategory, initialPetCategories } from '@/lib/initial-pet-data';
+'use server';
+/**
+ * @fileOverview Fetches detailed information for a specific pet species, including its breeds.
+ */
+
 import { db } from '@/firebase/server';
-import { unstable_cache as cache } from 'next/cache';
+import { PetBreed, PetCategory, PetSpecies, initialPetCategories } from '@/lib/initial-pet-data';
 
-const getAndProcessPetCategories = async (): Promise<PetCategory[]> => {
-  const allCategories = JSON.parse(JSON.stringify(initialPetCategories)) as PetCategory[];
+/**
+ * Fetches the static data for a species and merges it with breeds from Firestore.
+ * @param categoryName The name of the category (e.g., "Mammals").
+ * @param speciesName The name of the species (e.g., "Dogs").
+ * @returns A PetSpecies object with its breeds, or null if not found.
+ */
+export async function getSpeciesData(categoryName: string, speciesName: string): Promise<PetSpecies | null> {
+  // 1. Find the static category and species data.
+  const category = initialPetCategories.find(c => c.category.toLowerCase() === categoryName.toLowerCase());
+  if (!category) return null;
+  
+  const species = category.species.find(s => s.name.toLowerCase() === speciesName.toLowerCase());
+  if (!species) return null;
+
+  // Make a deep copy to avoid mutating the original object.
+  const speciesData: PetSpecies = JSON.parse(JSON.stringify(species));
 
   try {
     if (!db) {
-        console.warn("Firestore is not initialized. Skipping fetching AI breeds.");
-        return allCategories;
+      console.warn("Firestore is not initialized. Returning only static breeds.");
+      return speciesData;
     }
-    // Changed from aiBreeds to animalBreeds
-    const animalBreedsSnapshot = await db.collection('animalBreeds').get();
-    const animalBreeds: PetBreed[] = animalBreedsSnapshot.docs.map(doc => ({
-      id: doc.id, // Store the Firestore document ID
+
+    // 2. Fetch breeds for this specific species from Firestore.
+    const breedsSnapshot = await db.collection('animalBreeds')
+      .where('speciesName', '==', speciesName)
+      .get();
+      
+    const firestoreBreeds: PetBreed[] = breedsSnapshot.docs.map(doc => ({
+      id: doc.id,
       ...doc.data()
     })) as PetBreed[];
 
-    animalBreeds.forEach(animalBreed => {
-      const { speciesName, categoryName, ...restOfBreed } = animalBreed as any; // Destructure extra fields
-      const category = allCategories.find(cat => cat.category.toLowerCase() === categoryName.toLowerCase());
-      if (category) {
-        const species = category.species.find(sp => sp.name.toLowerCase() === speciesName.toLowerCase());
-        if (species) {
-          if (!species.breeds) {
-            species.breeds = [];
-          }
-          // Check if the breed already exists to avoid duplicates
-          if (!species.breeds.some(b => b.name.toLowerCase() === restOfBreed.name.toLowerCase())) {
-            species.breeds.push(restOfBreed);
-          }
-        }
-      }
+    // 3. Merge static and Firestore breeds, avoiding duplicates.
+    const allBreeds = new Map<string, PetBreed>();
+
+    // Add static breeds first
+    if (speciesData.breeds) {
+        speciesData.breeds.forEach(breed => allBreeds.set(breed.name.toLowerCase(), breed));
+    }
+
+    // Add/overwrite with Firestore breeds
+    firestoreBreeds.forEach(breed => {
+        const { speciesName: sName, categoryName: cName, ...restOfBreed } = breed as any;
+        allBreeds.set(breed.name.toLowerCase(), restOfBreed);
     });
 
+    speciesData.breeds = Array.from(allBreeds.values());
+
   } catch (error) {
-    console.error("Error fetching animal breeds from Firestore:", error);
-    // Optionally, handle error more gracefully, e.g., return initial categories only
+    console.error(`Error fetching breeds for ${speciesName}:`, error);
+    // Return the static data as a fallback.
   }
 
-  return allCategories;
-};
-
-
-// Cache the result of fetching and processing pet categories for 10 minutes (600 seconds)
-export const getPetCategories = cache(
-    getAndProcessPetCategories,
-    ['pet-categories'],
-    { revalidate: 600 }
-);
+  return speciesData;
+}
