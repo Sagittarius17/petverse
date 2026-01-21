@@ -118,22 +118,22 @@ function OtherParticipantStatus({ otherParticipantId, typingStatus }: { otherPar
   }
 
   if (userProfile?.status === 'Inactive') {
-      return <p className="text-xs text-destructive">Suspended</p>;
+      return <p className="text-xs absolute left-18 top-7 text-destructive">Suspended</p>;
   }
 
   if (typingStatus) {
-    return <p className="text-xs text-green-400 animate-pulse">typing...</p>;
+    return <p className="text-xs absolute left-18 top-7 text-green-400 animate-pulse">typing...</p>;
   }
 
   if (userProfile?.isOnline) {
-    return <p className="text-xs text-green-400">Online</p>;
+    return <p className="text-xs absolute left-18 top-7 text-green-400">Online</p>;
   }
 
   if (userProfile?.lastSeen) {
-    return <p className="text-xs text-muted-foreground">last seen {formatRelativeTime(userProfile.lastSeen)}</p>;
+    return <p className="text-xs absolute left-18 top-7 text-muted-foreground">last seen {formatRelativeTime(userProfile.lastSeen)}</p>;
   }
 
-  return <p className="text-xs text-muted-foreground">Offline</p>;
+  return <p className="text-xs absolute left-18 top-7 text-muted-foreground">Offline</p>;
 }
 
 
@@ -503,7 +503,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
 
   const renderConversationList = () => (
     <div className="flex flex-col h-full">
-      <SheetHeader className="p-4 border-b">
+      <SheetHeader className="p-2 border-b">
         <SheetTitle>Messages</SheetTitle>
       </SheetHeader>
       <ScrollArea className="flex-1">
@@ -560,7 +560,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                             {formatRelativeTime(convo.lastMessage?.timestamp)}
                         </span>
                     </div>
-                    <p className={cn("text-sm truncate", unread > 0 ? "font-bold text-foreground" : "text-muted-foreground")}>
+                    <p className={cn("text-sm truncate", unread > 0 ? "font-bold absolute left-[12vh] text-foreground" : "text-xs absolute left-[12vh] text-muted-foreground")}>
                         {convo.lastMessage?.senderId === currentUser.uid && 'You: '}
                         {convo.lastMessage?.text}
                     </p>
@@ -588,7 +588,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
         <div className="flex flex-col h-full">
             {selectedConversation && selectedConversation.otherParticipant ? (
                 <>
-                <SheetHeader className="py-1 px-2 border-b flex-row items-center gap-2">
+                <SheetHeader className="pb-2 px-2 border-b flex-row items-center gap-2">
                     <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setActiveConversationId(null)}>
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
@@ -597,7 +597,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                         <AvatarFallback>{isSuspended ? '?' : selectedConversation.otherParticipant.displayName[0] || 'U'}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 overflow-hidden">
-                        <SheetTitle className="text-sm font-semibold truncate">{isSuspended ? '[User Deleted/Suspended]' : (selectedConversation.otherParticipant.displayName || 'Chat')}</SheetTitle>
+                        <SheetTitle className="text-sm absolute left-18 top-2 font-semibold truncate">{isSuspended ? '[User Deleted/Suspended]' : (selectedConversation.otherParticipant.displayName || 'Chat')}</SheetTitle>
                         <SheetDescription asChild>
                              <OtherParticipantStatus 
                                 otherParticipantId={selectedConversation.otherParticipant.id} 
@@ -692,7 +692,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
 
   const renderBilluChatView = () => (
     <div className="flex flex-col h-full">
-        <SheetHeader className="py-1 px-2 border-b flex-row items-center gap-2">
+        <SheetHeader className="pb-2 px-2 border-b flex-row items-center gap-2">
             <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setActiveConversationId(null)}>
                 <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -701,8 +701,8 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                 <AvatarFallback>B</AvatarFallback>
             </Avatar>
             <div className="flex-1 overflow-hidden">
-                <SheetTitle className="text-sm font-semibold truncate">Ask Billu!</SheetTitle>
-                 <SheetDescription className="text-xs">Your AI companion</SheetDescription>
+                <SheetTitle className="text-sm absolute left-18 top-2 font-semibold truncate">Ask Billu!</SheetTitle>
+                 <SheetDescription className="text-xs absolute left-18 top-6">Your AI companion</SheetDescription>
             </div>
         </SheetHeader>
         <ScrollArea className="flex-1 bg-secondary/50 p-4">
