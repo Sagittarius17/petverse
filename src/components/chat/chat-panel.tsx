@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { collection, query, where, onSnapshot, doc, getDoc, addDoc, serverTimestamp, updateDoc, Timestamp, orderBy, DocumentData, increment, writeBatch } from 'firebase/firestore';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
 import { User } from 'firebase/auth';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -588,7 +588,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
             {selectedConversation && selectedConversation.otherParticipant ? (
                 <>
                 <SheetHeader className="p-2 border-b flex-row items-center gap-2">
-                    <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => setActiveConversationId(null)}>
+                    <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 rounded-full" onClick={() => setActiveConversationId(null)}>
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <Avatar className="h-10 w-10">
@@ -644,7 +644,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                         </div>
                     )}
                     <div className="relative flex items-center bg-secondary rounded-full px-2">
-                        <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={() => fileInputRef.current?.click()} disabled={isRecording}>
+                        <Button type="button" variant="ghost" size="icon" className="shrink-0 rounded-full" onClick={() => fileInputRef.current?.click()} disabled={isRecording}>
                             <Paperclip />
                         </Button>
                          <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" hidden />
@@ -665,11 +665,11 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                         )}
                         <div className="flex items-center">
                             {newMessage.trim() || mediaPreview ? (
-                                <Button type="submit" variant="ghost" size="icon" className="shrink-0 text-primary">
+                                <Button type="submit" variant="ghost" size="icon" className="shrink-0 rounded-full text-primary">
                                     <Send />
                                 </Button>
                             ) : (
-                                <Button type="button" variant="ghost" size="icon" className={cn("shrink-0", isRecording && "text-red-500")} onClick={isRecording ? handleStopRecording : handleStartRecording} disabled={isSuspended}>
+                                <Button type="button" variant="ghost" size="icon" className={cn("shrink-0 rounded-full", isRecording && "text-red-500")} onClick={isRecording ? handleStopRecording : handleStartRecording} disabled={isSuspended}>
                                     {isRecording ? <Square /> : <Mic />}
                                 </Button>
                             )}
@@ -696,7 +696,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   const renderBilluChatView = () => (
     <div className="flex flex-col h-full">
         <SheetHeader className="p-2 border-b flex-row items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => setActiveConversationId(null)}>
+            <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 rounded-full" onClick={() => setActiveConversationId(null)}>
                 <ArrowLeft className="h-5 w-5" />
             </Button>
             <Avatar className="h-10 w-10">
@@ -740,7 +740,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                     autoComplete="off"
                     className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
                 />
-                <Button type="submit" variant="ghost" size="icon" className="shrink-0 text-primary" disabled={!newMessage.trim() || isBilluThinking}>
+                <Button type="submit" variant="ghost" size="icon" className="shrink-0 rounded-full text-primary" disabled={!newMessage.trim() || isBilluThinking}>
                     <Send />
                 </Button>
             </div>
