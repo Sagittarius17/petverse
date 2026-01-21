@@ -49,16 +49,7 @@ export default function MessageBubble({ message, isCurrentUser }: MessageBubbleP
   if (message.mediaType === 'audio' && message.mediaUrl) {
     return (
       <div className={cn('flex items-end gap-2 group', isCurrentUser ? 'justify-end' : 'justify-start')}>
-        <div
-          className={cn(
-            'rounded-full',
-            isCurrentUser
-              ? 'bg-primary'
-              : 'bg-background border'
-          )}
-        >
-          <VoiceNotePlayer src={message.mediaUrl} isCurrentUser={isCurrentUser} />
-        </div>
+        <VoiceNotePlayer message={message} isCurrentUser={isCurrentUser} />
       </div>
     );
   }
