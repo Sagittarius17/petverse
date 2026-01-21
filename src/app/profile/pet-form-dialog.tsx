@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -15,11 +15,12 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import type { Pet } from '@/lib/data';
+import { initialPetCategories } from '@/lib/initial-pet-data';
 
 const petSchema = z.object({
   name: z.string().min(2, 'Pet name must be at least 2 characters.'),
   species: z.enum(['Dog', 'Cat', 'Bird', 'Rabbit', 'Hamster', 'Lizard', 'Fish', 'Other']),
-  breed: z.string().min(2, 'Breed must be at least 2 characters.'),
+  breed: z.string().min(1, 'Please select a breed.'),
   ageYears: z.number().min(0).optional(),
   ageMonths: z.number().min(0).max(11).optional(),
   gender: z.enum(['Male', 'Female']),
@@ -44,7 +45,7 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
-  const { control, register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<PetFormData>({
+  const { control, register, handleSubmit, reset, watch, setValue, formState: { errors, isSubmitting } } = useForm<PetFormData>({
     resolver: zodResolver(petSchema),
     defaultValues: {
       name: '',
@@ -56,6 +57,22 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
   });
 
   const isEditMode = !!pet;
+  const watchedSpecies = watch('species');
+
+  const availableBreeds = useMemo(() => {
+    if (!watchedSpecies) return [];
+    const speciesData = initialPetCategories
+      .flatMap(category => category.species)
+      .find(s => s.name === watchedSpecies);
+    return speciesData?.breeds?.map(b => b.name) || [];
+  }, [watchedSpecies]);
+
+  useEffect(() => {
+    if (pet?.species !== watchedSpecies) {
+        setValue('breed', '');
+    }
+  }, [watchedSpecies, setValue, pet]);
+
 
   useEffect(() => {
     if (isOpen) {
@@ -187,7 +204,7 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
                         name="species"
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value}>
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Dog">Dog</SelectItem>
@@ -203,9 +220,32 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
                         )}
                     />
                 </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="breed">Breed</Label>
-                    <Input id="breed" {...register('breed')} placeholder="e.g., Golden Retriever" />
+                <div className="space-y-2">
+                    <Label>Breed</Label>
+                    <Controller
+                      name="breed"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a breed" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableBreeds.length > 0 ? (
+                              availableBreeds.map(breedName => (
+                                <SelectItem key={breedName} value={breedName}>
+                                  {breedName}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="Unknown" disabled>No breeds listed</SelectItem>
+                            )}
+                             <SelectItem value="Mixed Breed">Mixed Breed</SelectItem>
+                             <SelectItem value="Other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                     {errors.breed && <p className="text-sm text-destructive">{errors.breed.message}</p>}
                 </div>
             </div>
