@@ -6,7 +6,7 @@ import { Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { Check, CheckCheck } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import AudioPlayer from './audio-player';
+import VoiceNotePlayer from './voice-note-player';
 
 interface Message {
   id: string;
@@ -27,29 +27,6 @@ export default function MessageBubble({ message, isCurrentUser }: MessageBubbleP
   const hasMedia = !!message.mediaUrl;
   const hasText = !!message.text;
 
-  const renderMedia = () => {
-    if (!message.mediaUrl) return null;
-
-    if (message.mediaType === 'image') {
-      return (
-        <Dialog>
-            <DialogTrigger>
-                <div className="relative h-48 w-48 cursor-pointer">
-                    <Image src={message.mediaUrl} alt="Sent image" layout="fill" className="rounded-md object-cover" />
-                </div>
-            </DialogTrigger>
-            <DialogContent className="max-w-3xl p-0">
-                <Image src={message.mediaUrl} alt="Sent image" width={1024} height={1024} className="w-full h-auto rounded-lg" />
-            </DialogContent>
-        </Dialog>
-      );
-    }
-    if (message.mediaType === 'audio') {
-      return <AudioPlayer src={message.mediaUrl} isCurrentUser={isCurrentUser} />;
-    }
-    return null;
-  };
-  
   const TimestampAndStatus = () => (
     <div className={cn(
         "flex items-center gap-1.5 text-xs",
@@ -68,8 +45,66 @@ export default function MessageBubble({ message, isCurrentUser }: MessageBubbleP
     </div>
   );
 
-  // Text-only message: Keep the original design with absolute positioning for the timestamp
-  if (!hasMedia && hasText) {
+  // Render a dedicated bubble for voice notes
+  if (message.mediaType === 'audio' && message.mediaUrl) {
+    return (
+      <div className={cn('flex items-end gap-2 group', isCurrentUser ? 'justify-end' : 'justify-start')}>
+        <div
+          className={cn(
+            'rounded-full',
+            isCurrentUser
+              ? 'bg-primary'
+              : 'bg-background border'
+          )}
+        >
+          <VoiceNotePlayer src={message.mediaUrl} isCurrentUser={isCurrentUser} />
+        </div>
+      </div>
+    );
+  }
+
+  // Render a bubble for images, with or without text
+  if (message.mediaType === 'image' && message.mediaUrl) {
+     return (
+      <div className={cn('flex items-end gap-2 group', isCurrentUser ? 'justify-end' : 'justify-start')}>
+        <div
+          className={cn(
+            'max-w-xs md:max-w-md rounded-2xl flex flex-col overflow-hidden',
+            isCurrentUser
+              ? 'bg-primary text-primary-foreground rounded-br-none'
+              : 'bg-background border rounded-bl-none'
+          )}
+        >
+          <Dialog>
+              <DialogTrigger>
+                  <div className="relative h-48 w-48 cursor-pointer">
+                      <Image src={message.mediaUrl} alt="Sent image" layout="fill" className="object-cover" />
+                  </div>
+              </DialogTrigger>
+              <DialogContent className="max-w-3xl p-0">
+                  <Image src={message.mediaUrl} alt="Sent image" width={1024} height={1024} className="w-full h-auto rounded-lg" />
+              </DialogContent>
+          </Dialog>
+          
+          {(hasText || isCurrentUser) && (
+             <div className="flex items-end gap-2 pt-1 px-2 pb-1">
+                {hasText && (
+                  <p className="text-sm break-words">{message.text}</p>
+                )}
+                <div className="flex-grow" />
+                <div className="flex-shrink-0 self-end">
+                    <TimestampAndStatus />
+                </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+
+  // Render a bubble for text-only messages
+  if (hasText) {
     return (
       <div className={cn('flex items-end gap-2 group', isCurrentUser ? 'justify-end' : 'justify-start')}>
         <div
@@ -84,36 +119,6 @@ export default function MessageBubble({ message, isCurrentUser }: MessageBubbleP
           <div className="absolute bottom-1.5 right-2">
             <TimestampAndStatus />
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Media message (with or without text): Use a flex layout to place text/timestamp below media
-  if (hasMedia) {
-     return (
-      <div className={cn('flex items-end gap-2 group', isCurrentUser ? 'justify-end' : 'justify-start')}>
-        <div
-          className={cn(
-            'max-w-xs md:max-w-md rounded-2xl p-1 flex flex-col',
-            isCurrentUser
-              ? 'bg-primary text-primary-foreground rounded-br-none'
-              : 'bg-background border rounded-bl-none'
-          )}
-        >
-          {renderMedia()}
-          
-          {(hasText || isCurrentUser) && (
-             <div className="flex items-end gap-2 pt-1 px-2 pb-1">
-                {hasText && (
-                  <p className="text-sm break-words">{message.text}</p>
-                )}
-                <div className="flex-grow" />
-                <div className="flex-shrink-0 self-end">
-                    <TimestampAndStatus />
-                </div>
-            </div>
-          )}
         </div>
       </div>
     );
