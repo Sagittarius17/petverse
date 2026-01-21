@@ -19,6 +19,7 @@ import type { Pet } from '@/lib/data';
 const petSchema = z.object({
   name: z.string().min(2, 'Pet name must be at least 2 characters.'),
   species: z.enum(['Dog', 'Cat', 'Bird', 'Rabbit', 'Hamster', 'Lizard', 'Fish', 'Other']),
+  breed: z.string().min(2, 'Breed must be at least 2 characters.'),
   ageYears: z.number().min(0).optional(),
   ageMonths: z.number().min(0).max(11).optional(),
   gender: z.enum(['Male', 'Female']),
@@ -48,6 +49,7 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
     defaultValues: {
       name: '',
       species: 'Dog',
+      breed: '',
       gender: 'Male',
       description: '',
     },
@@ -65,6 +67,7 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
             reset({
                 name: pet.name,
                 species: pet.species,
+                breed: pet.breed,
                 ageYears: years,
                 ageMonths: months,
                 gender: pet.gender,
@@ -74,6 +77,7 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
             reset({
                 name: '',
                 species: 'Dog',
+                breed: '',
                 ageYears: 0,
                 ageMonths: 0,
                 gender: 'Male',
@@ -127,7 +131,6 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
       const petData = { 
         ...restOfData, 
         age: ageString, 
-        breed: restOfData.species,
         imageId: imageToStore
       };
 
@@ -172,12 +175,12 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-6 py-6">
+            <div className="space-y-2">
+                <Label htmlFor="name">Pet's Name</Label>
+                <Input id="name" {...register('name')} />
+                {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+            </div>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div className="space-y-2">
-                    <Label htmlFor="name">Pet's Name</Label>
-                    <Input id="name" {...register('name')} />
-                    {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
-                </div>
                  <div className="space-y-2">
                     <Label>Species</Label>
                     <Controller
@@ -199,6 +202,11 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
                             </Select>
                         )}
                     />
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="breed">Breed</Label>
+                    <Input id="breed" {...register('breed')} placeholder="e.g., Golden Retriever" />
+                    {errors.breed && <p className="text-sm text-destructive">{errors.breed.message}</p>}
                 </div>
             </div>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">

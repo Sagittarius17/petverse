@@ -39,19 +39,12 @@ petCategories.forEach(category => {
   });
 });
 
-const getCategoryFromSpecies = (species: string): string => {
-  // Handle 'Dog' and 'Cat' which are inside 'Mammals'
-  if (species === 'Dog' || species === 'Cat') return 'Mammals';
-  // Handle 'Parrots' which is inside 'Birds'
-  if (species === 'Parrot' || species === 'Bird') return 'Birds';
-  // A more robust lookup
-  for (const category of petCategories) {
-    if (category.species.some(s => s.name === species)) {
-      return category.category;
-    }
-  }
-  return 'Other'; // Fallback category
-};
+// Manual mapping for inconsistencies between Pet.species enum and the data in initial-pet-data
+speciesToCategoryMap.set('Dog', 'Mammals');
+speciesToCategoryMap.set('Cat', 'Mammals');
+speciesToCategoryMap.set('Bird', 'Birds');
+speciesToCategoryMap.set('Lizard', 'Reptiles');
+speciesToCategoryMap.set('Fish', 'Fish');
 
 
 export default function AdoptPage() {
@@ -136,7 +129,8 @@ export default function AdoptPage() {
       const matchesSearch =
         pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pet.breed.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = categoryFilter.length === 0 || categoryFilter.includes(getCategoryFromSpecies(pet.species));
+      const petCategory = speciesToCategoryMap.get(pet.species) || 'Other';
+      const matchesCategory = categoryFilter.length === 0 || categoryFilter.includes(petCategory);
       const matchesGender = genderFilter.length === 0 || genderFilter.includes(pet.gender);
       const petAgeInMonths = getAgeInMonths(pet.age);
       const matchesAge = petAgeInMonths <= ageRange[0];
