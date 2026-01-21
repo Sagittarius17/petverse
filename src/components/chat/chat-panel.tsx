@@ -588,16 +588,16 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
         <div className="flex flex-col h-full">
             {selectedConversation && selectedConversation.otherParticipant ? (
                 <>
-                <SheetHeader className="p-2 border-b flex-row items-center gap-2">
-                    <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => setActiveConversationId(null)}>
+                <SheetHeader className="py-1 px-2 border-b flex-row items-center gap-2">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setActiveConversationId(null)}>
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <Avatar className="h-10 w-10">
+                    <Avatar className="h-9 w-9">
                         <AvatarImage src={isSuspended ? undefined : selectedConversation.otherParticipant.photoURL} />
                         <AvatarFallback>{isSuspended ? '?' : selectedConversation.otherParticipant.displayName[0] || 'U'}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 overflow-hidden">
-                        <SheetTitle className="text-base font-semibold truncate">{isSuspended ? '[User Deleted/Suspended]' : (selectedConversation.otherParticipant.displayName || 'Chat')}</SheetTitle>
+                        <SheetTitle className="text-sm font-semibold truncate">{isSuspended ? '[User Deleted/Suspended]' : (selectedConversation.otherParticipant.displayName || 'Chat')}</SheetTitle>
                         <SheetDescription asChild>
                              <OtherParticipantStatus 
                                 otherParticipantId={selectedConversation.otherParticipant.id} 
@@ -692,16 +692,16 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
 
   const renderBilluChatView = () => (
     <div className="flex flex-col h-full">
-        <SheetHeader className="p-2 border-b flex-row items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => setActiveConversationId(null)}>
+        <SheetHeader className="py-1 px-2 border-b flex-row items-center gap-2">
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setActiveConversationId(null)}>
                 <ArrowLeft className="h-5 w-5" />
             </Button>
-            <Avatar className="h-10 w-10">
+            <Avatar className="h-9 w-9">
                 <AvatarImage src={billuAvatar.imageUrl} />
                 <AvatarFallback>B</AvatarFallback>
             </Avatar>
             <div className="flex-1 overflow-hidden">
-                <SheetTitle className="text-base font-semibold truncate">Ask Billu!</SheetTitle>
+                <SheetTitle className="text-sm font-semibold truncate">Ask Billu!</SheetTitle>
                  <SheetDescription className="text-xs">Your AI companion</SheetDescription>
             </div>
         </SheetHeader>
