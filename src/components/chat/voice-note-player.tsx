@@ -3,11 +3,20 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Play, Pause, Loader2, Mic, Headphones } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useFirestore, useMemoFirebase, useDoc } from '@/firebase';
+import { useFirestore, useMemoFirebase, useDoc, updateDocumentNonBlocking } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { type Message } from './chat-panel';
+
+// Define Message interface locally as it's passed down
+interface Message {
+  id: string;
+  senderId: string;
+  timestamp: any;
+  mediaUrl?: string;
+  isRead?: boolean;
+  isPlayed?: boolean;
+}
 
 // New Waveform component using Canvas
 const Waveform = ({
@@ -163,9 +172,10 @@ function SenderAvatar({ senderId }: { senderId: string }) {
 interface VoiceNotePlayerProps {
   message: Message;
   isCurrentUser: boolean;
+  activeConversationId: string;
 }
 
-export default function VoiceNotePlayer({ message, isCurrentUser }: VoiceNotePlayerProps) {
+export default function VoiceNotePlayer({ message, isCurrentUser, activeConversationId }: VoiceNotePlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -175,6 +185,7 @@ export default function VoiceNotePlayer({ message, isCurrentUser }: VoiceNotePla
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const firestore = useFirestore();
 
   const setupAudioContext = useCallback(() => {
     if (!audioRef.current || sourceRef.current) return;
@@ -230,6 +241,13 @@ export default function VoiceNotePlayer({ message, isCurrentUser }: VoiceNotePla
     else {
       if (audio.currentTime >= audio.duration) { audio.currentTime = 0; }
       audio.play().catch(err => console.error("Audio play failed:", err));
+      
+      if (!isCurrentUser && !message.isPlayed) {
+        if (firestore && activeConversationId) {
+          const messageRef = doc(firestore, 'conversations', activeConversationId, 'messages', message.id);
+          updateDocumentNonBlocking(messageRef, { isPlayed: true });
+        }
+      }
     }
     setIsPlaying(!isPlaying);
   };
@@ -243,10 +261,14 @@ export default function VoiceNotePlayer({ message, isCurrentUser }: VoiceNotePla
 
   const ReadReceipt = () => {
     if (!isCurrentUser) return null;
-    if (message.isRead) {
-      return <Headphones className="h-4 w-4 text-blue-400" />;
+    
+    if (message.isPlayed) {
+        return <Headphones className="h-4 w-4 text-blue-400" />;
     }
-    return <Mic className="h-4 w-4" />;
+    if (message.isRead) {
+        return <Mic className="h-4 w-4 text-blue-400" />;
+    }
+    return <Mic className="h-4 w-4 text-primary-foreground/70" />;
   };
 
   const displayTime = isPlaying ? formatTime(currentTime) : formatTime(duration);

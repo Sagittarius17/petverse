@@ -16,14 +16,16 @@ interface Message {
   isRead?: boolean;
   mediaUrl?: string;
   mediaType?: 'image' | 'audio';
+  isPlayed?: boolean;
 }
 
 interface MessageBubbleProps {
   message: Message;
   isCurrentUser: boolean;
+  activeConversationId: string;
 }
 
-export default function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
+export default function MessageBubble({ message, isCurrentUser, activeConversationId }: MessageBubbleProps) {
   const hasMedia = !!message.mediaUrl;
   const hasText = !!message.text;
 
@@ -49,7 +51,7 @@ export default function MessageBubble({ message, isCurrentUser }: MessageBubbleP
   if (message.mediaType === 'audio' && message.mediaUrl) {
     return (
       <div className={cn('flex items-end gap-2 group', isCurrentUser ? 'justify-end' : 'justify-start')}>
-        <VoiceNotePlayer message={message} isCurrentUser={isCurrentUser} />
+        <VoiceNotePlayer message={message} isCurrentUser={isCurrentUser} activeConversationId={activeConversationId} />
       </div>
     );
   }
