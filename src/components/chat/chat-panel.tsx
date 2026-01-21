@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { collection, query, where, onSnapshot, doc, getDoc, addDoc, serverTimestamp, updateDoc, Timestamp, orderBy, DocumentData, increment, writeBatch } from 'firebase/firestore';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { User } from 'firebase/auth';
@@ -8,7 +9,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, ArrowLeft, Loader2, Sparkles } from 'lucide-react';
+import { Send, ArrowLeft, Loader2, Sparkles, Paperclip, Mic, X, Square } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import MessageBubble from './message-bubble';
@@ -18,6 +19,7 @@ import { format, formatDistanceToNow, isToday, isYesterday, isThisWeek, parseISO
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { billuChatbot } from '@/ai/flows/billu-chatbot';
 import { Badge } from '../ui/badge';
+import { useToast } from '@/hooks/use-toast';
 
 interface Conversation {
   id: string;
@@ -45,9 +47,11 @@ interface Conversation {
 interface Message {
   id: string;
   senderId: string;
-  text: string;
+  text?: string;
   timestamp: Timestamp;
   isRead?: boolean;
+  mediaUrl?: string;
+  mediaType?: 'image' | 'audio';
 }
 
 interface UserProfile extends DocumentData {
@@ -73,11 +77,6 @@ const billuAvatar = PlaceHolderImages.find(p => p.id === 'billu-avatar') || { im
 function formatRelativeTime(timestamp?: Timestamp): string {
     if (!timestamp) return '';
     return formatDistanceToNow(timestamp.toDate(), { addSuffix: true });
-}
-
-function formatMessageTimestamp(timestamp?: Timestamp): string {
-  if (!timestamp) return '';
-  return format(timestamp.toDate(), 'h:mm a');
 }
 
 function formatDateSeparator(timestamp: Timestamp): string {
@@ -140,6 +139,7 @@ function OtherParticipantStatus({ otherParticipantId, typingStatus }: { otherPar
 
 export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelProps) {
   const firestore = useFirestore();
+  const { toast } = useToast();
   const { activeConversationId, setActiveConversationId } = useChatStore();
   
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -152,6 +152,17 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   
   const [billuChatHistory, setBilluChatHistory] = useState<Message[]>([]);
   const [isBilluThinking, setIsBilluThinking] = useState(false);
+  
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+
 
   const handleConversationSelect = async (convoId: string) => {
     setActiveConversationId(convoId);
@@ -261,7 +272,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, billuChatHistory, isBilluThinking]);
+  }, [messages, billuChatHistory, isBilluThinking, mediaPreview]);
 
   const updateTypingStatus = (isTyping: boolean) => {
     if (!firestore || !activeConversationId || !currentUser) return;
@@ -288,24 +299,20 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     }, 3000);
   };
   
-  const handleBilluSubmit = async () => {
-    if (!newMessage.trim()) return;
-
+  const handleBilluSubmit = async (messageText: string) => {
     const userMessage: Message = {
       id: `user-${Date.now()}`,
       senderId: currentUser.uid,
-      text: newMessage,
+      text: messageText,
       timestamp: Timestamp.now(),
-      isRead: true, // Bot "reads" instantly
+      isRead: true,
     };
     
     setBilluChatHistory(prev => [...prev, userMessage]);
     setIsBilluThinking(true);
-    const currentMessage = newMessage;
-    setNewMessage('');
     
     try {
-      const { response } = await billuChatbot({ message: currentMessage });
+      const { response } = await billuChatbot({ message: messageText });
       const billuMessage: Message = {
         id: `billu-${Date.now()}`,
         senderId: BILLU_CONVERSATION_ID,
@@ -327,45 +334,151 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     }
   }
 
-
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newMessage.trim() && !mediaFile) return;
+
+    const messageText = newMessage.trim();
+    
     if (activeConversationId === BILLU_CONVERSATION_ID) {
-        handleBilluSubmit();
-        return;
+      handleBilluSubmit(messageText);
+      setNewMessage('');
+      return;
     }
     
-    if (!newMessage.trim() || !firestore || !activeConversationId || !currentUser || currentUser.isAnonymous) return;
+    if (!firestore || !activeConversationId || !currentUser || currentUser.isAnonymous) return;
 
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = null;
     }
     updateTypingStatus(false);
-
-    const convoDocRef = doc(firestore, 'conversations', activeConversationId);
     
-    await addDoc(collection(convoDocRef, 'messages'), {
-      senderId: currentUser.uid,
-      text: newMessage,
-      timestamp: serverTimestamp(),
-      isRead: false,
-    });
+    let messageData: any = {
+        senderId: currentUser.uid,
+        timestamp: serverTimestamp(),
+        isRead: false,
+    };
+
+    if (messageText) {
+        messageData.text = messageText;
+    }
+
+    if (mediaFile && mediaPreview) {
+        messageData.mediaUrl = mediaPreview;
+        messageData.mediaType = mediaFile.type.startsWith('image/') ? 'image' : 'audio'; // Simplified
+    }
+    
+    const convoDocRef = doc(firestore, 'conversations', activeConversationId);
+    await addDoc(collection(convoDocRef, 'messages'), messageData);
     
     const otherParticipantId = selectedConversation?.otherParticipant?.id;
     if (otherParticipantId) {
-        const unreadCountUpdate = {
+        const lastMessageText = messageText || (mediaFile?.type.startsWith('image/') ? 'Sent an image' : 'Sent a voice note');
+        await updateDoc(convoDocRef, {
             [`unreadCount.${otherParticipantId}`]: increment(1),
             lastMessage: {
-                text: newMessage,
+                text: lastMessageText,
                 timestamp: serverTimestamp(),
                 senderId: currentUser.uid,
             }
-        };
-        await updateDoc(convoDocRef, unreadCountUpdate);
+        });
     }
 
     setNewMessage('');
+    setMediaFile(null);
+    setMediaPreview(null);
+  };
+  
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast({
+          variant: 'destructive',
+          title: 'Invalid File Type',
+          description: 'Only image files are supported at this time.',
+        });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setMediaPreview(e.target?.result as string);
+        setMediaFile(file);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearMediaPreview = () => {
+    setMediaPreview(null);
+    setMediaFile(null);
+    if(fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  const handleStartRecording = async () => {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorderRef.current = new MediaRecorder(stream);
+        audioChunksRef.current = [];
+        
+        mediaRecorderRef.current.ondataavailable = (event) => {
+            audioChunksRef.current.push(event.data);
+        };
+        
+        mediaRecorderRef.current.onstop = async () => {
+            const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+
+            const reader = new FileReader();
+            reader.readAsDataURL(audioBlob);
+            reader.onloadend = () => {
+                const base64Audio = reader.result as string;
+                if (!firestore || !activeConversationId || !currentUser) return;
+                
+                const messageData = {
+                    senderId: currentUser.uid,
+                    timestamp: serverTimestamp(),
+                    isRead: false,
+                    mediaUrl: base64Audio,
+                    mediaType: 'audio' as const,
+                };
+
+                const convoDocRef = doc(firestore, 'conversations', activeConversationId);
+                addDoc(collection(convoDocRef, 'messages'), messageData);
+                const otherParticipantId = selectedConversation?.otherParticipant?.id;
+                if (otherParticipantId) {
+                    updateDoc(convoDocRef, {
+                        [`unreadCount.${otherParticipantId}`]: increment(1),
+                        lastMessage: {
+                            text: 'Sent a voice note',
+                            timestamp: serverTimestamp(),
+                            senderId: currentUser.uid,
+                        }
+                    });
+                }
+            };
+        };
+
+        mediaRecorderRef.current.start();
+        setIsRecording(true);
+        recordingTimerRef.current = setInterval(() => {
+          setRecordingTime(prev => prev + 1);
+        }, 1000);
+
+    } catch (err) {
+        console.error('Error accessing microphone:', err);
+        toast({ variant: 'destructive', title: 'Microphone Error', description: 'Could not access your microphone. Please check permissions.'});
+    }
+  };
+
+  const handleStopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+      setRecordingTime(0);
+    }
   };
 
   const selectedConversation = conversations.find(c => c.id === activeConversationId);
@@ -518,16 +631,47 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                         </div>
                     )}
                 </ScrollArea>
-                <form onSubmit={handleSendMessage} className="p-4 border-t flex items-center gap-2">
-                    <Input
-                        value={newMessage}
-                        onChange={handleTyping}
-                        placeholder="Type a message..."
-                        autoComplete="off"
-                    />
-                    <Button type="submit" size="icon" disabled={!newMessage.trim()}>
-                        <Send className="h-5 w-5" />
-                    </Button>
+                <form onSubmit={handleSendMessage} className="p-2 border-t">
+                    {mediaPreview && (
+                        <div className="relative p-2">
+                            <Image src={mediaPreview} alt="Media preview" width={80} height={80} className="rounded-md" />
+                            <Button variant="destructive" size="icon" className="absolute top-0 right-0 h-6 w-6" onClick={clearMediaPreview}>
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    )}
+                    <div className="relative flex items-center">
+                        <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={() => fileInputRef.current?.click()} disabled={isRecording}>
+                            <Paperclip />
+                        </Button>
+                         <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" hidden />
+                        {isRecording ? (
+                             <div className="flex-1 flex items-center justify-center gap-2 text-red-500">
+                                <div className="h-3 w-3 rounded-full bg-red-500 animate-pulse"></div>
+                                <span>{new Date(recordingTime * 1000).toISOString().substr(14, 5)}</span>
+                            </div>
+                        ) : (
+                            <Input
+                                value={newMessage}
+                                onChange={handleTyping}
+                                placeholder="Type a message..."
+                                autoComplete="off"
+                                className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                disabled={isSuspended}
+                            />
+                        )}
+                        <div className="flex items-center">
+                            {newMessage.trim() || mediaPreview ? (
+                                <Button type="submit" variant="ghost" size="icon" className="shrink-0 text-primary">
+                                    <Send />
+                                </Button>
+                            ) : (
+                                <Button type="button" variant="ghost" size="icon" className={cn("shrink-0", isRecording && "text-red-500")} onClick={isRecording ? handleStopRecording : handleStartRecording} disabled={isSuspended}>
+                                    {isRecording ? <Square /> : <Mic />}
+                                </Button>
+                            )}
+                        </div>
+                    </div>
                 </form>
                 </>
             ) : (
@@ -584,16 +728,19 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                 <div ref={messagesEndRef} />
             </div>
         </ScrollArea>
-        <form onSubmit={handleSendMessage} className="p-4 border-t flex items-center gap-2">
-            <Input
-                value={newMessage}
-                onChange={handleTyping}
-                placeholder="Ask Billu something..."
-                autoComplete="off"
-            />
-            <Button type="submit" size="icon" disabled={!newMessage.trim() || isBilluThinking}>
-                <Send className="h-5 w-5" />
-            </Button>
+        <form onSubmit={handleSendMessage} className="p-2 border-t">
+            <div className="relative flex items-center">
+                <Input
+                    value={newMessage}
+                    onChange={handleTyping}
+                    placeholder="Ask Billu something..."
+                    autoComplete="off"
+                    className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+                <Button type="submit" variant="ghost" size="icon" className="shrink-0 text-primary" disabled={!newMessage.trim() || isBilluThinking}>
+                    <Send />
+                </Button>
+            </div>
         </form>
     </div>
   );

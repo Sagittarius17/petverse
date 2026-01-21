@@ -493,9 +493,11 @@
         "senderId": { "type": "string" },
         "text": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" },
-        "isRead": { "type": "boolean", "default": false }
+        "isRead": { "type": "boolean", "default": false },
+        "mediaUrl": { "type": "string", "description": "URL of the media attachment (image or audio)." },
+        "mediaType": { "type": "string", "enum": ["image", "audio"], "description": "The type of media attached." }
       },
-      "required": ["senderId", "text", "timestamp"]
+      "required": ["senderId", "timestamp"]
     },
     "Notification": {
       "$schema": "http://json-schema.org/draft-07/schema#",
