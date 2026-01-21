@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -21,7 +22,7 @@ import { PetFormDialog } from './pet-form-dialog';
 import { ProfileFormDialog } from './profile-form-dialog';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import PetInfoDialog from '@/components/pet-info-dialog';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 
 interface UserProfile extends DocumentData {
@@ -292,6 +293,10 @@ export default function ProfilePage() {
             </DialogTrigger>
             { (userProfile?.profilePicture || user.photoURL) && (
                 <DialogContent className="p-0 border-0 max-w-md">
+                    <DialogHeader className="sr-only">
+                        <DialogTitle>User Avatar Preview</DialogTitle>
+                        <DialogDescription>A larger view of your profile picture.</DialogDescription>
+                    </DialogHeader>
                     <Image src={userProfile?.profilePicture || user.photoURL!} alt="User Avatar Preview" width={512} height={512} className="rounded-lg w-full h-auto" />
                 </DialogContent>
             )}
