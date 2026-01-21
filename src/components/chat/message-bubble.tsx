@@ -6,6 +6,7 @@ import { Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { Check, CheckCheck } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import AudioPlayer from './audio-player';
 
 interface Message {
   id: string;
@@ -44,7 +45,7 @@ export default function MessageBubble({ message, isCurrentUser }: MessageBubbleP
       );
     }
     if (message.mediaType === 'audio') {
-      return <audio controls src={message.mediaUrl} className="w-full mt-2" />;
+      return <AudioPlayer src={message.mediaUrl} isCurrentUser={isCurrentUser} />;
     }
     return null;
   };
