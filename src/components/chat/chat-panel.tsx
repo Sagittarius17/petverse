@@ -114,26 +114,26 @@ function OtherParticipantStatus({ otherParticipantId, typingStatus }: { otherPar
   const { data: userProfile, isLoading } = useDoc<UserProfile>(userDocRef);
 
   if (isLoading) {
-    return <Skeleton className="h-4 w-20" />;
+    return <Skeleton className="h-3 w-20" />;
   }
 
   if (userProfile?.status === 'Inactive') {
-      return <p className="text-sm text-destructive">Suspended</p>;
+      return <p className="text-xs text-destructive">Suspended</p>;
   }
 
   if (typingStatus) {
-    return <p className="text-sm text-green-400 animate-pulse">typing...</p>;
+    return <p className="text-xs text-green-400 animate-pulse">typing...</p>;
   }
 
   if (userProfile?.isOnline) {
-    return <p className="text-sm text-green-400">Online</p>;
+    return <p className="text-xs text-green-400">Online</p>;
   }
 
   if (userProfile?.lastSeen) {
-    return <p className="text-sm text-muted-foreground">last seen {formatRelativeTime(userProfile.lastSeen)}</p>;
+    return <p className="text-xs text-muted-foreground">last seen {formatRelativeTime(userProfile.lastSeen)}</p>;
   }
 
-  return <p className="text-sm text-muted-foreground">Offline</p>;
+  return <p className="text-xs text-muted-foreground">Offline</p>;
 }
 
 
@@ -588,16 +588,16 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
         <div className="flex flex-col h-full">
             {selectedConversation && selectedConversation.otherParticipant ? (
                 <>
-                <SheetHeader className="p-4 border-b flex-row items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={() => setActiveConversationId(null)}>
-                        <ArrowLeft />
+                <SheetHeader className="p-2 border-b flex-row items-center gap-2">
+                    <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => setActiveConversationId(null)}>
+                        <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <Avatar>
+                    <Avatar className="h-10 w-10">
                         <AvatarImage src={isSuspended ? undefined : selectedConversation.otherParticipant.photoURL} />
                         <AvatarFallback>{isSuspended ? '?' : selectedConversation.otherParticipant.displayName[0] || 'U'}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 overflow-hidden">
-                        <SheetTitle className="truncate">{isSuspended ? '[User Deleted/Suspended]' : (selectedConversation.otherParticipant.displayName || 'Chat')}</SheetTitle>
+                        <SheetTitle className="text-base font-semibold truncate">{isSuspended ? '[User Deleted/Suspended]' : (selectedConversation.otherParticipant.displayName || 'Chat')}</SheetTitle>
                         <SheetDescription asChild>
                              <OtherParticipantStatus 
                                 otherParticipantId={selectedConversation.otherParticipant.id} 
@@ -692,17 +692,17 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
 
   const renderBilluChatView = () => (
     <div className="flex flex-col h-full">
-        <SheetHeader className="p-4 border-b flex-row items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => setActiveConversationId(null)}>
-                <ArrowLeft />
+        <SheetHeader className="p-2 border-b flex-row items-center gap-2">
+            <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => setActiveConversationId(null)}>
+                <ArrowLeft className="h-5 w-5" />
             </Button>
-            <Avatar>
+            <Avatar className="h-10 w-10">
                 <AvatarImage src={billuAvatar.imageUrl} />
                 <AvatarFallback>B</AvatarFallback>
             </Avatar>
             <div className="flex-1 overflow-hidden">
-                <SheetTitle className="truncate">Ask Billu!</SheetTitle>
-                 <SheetDescription>Your AI companion</SheetDescription>
+                <SheetTitle className="text-base font-semibold truncate">Ask Billu!</SheetTitle>
+                 <SheetDescription className="text-xs">Your AI companion</SheetDescription>
             </div>
         </SheetHeader>
         <ScrollArea className="flex-1 bg-secondary/50 p-4">
