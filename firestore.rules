@@ -374,7 +374,7 @@ service cloud.firestore {
       match /messages/{messageId} {
         allow read, list: if isParticipant(conversationId);
         allow create: if isParticipant(conversationId) && createdBy('senderId');
-        allow update: if isParticipant(conversationId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
+        allow update: if isParticipant(conversationId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead', 'isPlayed']);
         allow delete: if false;
       }
     }
