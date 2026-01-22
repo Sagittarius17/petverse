@@ -54,36 +54,55 @@ const Waveform = ({
       const glowColor = isCurrentUser ? 'rgba(255, 255, 255, 0.5)' : `rgba(${primaryRgb}, 0.5)`;
       
       const lineY = canvas.height / 2;
-      const progressX = progress * canvas.width;
+      const circleRadius = 6;
+      const playedLineWidth = 3;
+      const unplayedLineWidth = 2;
+
+      // Adjust drawing area to account for line caps
+      const startX = Math.max(playedLineWidth / 2, unplayedLineWidth / 2);
+      const endX = canvas.width - startX;
+      const drawableWidth = endX - startX;
+      
+      const progressX = startX + (progress * drawableWidth);
 
       // 1. Draw unplayed (background) line
       canvasCtx.strokeStyle = unplayedColor;
-      canvasCtx.lineWidth = 2;
+      canvasCtx.lineWidth = unplayedLineWidth;
       canvasCtx.lineCap = 'round';
       canvasCtx.beginPath();
-      canvasCtx.moveTo(0, lineY);
-      canvasCtx.lineTo(canvas.width, lineY);
+      canvasCtx.moveTo(startX, lineY);
+      canvasCtx.lineTo(endX, lineY);
       canvasCtx.stroke();
+      
+      // Draw small circles at both ends of the unplayed line for a finished look
+      const endCapRadius = unplayedLineWidth;
+      canvasCtx.fillStyle = unplayedColor;
+      canvasCtx.beginPath();
+      canvasCtx.arc(startX, lineY, endCapRadius, 0, 2 * Math.PI);
+      canvasCtx.fill();
+      canvasCtx.beginPath();
+      canvasCtx.arc(endX, lineY, endCapRadius, 0, 2 * Math.PI);
+      canvasCtx.fill();
+
 
       // 2. Draw played (glowing) line
       if (progress > 0) {
         canvasCtx.strokeStyle = playedColor;
-        canvasCtx.lineWidth = 3; // Make it slightly thicker
+        canvasCtx.lineWidth = playedLineWidth;
+        canvasCtx.lineCap = 'round';
         canvasCtx.shadowBlur = 8;
         canvasCtx.shadowColor = glowColor;
         
         canvasCtx.beginPath();
-        canvasCtx.moveTo(0, lineY);
+        canvasCtx.moveTo(startX, lineY);
         canvasCtx.lineTo(progressX, lineY);
         canvasCtx.stroke();
+
+        // Reset shadow
+        canvasCtx.shadowBlur = 0;
       }
-
-      // Reset shadow for the handle
-      canvasCtx.shadowBlur = 0;
-
-      // 3. Draw handle
-      const circleRadius = 6;
       
+      // 3. Draw handle
       canvasCtx.beginPath();
       canvasCtx.arc(progressX, lineY, circleRadius, 0, 2 * Math.PI, false);
       canvasCtx.fillStyle = playedColor;
@@ -119,7 +138,17 @@ const Waveform = ({
     if (!canvasRef.current || !audioElement || !isFinite(audioElement.duration)) return;
     const rect = canvasRef.current.getBoundingClientRect();
     const clickX = event.clientX - rect.left;
-    const progress = clickX / rect.width;
+
+    const playedLineWidth = 3;
+    const unplayedLineWidth = 2;
+    const startX = Math.max(playedLineWidth / 2, unplayedLineWidth / 2);
+    const endX = rect.width - startX;
+    const drawableWidth = endX - startX;
+
+    // Clamp clickX to the drawable area and calculate progress
+    const clampedClickX = Math.max(startX, Math.min(clickX, endX));
+    const progress = (clampedClickX - startX) / drawableWidth;
+
     onSeek(progress);
   };
 
