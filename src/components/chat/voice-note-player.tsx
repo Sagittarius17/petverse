@@ -62,6 +62,8 @@ const Waveform = ({
       canvasCtx.strokeStyle = unplayedColor;
       canvasCtx.lineWidth = playedLineWidth;
       canvasCtx.lineCap = 'round';
+
+      // Draw the full unplayed line with end caps
       canvasCtx.beginPath();
       canvasCtx.moveTo(startX, lineY);
       canvasCtx.lineTo(endX, lineY);
@@ -75,6 +77,7 @@ const Waveform = ({
       canvasCtx.beginPath();
       canvasCtx.arc(endX, lineY, endCapRadius, 0, 2 * Math.PI);
       canvasCtx.fill();
+      
 
       if (progress > 0) {
         canvasCtx.strokeStyle = playedColor;
@@ -199,47 +202,43 @@ interface VoiceNotePlayerProps {
 }
 
 export default function VoiceNotePlayer({ message, isCurrentUser, activeConversationId }: VoiceNotePlayerProps) {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const { currentlyPlayingAudio, setCurrentlyPlayingAudio } = useChatStore();
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const firestore = useFirestore();
 
-  const isPlaying = currentlyPlayingAudio === audioRef.current;
+  const isPlaying = currentlyPlayingAudio === audioElement;
 
   // Setup the audio element and its listeners
   useEffect(() => {
     if (!message.mediaUrl) return;
-
+  
     const audio = new Audio(message.mediaUrl);
+    setAudioElement(audio);
     audio.preload = 'metadata';
-    audioRef.current = audio;
     setIsLoading(true);
-
+  
     const handleLoadedMetadata = () => {
-      if (audioRef.current) {
-        setDuration(audioRef.current.duration);
+      if(audio) {
+        setDuration(audio.duration);
         setIsLoading(false);
       }
     };
     const handleCanPlay = () => setIsLoading(false);
     const handleTimeUpdate = () => {
-      if (audioRef.current) {
-        setCurrentTime(audioRef.current.currentTime);
+      if (audio) {
+        setCurrentTime(audio.currentTime);
       }
     };
-    const handleEnded = () => {
-      if (useChatStore.getState().currentlyPlayingAudio === audioRef.current) {
-        setCurrentlyPlayingAudio(null);
-      }
-    };
-
+    const handleEnded = () => setCurrentlyPlayingAudio(null);
+  
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('canplaythrough', handleCanPlay);
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('ended', handleEnded);
-
+  
     return () => {
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('canplaythrough', handleCanPlay);
@@ -251,25 +250,24 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
       }
     };
   }, [message.mediaUrl, setCurrentlyPlayingAudio]);
-
+  
 
   const handleSeek = (progress: number) => {
-    if (audioRef.current && isFinite(audioRef.current.duration)) {
-      audioRef.current.currentTime = progress * audioRef.current.duration;
+    if (audioElement && isFinite(audioElement.duration)) {
+        audioElement.currentTime = progress * audioElement.duration;
     }
   };
-
+  
   const togglePlayPause = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const audio = audioRef.current;
-    if (!audio || isLoading) return;
+    if (!audioElement || isLoading) return;
 
     if (isPlaying) {
-      audio.pause();
+      audioElement.pause();
       setCurrentlyPlayingAudio(null);
     } else {
-      setCurrentlyPlayingAudio(audio);
-      audio.play().catch(error => {
+      setCurrentlyPlayingAudio(audioElement);
+      audioElement.play().catch(error => {
         console.error("Audio playback error:", error);
         setCurrentlyPlayingAudio(null);
       });
@@ -309,6 +307,7 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
 
   return (
     <div
+      onPointerDown={(e) => e.stopPropagation()}
       className={cn(
         "flex flex-col p-2 w-full max-w-[280px] rounded-2xl",
         isCurrentUser 
@@ -332,7 +331,7 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
         <div className="flex-1 min-w-0">
             <Waveform
                 isCurrentUser={isCurrentUser}
-                audioElement={audioRef.current}
+                audioElement={audioElement}
                 onSeek={handleSeek}
             />
         </div>
