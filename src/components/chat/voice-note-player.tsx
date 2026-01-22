@@ -1,14 +1,13 @@
-
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Play, Pause, Loader2, Mic, Headphones } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useFirestore, useMemoFirebase, useDoc, updateDocumentNonBlocking } from '@/firebase';
+import { useFirestore, updateDocumentNonBlocking, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { format } from 'date-fns';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useChatStore } from '@/lib/chat-store';
+import { useDoc } from '@/firebase/firestore/use-doc';
 
 // Define Message interface locally as it's passed down
 interface Message {
@@ -20,7 +19,6 @@ interface Message {
   isPlayed?: boolean;
 }
 
-// A simplified waveform component that draws a straight progress bar
 const Waveform = ({
   isCurrentUser,
   audioElement,
@@ -44,9 +42,7 @@ const Waveform = ({
 
     const drawVisual = () => {
       animationFrameId.current = requestAnimationFrame(drawVisual);
-
       canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-
       const progress = audioElementRef.duration > 0 ? audioElementRef.currentTime / audioElementRef.duration : 0;
       
       const primaryRgb = getComputedStyle(document.documentElement).getPropertyValue('--primary-rgb').trim();
@@ -56,28 +52,22 @@ const Waveform = ({
       
       const circleRadius = 6;
       const playedLineWidth = 3;
-      const unplayedLineWidth = 2;
-
-      // Adjust drawing area to account for line caps and handle radius
       const padding = circleRadius + playedLineWidth;
       const startX = padding;
       const endX = canvas.width - padding;
       const drawableWidth = endX - startX;
-      
       const lineY = canvas.height / 2;
       const progressX = startX + (progress * drawableWidth);
 
-      // 1. Draw unplayed (background) line
       canvasCtx.strokeStyle = unplayedColor;
-      canvasCtx.lineWidth = unplayedLineWidth;
+      canvasCtx.lineWidth = playedLineWidth;
       canvasCtx.lineCap = 'round';
       canvasCtx.beginPath();
       canvasCtx.moveTo(startX, lineY);
       canvasCtx.lineTo(endX, lineY);
       canvasCtx.stroke();
       
-      // Draw small circles at both ends of the unplayed line for a finished look
-      const endCapRadius = unplayedLineWidth;
+      const endCapRadius = playedLineWidth / 2;
       canvasCtx.fillStyle = unplayedColor;
       canvasCtx.beginPath();
       canvasCtx.arc(startX, lineY, endCapRadius, 0, 2 * Math.PI);
@@ -86,8 +76,6 @@ const Waveform = ({
       canvasCtx.arc(endX, lineY, endCapRadius, 0, 2 * Math.PI);
       canvasCtx.fill();
 
-
-      // 2. Draw played (glowing) line
       if (progress > 0) {
         canvasCtx.strokeStyle = playedColor;
         canvasCtx.lineWidth = playedLineWidth;
@@ -99,25 +87,18 @@ const Waveform = ({
         canvasCtx.moveTo(startX, lineY);
         canvasCtx.lineTo(progressX, lineY);
         canvasCtx.stroke();
-
-        // Reset shadow
         canvasCtx.shadowBlur = 0;
       }
       
-      // 3. Draw handle
       canvasCtx.beginPath();
       canvasCtx.arc(progressX, lineY, circleRadius, 0, 2 * Math.PI, false);
       canvasCtx.fillStyle = playedColor;
       canvasCtx.shadowColor = glowColor;
       canvasCtx.shadowBlur = 10;
       canvasCtx.fill();
-
-      // Reset shadow for next frame
       canvasCtx.shadowBlur = 0;
     };
-
     drawVisual();
-
     return () => {
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current);
@@ -129,18 +110,18 @@ const Waveform = ({
     const canvas = canvasRef.current;
     if (canvas) {
       const { width, height } = canvas.getBoundingClientRect();
-      canvas.width = width * window.devicePixelRatio;
-      canvas.height = height * window.devicePixelRatio;
-      
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        ctx.scale(dpr, dpr);
       }
     }
     const cleanup = draw();
     return cleanup;
   }, [draw]);
-
+  
   const getProgressFromEvent = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current || !audioElement || !isFinite(audioElement.duration)) return null;
     const rect = canvasRef.current.getBoundingClientRect();
@@ -152,7 +133,6 @@ const Waveform = ({
     const startX = padding;
     const endX = rect.width - padding;
     const drawableWidth = endX - startX;
-
     const clampedX = Math.max(startX, Math.min(x, endX));
     const progress = (clampedX - startX) / drawableWidth;
     return progress;
@@ -219,72 +199,58 @@ interface VoiceNotePlayerProps {
 }
 
 export default function VoiceNotePlayer({ message, isCurrentUser, activeConversationId }: VoiceNotePlayerProps) {
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { currentlyPlayingAudio, setCurrentlyPlayingAudio } = useChatStore();
-
-  const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const firestore = useFirestore();
 
-  const isThisPlaying = currentlyPlayingAudio === audioRef.current;
+  const isPlaying = currentlyPlayingAudio === audioRef.current;
 
-  // Effect to set up event listeners ONCE
+  // Setup the audio element and its listeners
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    if (!message.mediaUrl) return;
 
-    const setAudioData = () => {
-      setDuration(audio.duration);
-      setIsLoading(false);
+    const audio = new Audio(message.mediaUrl);
+    audio.preload = 'metadata';
+    audioRef.current = audio;
+    setIsLoading(true);
+
+    const handleLoadedMetadata = () => {
+      if (audioRef.current) {
+        setDuration(audioRef.current.duration);
+        setIsLoading(false);
+      }
     };
     const handleCanPlay = () => setIsLoading(false);
-    const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
-    const handlePlay = () => setIsPlaying(true);
-    const handlePause = () => setIsPlaying(false);
-    
+    const handleTimeUpdate = () => {
+      if (audioRef.current) {
+        setCurrentTime(audioRef.current.currentTime);
+      }
+    };
     const handleEnded = () => {
-      setIsPlaying(false);
-      if (useChatStore.getState().currentlyPlayingAudio === audio) {
+      if (useChatStore.getState().currentlyPlayingAudio === audioRef.current) {
         setCurrentlyPlayingAudio(null);
       }
     };
 
-    audio.addEventListener('loadedmetadata', setAudioData);
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('canplaythrough', handleCanPlay);
     audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('play', handlePlay);
-    audio.addEventListener('pause', handlePause);
     audio.addEventListener('ended', handleEnded);
 
     return () => {
-      audio.removeEventListener('loadedmetadata', setAudioData);
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('canplaythrough', handleCanPlay);
       audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('play', handlePlay);
-      audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('ended', handleEnded);
-    };
-  }, [setCurrentlyPlayingAudio]);
-
-  // Effect to handle source changes
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (audio && message.mediaUrl && audio.src !== message.mediaUrl) {
-      setIsLoading(true);
-      audio.src = message.mediaUrl;
-      audio.load();
-    }
-  }, [message.mediaUrl]);
-
-  // Effect to pause this player if another one starts playing globally
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (audio && currentlyPlayingAudio && currentlyPlayingAudio !== audio && !audio.paused) {
       audio.pause();
-    }
-  }, [currentlyPlayingAudio]);
+      if (useChatStore.getState().currentlyPlayingAudio === audio) {
+        setCurrentlyPlayingAudio(null);
+      }
+    };
+  }, [message.mediaUrl, setCurrentlyPlayingAudio]);
 
 
   const handleSeek = (progress: number) => {
@@ -296,28 +262,18 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
   const togglePlayPause = (e: React.MouseEvent) => {
     e.stopPropagation();
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || isLoading) return;
 
-    if (isThisPlaying && !audio.paused) {
+    if (isPlaying) {
       audio.pause();
       setCurrentlyPlayingAudio(null);
     } else {
       setCurrentlyPlayingAudio(audio);
-      
-      if (audio.currentTime >= audio.duration) {
-          audio.currentTime = 0;
-      }
-      
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.error("Audio playback failed:", error);
-          if (useChatStore.getState().currentlyPlayingAudio === audio) {
-            setCurrentlyPlayingAudio(null);
-          }
-        });
-      }
-      
+      audio.play().catch(error => {
+        console.error("Audio playback error:", error);
+        setCurrentlyPlayingAudio(null);
+      });
+
       if (!isCurrentUser && !message.isPlayed) {
         if (firestore && activeConversationId) {
           const messageRef = doc(firestore, 'conversations', activeConversationId, 'messages', message.id);
@@ -327,8 +283,9 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
     }
   };
 
+
   const formatTime = (time: number) => {
-    if (isNaN(time) || time === Infinity) return '0:00';
+    if (isNaN(time) || !isFinite(time)) return '0:00';
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -348,7 +305,6 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
     return <Mic className={cn(baseClass, "text-primary-foreground/70")} />;
   };
 
-
   const displayTime = isPlaying ? formatTime(currentTime) : formatTime(duration);
 
   return (
@@ -360,7 +316,6 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
           : 'bg-background border rounded-bl-none'
       )}
     >
-      <audio ref={audioRef} crossOrigin="anonymous" preload="metadata" />
       <div className="flex items-center gap-2">
         <div
           role="button"
@@ -370,7 +325,7 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
             isCurrentUser ? "bg-white/20 hover:bg-white/30 text-white" : "bg-primary/20 hover:bg-primary/30 text-primary",
             isLoading && "cursor-not-allowed"
           )}
-          onClick={!isLoading ? togglePlayPause : undefined}
+          onClick={togglePlayPause}
         >
           {isLoading ? ( <Loader2 className="h-5 w-5 animate-spin"/> ) : isPlaying ? ( <Pause className="h-5 w-5 fill-current" /> ) : ( <Play className="h-5 w-5 fill-current ml-0.5" /> )}
         </div>
@@ -388,7 +343,7 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
             {displayTime}
         </span>
         <div className={cn("flex items-center gap-1.5 text-xs", isCurrentUser ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
-            <span>{message.timestamp ? format(message.timestamp.toDate(), 'h:mm a') : ''}</span>
+            <span>{message.timestamp ? new Date(message.timestamp.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
             <ReadReceipt />
         </div>
       </div>
