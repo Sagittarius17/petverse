@@ -128,7 +128,7 @@ function OtherParticipantStatus({ otherParticipantId, typingStatus }: { otherPar
   }
 
   if (userProfile?.status === 'Inactive') {
-      return <p className="text-xs absolute left-18 top-7 text-destructive">Suspended</p>;
+      return <p className="text-xs absolute left-18 top-7 text-slate-500 dark:text-slate-400">Suspended</p>;
   }
 
   if (typingStatus) {
@@ -646,7 +646,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                   className={cn(
                     "flex items-start gap-4 p-3 cursor-pointer rounded-lg border transition-colors",
                     isActive
-                      ? "bg-muted border-primary"
+                      ? "bg-muted border-green-500"
                       : "border-transparent hover:bg-muted"
                   )}
                   onClick={() => handleConversationSelect(convo.id)}
@@ -660,8 +660,8 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                        <PresenceIndicator userId={convo.otherParticipant.id} />
                     )}
                     {convo.id === BILLU_CONVERSATION_ID && (
-                        <div className="absolute bottom-0 right-0 block p-0.5 rounded-full bg-primary ring-2 ring-background">
-                            <Sparkles className="h-2 w-2 text-primary-foreground" />
+                        <div className="absolute bottom-0 right-0 block p-0.5 rounded-full bg-green-500 ring-2 ring-background">
+                            <Sparkles className="h-2 w-2 text-white" />
                         </div>
                     )}
                   </div>
@@ -670,7 +670,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                         <div className="flex items-center gap-2 mb-1">
                           <Badge variant="outline">{isSuspended ? '[User Deleted/Suspended]' : (convo.otherParticipant?.displayName || 'Unknown User')}</Badge>
                           {unread > 0 && (
-                              <Badge variant="destructive" className="h-5 w-5 p-0 flex items-center justify-center">{unread}</Badge>
+                              <Badge className="h-5 w-5 p-0 flex items-center justify-center bg-green-600 text-white">{unread}</Badge>
                           )}
                         </div>
                         <span className="text-xs text-muted-foreground whitespace-nowrap pl-2">
@@ -770,9 +770,9 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                         <div className="p-2 border-b border-l border-r mx-2 rounded-t-md bg-secondary">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <CornerUpLeft className="h-4 w-4 text-primary" />
+                              <CornerUpLeft className="h-4 w-4 text-green-600" />
                               <div>
-                                <p className="text-sm font-semibold text-primary">Replying to {replyingTo.displayName}</p>
+                                <p className="text-sm font-semibold text-green-600">Replying to {replyingTo.displayName}</p>
                                 <p className="text-sm text-muted-foreground truncate max-w-[200px]">
                                   {replyingTo.text ? replyingTo.text : `A ${replyingTo.mediaType}`}
                                 </p>
@@ -826,7 +826,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                         )}
                         <div className="flex items-center">
                             {newMessage.trim() || mediaPreview ? (
-                                <Button type="submit" variant="ghost" size="icon" className="shrink-0 rounded-full text-primary">
+                                <Button type="submit" variant="ghost" size="icon" className="shrink-0 rounded-full text-green-600">
                                     <Send />
                                 </Button>
                             ) : (
@@ -834,7 +834,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                                     type="button"
                                     variant="ghost"
                                     size="icon"
-                                    className={cn("shrink-0 rounded-full z-10", isRecording && "bg-primary text-primary-foreground animate-pulse")}
+                                    className={cn("shrink-0 rounded-full z-10", isRecording && "bg-green-600 text-white animate-pulse")}
                                     onMouseDown={handleMicButtonPress}
                                     onTouchStart={handleMicButtonPress}
                                     disabled={isSuspended}
@@ -910,7 +910,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                     autoComplete="off"
                     className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
-                <Button type="submit" variant="ghost" size="icon" className="shrink-0 rounded-full text-primary" disabled={!newMessage.trim() || isBilluThinking}>
+                <Button type="submit" variant="ghost" size="icon" className="shrink-0 rounded-full text-green-600" disabled={!newMessage.trim() || isBilluThinking}>
                     <Send />
                 </Button>
             </div>

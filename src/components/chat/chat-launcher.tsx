@@ -82,19 +82,19 @@ export default function ChatLauncher({ unreadMessages, unreadChats }: ChatLaunch
       <div className="relative">
         <Button
           size="icon"
-          className="rounded-full w-16 h-16 bg-primary hover:bg-primary/90 shadow-lg cursor-grab active:cursor-grabbing"
+          className="rounded-full w-16 h-16 bg-gray-800 hover:bg-gray-700 text-white shadow-lg cursor-grab active:cursor-grabbing"
           onClick={handleClick}
           onMouseDown={handleMouseDown}
         >
-          <MessageSquare className="h-8 w-8 text-primary-foreground pointer-events-none" />
+          <MessageSquare className="h-8 w-8 pointer-events-none" />
         </Button>
         {unreadMessages > 0 && (
-          <Badge className="absolute -top-1 -right-1 h-6 w-6 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground p-0">
+          <Badge className="absolute -top-1 -right-1 h-6 w-6 flex items-center justify-center rounded-full bg-green-600 text-white p-0">
             {unreadMessages}
           </Badge>
         )}
         {unreadChats > 0 && (
-           <Badge className="absolute -bottom-1 -right-2 h-7 w-7 flex items-center justify-center rounded-full bg-accent text-accent-foreground p-0 border-2 border-background">
+           <Badge className="absolute -bottom-1 -right-2 h-7 w-7 flex items-center justify-center rounded-full bg-gray-600 text-white p-0 border-2 border-background">
              <MessagesSquare className="h-3 w-3 mr-0.5" /> {unreadChats}
           </Badge>
         )}

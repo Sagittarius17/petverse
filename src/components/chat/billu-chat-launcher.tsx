@@ -160,13 +160,13 @@ export default function BilluChatLauncher() {
         <div className="relative">
           <Button
             variant="ghost"
-            className="rounded-full w-16 h-16 bg-primary hover:bg-primary/90 shadow-lg p-0 cursor-grab active:cursor-grabbing"
+            className="rounded-full w-16 h-16 bg-gray-800 hover:bg-gray-700 shadow-lg p-0 cursor-grab active:cursor-grabbing"
             onClick={handleClick}
             onMouseDown={handleMouseDown}
             disabled={isGuestLoading}
           >
             {isGuestLoading ? (
-                <Loader2 className="h-8 w-8 animate-spin text-primary-foreground" />
+                <Loader2 className="h-8 w-8 animate-spin text-white" />
             ) : (
                 <Avatar className="w-full h-full pointer-events-none">
                   <AvatarImage src={billuAvatar.imageUrl} />
@@ -177,7 +177,7 @@ export default function BilluChatLauncher() {
           {meows.map(meow => (
             <span
               key={meow.id}
-              className="absolute text-lg font-bold text-primary pointer-events-none whitespace-nowrap animate-meow-float bg-background rounded-xl px-3 py-1 shadow-lg"
+              className="absolute text-lg font-bold text-gray-800 dark:text-gray-200 pointer-events-none whitespace-nowrap animate-meow-float bg-background rounded-xl px-3 py-1 shadow-lg"
               style={{
                 left: `calc(50% + ${meow.x}px)`,
                 top: `calc(50% + ${meow.y}px)`,

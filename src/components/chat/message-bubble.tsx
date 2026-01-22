@@ -65,9 +65,9 @@ function ReplyPreview({ replyTo, currentUser, otherParticipant, onReplyClick }: 
             type="button"
             onClick={() => onReplyClick(replyTo.messageId)}
             onPointerDown={(e) => e.stopPropagation()} // Stop propagation to prevent swipe-to-reply
-            className="bg-black/10 dark:bg-white/10 p-2 rounded-md mb-2 border-l-2 border-primary w-full text-left transition-colors hover:bg-black/20 dark:hover:bg-white/20"
+            className="bg-black/10 dark:bg-white/10 p-2 rounded-md mb-2 border-l-2 border-green-500 w-full text-left transition-colors hover:bg-black/20 dark:hover:bg-white/20"
         >
-            <p className="font-semibold text-xs text-primary">{senderName}</p>
+            <p className="font-semibold text-xs text-green-600">{senderName}</p>
             {replyTo.mediaType === 'image' && (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground italic">
                     <ImageIcon className="h-3 w-3" />
@@ -158,16 +158,16 @@ export default function MessageBubble({ message, isCurrentUser, activeConversati
   const TimestampAndStatus = () => (
     <div className={cn(
         "flex items-center gap-1.5 text-xs",
-        isCurrentUser ? 'text-primary-foreground/70' : 'text-muted-foreground'
+        isCurrentUser ? 'text-gray-300' : 'text-muted-foreground'
     )}>
         <span>
           {message.timestamp ? format(message.timestamp.toDate(), 'h:mm a') : ''}
         </span>
         {isCurrentUser && (
           message.isRead ? (
-            <CheckCheck className="h-4 w-4 text-blue-400" />
+            <CheckCheck className="h-4 w-4 text-green-400" />
           ) : (
-            <Check className="h-4 w-4 text-primary-foreground/70" />
+            <Check className="h-4 w-4 text-gray-300" />
           )
         )}
     </div>
@@ -196,7 +196,7 @@ export default function MessageBubble({ message, isCurrentUser, activeConversati
         style={{ transform: `translateX(${translateX}px)`}}
       >
         {message.mediaType === 'audio' && message.mediaUrl ? (
-          <div className={cn('flex items-end gap-2 group', isCurrentUser ? 'justify-end' : 'justify-start')}>
+          <div onPointerDown={(e) => e.stopPropagation()} className={cn('flex items-end gap-2 group', isCurrentUser ? 'justify-end' : 'justify-start')}>
             <VoiceNotePlayer message={message} isCurrentUser={isCurrentUser} activeConversationId={activeConversationId} />
           </div>
         ) : (
@@ -205,7 +205,7 @@ export default function MessageBubble({ message, isCurrentUser, activeConversati
               className={cn(
                 'max-w-xs md:max-w-md rounded-2xl p-1',
                 isCurrentUser
-                  ? 'bg-primary text-primary-foreground rounded-br-none'
+                  ? 'bg-gray-800 text-gray-50 rounded-br-none'
                   : 'bg-background border rounded-bl-none',
                 isHighlighted && "animate-highlight"
               )}

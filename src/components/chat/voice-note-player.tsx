@@ -1,13 +1,14 @@
+
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Play, Pause, Loader2, Mic, Headphones } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useFirestore, updateDocumentNonBlocking, useMemoFirebase } from '@/firebase';
+import { useFirestore, updateDocumentNonBlocking } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useChatStore } from '@/lib/chat-store';
-import { useDoc } from '@/firebase/firestore/use-doc';
+import { useDoc, useMemoFirebase } from '@/firebase';
 
 // Define Message interface locally as it's passed down
 interface Message {
@@ -45,10 +46,9 @@ const Waveform = ({
       canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
       const progress = audioElementRef.duration > 0 ? audioElementRef.currentTime / audioElementRef.duration : 0;
       
-      const primaryRgb = getComputedStyle(document.documentElement).getPropertyValue('--primary-rgb').trim();
-      const playedColor = isCurrentUser ? 'rgba(255, 255, 255, 0.9)' : `rgba(${primaryRgb}, 0.9)`;
-      const unplayedColor = isCurrentUser ? 'rgba(255, 255, 255, 0.4)' : `rgba(${primaryRgb}, 0.4)`;
-      const glowColor = isCurrentUser ? 'rgba(255, 255, 255, 0.5)' : `rgba(${primaryRgb}, 0.5)`;
+      const playedColor = isCurrentUser ? 'rgba(255, 255, 255, 0.9)' : 'rgba(34, 197, 94, 0.9)'; // green-500
+      const unplayedColor = isCurrentUser ? 'rgba(255, 255, 255, 0.4)' : 'rgba(209, 213, 219, 0.9)'; // gray-300
+      const glowColor = isCurrentUser ? 'rgba(255, 255, 255, 0.5)' : 'rgba(34, 197, 94, 0.5)';
       
       const circleRadius = 6;
       const playedLineWidth = 3;
@@ -189,76 +189,89 @@ interface VoiceNotePlayerProps {
 }
 
 export default function VoiceNotePlayer({ message, isCurrentUser, activeConversationId }: VoiceNotePlayerProps) {
-  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
-  const { currentlyPlayingAudio, setCurrentlyPlayingAudio } = useChatStore();
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { currentlyPlayingId, setCurrentlyPlayingId } = useChatStore(state => ({
+    currentlyPlayingId: state.currentlyPlayingAudio?.dataset.messageId,
+    setCurrentlyPlayingId: (id: string | null) => {
+        if (id === null) {
+            state.currentlyPlayingAudio?.pause();
+            state.setCurrentlyPlayingAudio(null);
+        } else if (id === message.id) {
+            if (audioRef.current) {
+                state.setCurrentlyPlayingAudio(audioRef.current);
+                audioRef.current.play().catch(console.error);
+            }
+        }
+    },
+  }));
+  const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const firestore = useFirestore();
-
-  const isPlaying = currentlyPlayingAudio === audioElement;
-
-  // Setup the audio element and its listeners
-  useEffect(() => {
-    if (!message.mediaUrl) return;
   
-    const audio = new Audio(message.mediaUrl);
-    setAudioElement(audio);
-    audio.preload = 'metadata';
+  useEffect(() => {
+    if (message.mediaUrl && !audioRef.current) {
+        audioRef.current = new Audio(message.mediaUrl);
+        audioRef.current.dataset.messageId = message.id;
+    }
+    const audio = audioRef.current;
+    if (!audio) return;
+  
     setIsLoading(true);
   
     const handleLoadedMetadata = () => {
-      if(audio) {
-        setDuration(audio.duration);
-        setIsLoading(false);
-      }
+      setDuration(audio.duration);
+      setIsLoading(false);
     };
     const handleCanPlay = () => setIsLoading(false);
-    const handleTimeUpdate = () => {
-      if (audio) {
-        setCurrentTime(audio.currentTime);
-      }
+    const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setCurrentlyPlayingId(null);
     };
-    const handleEnded = () => setCurrentlyPlayingAudio(null);
   
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('canplaythrough', handleCanPlay);
     audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
     audio.addEventListener('ended', handleEnded);
   
     return () => {
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('canplaythrough', handleCanPlay);
       audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('ended', handleEnded);
-      audio.pause();
-      if (useChatStore.getState().currentlyPlayingAudio === audio) {
-        setCurrentlyPlayingAudio(null);
-      }
     };
-  }, [message.mediaUrl, setCurrentlyPlayingAudio]);
+  }, [message.id, message.mediaUrl, setCurrentlyPlayingId]);
   
+  useEffect(() => {
+    // This effect ensures this player pauses if another one starts
+    if (currentlyPlayingId !== message.id && isPlaying) {
+      audioRef.current?.pause();
+    }
+  }, [currentlyPlayingId, message.id, isPlaying]);
+
 
   const handleSeek = (progress: number) => {
-    if (audioElement && isFinite(audioElement.duration)) {
-        audioElement.currentTime = progress * audioElement.duration;
+    if (audioRef.current && isFinite(audioRef.current.duration)) {
+        audioRef.current.currentTime = progress * audioRef.current.duration;
     }
   };
   
   const togglePlayPause = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!audioElement || isLoading) return;
+    if (!audioRef.current || isLoading) return;
 
     if (isPlaying) {
-      audioElement.pause();
-      setCurrentlyPlayingAudio(null);
+      setCurrentlyPlayingId(null);
     } else {
-      setCurrentlyPlayingAudio(audioElement);
-      audioElement.play().catch(error => {
-        console.error("Audio playback error:", error);
-        setCurrentlyPlayingAudio(null);
-      });
-
+      setCurrentlyPlayingId(message.id);
       if (!isCurrentUser && !message.isPlayed) {
         if (firestore && activeConversationId) {
           const messageRef = doc(firestore, 'conversations', activeConversationId, 'messages', message.id);
@@ -282,12 +295,12 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
     const baseClass = "h-4 w-4";
 
     if (message.isPlayed) {
-      return <Headphones className={cn(baseClass, "text-blue-400")} />;
+      return <Headphones className={cn(baseClass, "text-green-500")} />;
     }
     if (message.isRead) {
-      return <Mic className={cn(baseClass, "text-blue-400")} />;
+      return <Mic className={cn(baseClass, "text-green-500")} />;
     }
-    return <Mic className={cn(baseClass, "text-primary-foreground/70")} />;
+    return <Mic className={cn(baseClass, "text-gray-300")} />;
   };
 
   const displayTime = isPlaying ? formatTime(currentTime) : formatTime(duration);
@@ -297,7 +310,7 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
       className={cn(
         "flex flex-col p-2 w-full max-w-[280px] rounded-2xl",
         isCurrentUser 
-          ? 'bg-primary text-primary-foreground rounded-br-none' 
+          ? 'bg-gray-800 text-gray-50 rounded-br-none' 
           : 'bg-background border rounded-bl-none'
       )}
     >
@@ -307,28 +320,28 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
           aria-label={isPlaying ? "Pause audio" : "Play audio"}
           className={cn(
             "h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center cursor-pointer",
-            isCurrentUser ? "bg-white/20 hover:bg-white/30 text-white" : "bg-primary/20 hover:bg-primary/30 text-primary",
+            isCurrentUser ? "bg-white/20 hover:bg-white/30 text-white" : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200",
             isLoading && "cursor-not-allowed"
           )}
           onClick={togglePlayPause}
-          onPointerDown={(e) => e.stopPropagation()} // Stop swipe gesture on button
+          onPointerDown={(e) => e.stopPropagation()}
         >
           {isLoading ? ( <Loader2 className="h-5 w-5 animate-spin"/> ) : isPlaying ? ( <Pause className="h-5 w-5 fill-current" /> ) : ( <Play className="h-5 w-5 fill-current ml-0.5" /> )}
         </div>
         <div className="flex-1 min-w-0">
             <Waveform
                 isCurrentUser={isCurrentUser}
-                audioElement={audioElement}
+                audioElement={audioRef.current}
                 onSeek={handleSeek}
             />
         </div>
         {!isCurrentUser && <SenderAvatar senderId={message.senderId} />}
       </div>
       <div className="flex justify-between items-center px-1">
-        <span className={cn("text-xs font-mono tabular-nums", isCurrentUser ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+        <span className={cn("text-xs font-mono tabular-nums", isCurrentUser ? 'text-gray-300' : 'text-muted-foreground')}>
             {displayTime}
         </span>
-        <div className={cn("flex items-center gap-1.5 text-xs", isCurrentUser ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+        <div className={cn("flex items-center gap-1.5 text-xs", isCurrentUser ? 'text-gray-300' : 'text-muted-foreground')}>
             <span>{message.timestamp ? new Date(message.timestamp.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
             <ReadReceipt />
         </div>
