@@ -1,19 +1,52 @@
 'use client';
 
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface DevState {
+  // Session counts
   reads: number;
   writes: number;
+  // Persistent total counts
+  totalReads: number;
+  totalWrites: number;
+  // Actions
   incrementReads: () => void;
   incrementWrites: () => void;
   resetCounts: () => void;
 }
 
-export const useDevStore = create<DevState>((set) => ({
-  reads: 0,
-  writes: 0,
-  incrementReads: () => set((state) => ({ reads: state.reads + 1 })),
-  incrementWrites: () => set((state) => ({ writes: state.writes + 1 })),
-  resetCounts: () => set({ reads: 0, writes: 0 }),
-}));
+export const useDevStore = create<DevState>()(
+  persist(
+    (set) => ({
+      reads: 0,
+      writes: 0,
+      totalReads: 0,
+      totalWrites: 0,
+      incrementReads: () =>
+        set((state) => ({
+          reads: state.reads + 1,
+          totalReads: state.totalReads + 1,
+        })),
+      incrementWrites: () =>
+        set((state) => ({
+          writes: state.writes + 1,
+          totalWrites: state.totalWrites + 1,
+        })),
+      resetCounts: () => set({ reads: 0, writes: 0 }), // Only resets session counts
+    }),
+    {
+      name: 'dev-store-totals', // name of the item in storage
+      storage: createJSONStorage(() => localStorage), // use localStorage
+      // Only persist total counts, session counts will be reset on load.
+      partialize: (state) => ({
+        totalReads: state.totalReads,
+        totalWrites: state.totalWrites,
+      }),
+    }
+  )
+);
+
+// When the app first loads, reset the session counts to 0.
+// The persisted total counts will be rehydrated from localStorage automatically.
+useDevStore.getState().resetCounts();

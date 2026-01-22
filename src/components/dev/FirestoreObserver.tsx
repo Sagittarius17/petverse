@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { useDevStore } from '@/lib/dev-store';
 import { RefreshCw, Database, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 export default function FirestoreObserver() {
-  const { reads, writes, resetCounts } = useDevStore();
+  // Get all counts from the store
+  const { reads, writes, totalReads, totalWrites, resetCounts } = useDevStore();
   const [isCollapsed, setIsCollapsed] = useState(false);
   
   // Position state, initialized in useEffect to avoid SSR window issues
@@ -23,7 +25,7 @@ export default function FirestoreObserver() {
     setIsClient(true);
     // Start at bottom-right corner
     setPosition({ 
-      top: window.innerHeight - 150, 
+      top: window.innerHeight - 200, // Adjusted for slightly larger default height
       left: window.innerWidth - 272 
     });
   }, []);
@@ -103,7 +105,7 @@ export default function FirestoreObserver() {
         >
           {isCollapsed ? (
             <div className="text-sm font-medium">
-              R: <span className="font-bold font-mono">{reads}</span> / W: <span className="font-bold font-mono">{writes}</span>
+              R: <span className="font-bold font-mono">{reads}/{totalReads}</span> | W: <span className="font-bold font-mono">{writes}/{totalWrites}</span>
             </div>
           ) : (
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -119,20 +121,33 @@ export default function FirestoreObserver() {
             </Button>
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleReset}>
               <RefreshCw className="h-4 w-4" />
-              <span className="sr-only">Reset counts</span>
+              <span className="sr-only">Reset session counts</span>
             </Button>
           </div>
         </CardHeader>
         
         {!isCollapsed && (
-          <CardContent className="p-3 text-sm">
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Reads:</span>
-              <span className="font-bold font-mono">{reads}</span>
+          <CardContent className="p-3 text-sm space-y-2">
+            <div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Session Reads:</span>
+                <span className="font-bold font-mono">{reads}</span>
+              </div>
+               <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground/70">Total Reads:</span>
+                <span className="font-mono text-muted-foreground/80">{totalReads}</span>
+              </div>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Writes:</span>
-              <span className="font-bold font-mono">{writes}</span>
+            <Separator />
+             <div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Session Writes:</span>
+                <span className="font-bold font-mono">{writes}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground/70">Total Writes:</span>
+                <span className="font-mono text-muted-foreground/80">{totalWrites}</span>
+              </div>
             </div>
           </CardContent>
         )}
