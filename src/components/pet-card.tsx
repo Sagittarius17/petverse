@@ -84,7 +84,7 @@ export default function PetCard({ pet, onPetSelect, actions, owner }: PetCardPro
             <CardTitle className="text-xl font-headline group-hover:underline">
               {pet.name}
             </CardTitle>
-             <Badge className={cn(!isAvailable ? "bg-green-600 hover:bg-green-700" : "bg-secondary text-secondary-foreground", "whitespace-nowrap")}>
+             <Badge className={cn(!isAvailable ? "bg-success text-success-foreground hover:bg-success/90" : "bg-secondary text-secondary-foreground", "whitespace-nowrap")}>
                 {adoptionStatusText()}
             </Badge>
           </div>
@@ -103,7 +103,7 @@ export default function PetCard({ pet, onPetSelect, actions, owner }: PetCardPro
         {actions ? (
           <div className="w-full">{actions}</div>
         ) : (
-          <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" onClick={() => onPetSelect?.(pet)} disabled={!onPetSelect || !isAvailable}>
+          <Button className="w-full" onClick={() => onPetSelect?.(pet)} disabled={!onPetSelect || !isAvailable}>
             {isAvailable ? `Meet ${pet.name}` : 'Already Adopted'}
           </Button>
         )}
