@@ -82,33 +82,35 @@ export default function AdoptPage() {
     setHasMore(documentSnapshots.docs.length === PAGE_SIZE);
 
     if (newPets.length > 0) {
-      // Filter by active users
       const userIds = [...new Set(newPets.map(pet => pet.userId).filter((id): id is string => !!id))];
-      const activeUserProfiles = new Map<string, UserProfile>();
+      const fetchedUserProfiles = new Map<string, UserProfile>();
+      let petsToShow = newPets;
 
       if (userIds.length > 0) {
-          const userChunks: string[][] = [];
-          for (let i = 0; i < userIds.length; i += 30) {
-              userChunks.push(userIds.slice(i, i + 30));
-          }
+        const userChunks: string[][] = [];
+        for (let i = 0; i < userIds.length; i += 30) {
+          userChunks.push(userIds.slice(i, i + 30));
+        }
 
-          try {
-              await Promise.all(userChunks.map(async (chunk) => {
-                  const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chunk), where('status', '==', 'Active'));
-                  const usersSnapshot = await getDocs(usersQuery);
-                  usersSnapshot.forEach(doc => {
-                    activeUserProfiles.set(doc.id, { id: doc.id, ...doc.data() } as UserProfile);
-                  });
-              }));
-          } catch (e) {
-              console.error("Error fetching user statuses:", e);
-          }
+        try {
+          await Promise.all(
+            userChunks.map(async (chunk) => {
+              const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chunk), where('status', '==', 'Active'));
+              const usersSnapshot = await getDocs(usersQuery);
+              usersSnapshot.forEach((doc) => {
+                fetchedUserProfiles.set(doc.id, { id: doc.id, ...doc.data() } as UserProfile);
+              });
+            })
+          );
+          petsToShow = newPets.filter(pet => !pet.userId || fetchedUserProfiles.has(pet.userId));
+        } catch (e) {
+          console.log("Could not fetch user statuses. This is expected for unauthenticated users.");
+          // petsToShow remains as newPets, so all pets are shown.
+        }
       }
-      
-      const petsFromActiveUsers = newPets.filter(pet => !pet.userId || activeUserProfiles.has(pet.userId));
 
-      setAllPets(prev => lastDoc ? [...prev, ...petsFromActiveUsers] : petsFromActiveUsers);
-      setUserProfilesMap(prev => new Map([...prev, ...activeUserProfiles]));
+      setAllPets(prev => lastDoc ? [...prev, ...petsToShow] : petsToShow);
+      setUserProfilesMap(prev => new Map([...prev, ...fetchedUserProfiles]));
     }
   }, [firestore]);
   
