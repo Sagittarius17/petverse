@@ -220,7 +220,7 @@ interface VoiceNotePlayerProps {
 
 export default function VoiceNotePlayer({ message, isCurrentUser, activeConversationId }: VoiceNotePlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const { setCurrentlyPlayingAudio, currentlyPlayingAudio } = useChatStore();
+  const { currentlyPlayingAudio, setCurrentlyPlayingAudio } = useChatStore();
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -228,25 +228,31 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
   const [isLoading, setIsLoading] = useState(true);
   const firestore = useFirestore();
 
-  // Effect to set up event listeners
+  const isThisPlaying = currentlyPlayingAudio === audioRef.current;
+
+  // Effect to set up event listeners ONCE
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    const setAudioData = () => { setDuration(audio.duration); setIsLoading(false); };
+    const setAudioData = () => {
+      setDuration(audio.duration);
+      setIsLoading(false);
+    };
     const handleCanPlay = () => setIsLoading(false);
     const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
+    
     const handleEnded = () => {
       setIsPlaying(false);
-      if (currentlyPlayingAudio === audio) {
+      if (useChatStore.getState().currentlyPlayingAudio === audio) {
         setCurrentlyPlayingAudio(null);
       }
     };
 
     audio.addEventListener('loadedmetadata', setAudioData);
-    audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('canplaythrough', handleCanPlay);
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('play', handlePlay);
     audio.addEventListener('pause', handlePause);
@@ -254,13 +260,13 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
 
     return () => {
       audio.removeEventListener('loadedmetadata', setAudioData);
-      audio.removeEventListener('canplay', handleCanPlay);
+      audio.removeEventListener('canplaythrough', handleCanPlay);
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('play', handlePlay);
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [currentlyPlayingAudio, setCurrentlyPlayingAudio]);
+  }, [setCurrentlyPlayingAudio]);
 
   // Effect to handle source changes
   useEffect(() => {
@@ -275,7 +281,7 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
   // Effect to pause this player if another one starts playing globally
   useEffect(() => {
     const audio = audioRef.current;
-    if (audio && currentlyPlayingAudio !== audio && !audio.paused) {
+    if (audio && currentlyPlayingAudio && currentlyPlayingAudio !== audio && !audio.paused) {
       audio.pause();
     }
   }, [currentlyPlayingAudio]);
@@ -292,16 +298,21 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
     const audio = audioRef.current;
     if (!audio) return;
 
-    if (audio.paused) {
-      if (audio.currentTime >= audio.duration) { audio.currentTime = 0; }
-      
+    if (isThisPlaying && !audio.paused) {
+      audio.pause();
+      setCurrentlyPlayingAudio(null);
+    } else {
       setCurrentlyPlayingAudio(audio);
+      
+      if (audio.currentTime >= audio.duration) {
+          audio.currentTime = 0;
+      }
       
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise.catch(error => {
           console.error("Audio playback failed:", error);
-          if (currentlyPlayingAudio === audio) {
+          if (useChatStore.getState().currentlyPlayingAudio === audio) {
             setCurrentlyPlayingAudio(null);
           }
         });
@@ -312,11 +323,6 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
           const messageRef = doc(firestore, 'conversations', activeConversationId, 'messages', message.id);
           updateDocumentNonBlocking(messageRef, { isPlayed: true });
         }
-      }
-    } else {
-      audio.pause();
-      if (currentlyPlayingAudio === audio) {
-        setCurrentlyPlayingAudio(null);
       }
     }
   };
