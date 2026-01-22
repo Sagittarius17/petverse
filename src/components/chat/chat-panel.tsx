@@ -623,7 +623,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                                                 {formatDateSeparator(msg.timestamp)}
                                             </div>
                                         )}
-                                        <MessageBubble message={msg} isCurrentUser={msg.senderId === currentUser.uid} />
+                                        <MessageBubble message={msg} isCurrentUser={msg.senderId === currentUser.uid} activeConversationId={activeConversationId} />
                                     </React.Fragment>
                                 )
                             })}
@@ -635,7 +635,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                     {mediaPreview && (
                         <div className="relative p-2">
                             <Image src={mediaPreview} alt="Media preview" width={80} height={80} className="rounded-md" />
-                            <Button variant="destructive" size="icon" className="absolute top-0 right-0 h-6 w-6" onClick={clearMediaPreview}>
+                            <Button variant="destructive" size="icon" className="absolute top-0 right-0 h-6 w-6 rounded-full" onClick={clearMediaPreview}>
                                 <X className="h-4 w-4" />
                             </Button>
                         </div>
@@ -716,7 +716,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
             </div>
             <div className="space-y-2">
                 {billuChatHistory.map((msg) => (
-                     <MessageBubble key={msg.id} message={msg} isCurrentUser={msg.senderId === currentUser.uid} />
+                     <MessageBubble key={msg.id} message={msg} isCurrentUser={msg.senderId === currentUser.uid} activeConversationId={activeConversationId!} />
                 ))}
                 {isBilluThinking && (
                     <div className="flex items-end gap-2 justify-start">
