@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -19,147 +20,79 @@ interface Message {
   isPlayed?: boolean;
 }
 
-// New Waveform component using Canvas
+// A simplified waveform component that draws a straight progress bar
 const Waveform = ({
-  analyser,
   isCurrentUser,
-  isPlaying,
-  isLoading,
   audioElement,
   onSeek,
-  currentTime,
-  messageTimestamp,
 }: {
-  analyser: AnalyserNode | null;
   isCurrentUser: boolean;
-  isPlaying: boolean;
-  isLoading: boolean;
   audioElement: HTMLAudioElement | null;
   onSeek: (progress: number) => void;
-  currentTime: number;
-  messageTimestamp: number;
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number>();
-  const staticWaveform = useRef<number[]>([]);
-  const animatedHeights = useRef<number[]>([]);
-
-  // Generate a unique but consistent static waveform for each message
-  useEffect(() => {
-    if (canvasRef.current && staticWaveform.current.length === 0 && messageTimestamp > 0) {
-      const numBars = Math.floor(canvasRef.current.width / 4); // Based on barWidth+barGap
-      let seed = messageTimestamp % 2147483647;
-      if (seed <= 0) seed += 2147483646;
-
-      const pseudoRandom = () => {
-        seed = (seed * 16807) % 2147483647;
-        return (seed - 1) / 2147483646;
-      };
-      
-      staticWaveform.current = Array.from({ length: numBars }, () => pseudoRandom());
-    }
-  }, [messageTimestamp]); // Depends on timestamp to generate once
 
   const draw = useCallback(() => {
-    if (!canvasRef.current || !audioElement) return;
-
     const canvas = canvasRef.current;
+    const audioElementRef = audioElement;
+    if (!canvas || !audioElementRef) return;
+    
     const canvasCtx = canvas.getContext('2d');
     if (!canvasCtx) return;
 
-    let dataArray: Uint8Array | null = null;
-    if (analyser) {
-        analyser.fftSize = 128;
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
-    }
-    
-    const barWidth = 2;
-    const barGap = 2;
-    const totalBarWidth = barWidth + barGap;
-    const numBars = Math.floor(canvas.width / totalBarWidth);
-
-    if (animatedHeights.current.length !== numBars) {
-      animatedHeights.current = new Array(numBars).fill(0);
-    }
-
     const drawVisual = () => {
       animationFrameId.current = requestAnimationFrame(drawVisual);
-      
-      if (isPlaying && analyser && dataArray) {
-        analyser.getByteFrequencyData(dataArray);
-      }
-      
+
       canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
 
-      const progress = audioElement.duration > 0 ? audioElement.currentTime / audioElement.duration : 0;
-      const playedBars = Math.floor(numBars * progress);
-
+      const progress = audioElementRef.duration > 0 ? audioElementRef.currentTime / audioElementRef.duration : 0;
+      
       const primaryRgb = getComputedStyle(document.documentElement).getPropertyValue('--primary-rgb').trim();
       const playedColor = isCurrentUser ? 'rgba(255, 255, 255, 0.9)' : `rgba(${primaryRgb}, 0.9)`;
       const unplayedColor = isCurrentUser ? 'rgba(255, 255, 255, 0.4)' : `rgba(${primaryRgb}, 0.4)`;
       const glowColor = isCurrentUser ? 'rgba(255, 255, 255, 0.5)' : `rgba(${primaryRgb}, 0.5)`;
-
-      let x = 0;
-
-      for (let i = 0; i < numBars; i++) {
-        let targetHeight;
-        if (isPlaying && dataArray) {
-          const step = Math.floor(dataArray.length / numBars);
-          let barHeightSum = 0;
-          for (let j = 0; j < step; j++) {
-            barHeightSum += dataArray[i * step + j];
-          }
-          targetHeight = (barHeightSum / step / 255) * (canvas.height * 0.9);
-        } else {
-          targetHeight = (staticWaveform.current[i] || 0.5) * (canvas.height * 0.7);
-        }
-        
-        const currentHeight = animatedHeights.current[i];
-        const smoothedHeight = currentHeight + (targetHeight - currentHeight) * 0.2;
-        animatedHeights.current[i] = smoothedHeight;
-
-        const barHeight = Math.max(smoothedHeight, 2);
-        const y = (canvas.height - barHeight) / 2;
-
-        const isPlayed = i < playedBars;
-        canvasCtx.fillStyle = isPlayed ? playedColor : unplayedColor;
-        
-        canvasCtx.shadowBlur = isPlayed ? 8 : 0;
-        canvasCtx.shadowColor = isPlayed ? glowColor : 'transparent';
-
-        const radius = barWidth / 2;
-        if (barHeight > 0) {
-          canvasCtx.beginPath();
-          canvasCtx.moveTo(x + radius, y);
-          canvasCtx.lineTo(x + barWidth - radius, y);
-          canvasCtx.quadraticCurveTo(x + barWidth, y, x + barWidth, y + radius);
-          canvasCtx.lineTo(x + barWidth, y + barHeight - radius);
-          canvasCtx.quadraticCurveTo(x + barWidth, y + barHeight, x + barWidth - radius, y + barHeight);
-          canvasCtx.lineTo(x + radius, y + barHeight);
-          canvasCtx.quadraticCurveTo(x, y + barHeight, x, y + barHeight - radius);
-          canvasCtx.lineTo(x, y + radius);
-          canvasCtx.quadraticCurveTo(x, y, x + radius, y);
-          canvasCtx.closePath();
-          canvasCtx.fill();
-        }
-        x += totalBarWidth;
-      }
       
-      canvasCtx.shadowBlur = 0;
+      const lineY = canvas.height / 2;
+      const progressX = progress * canvas.width;
 
-      if (audioElement.duration > 0) {
-        const circleX = progress * canvas.width;
-        const circleY = canvas.height / 2;
-        const circleRadius = 5;
+      // 1. Draw unplayed (background) line
+      canvasCtx.strokeStyle = unplayedColor;
+      canvasCtx.lineWidth = 2;
+      canvasCtx.lineCap = 'round';
+      canvasCtx.beginPath();
+      canvasCtx.moveTo(0, lineY);
+      canvasCtx.lineTo(canvas.width, lineY);
+      canvasCtx.stroke();
+
+      // 2. Draw played (glowing) line
+      if (progress > 0) {
+        canvasCtx.strokeStyle = playedColor;
+        canvasCtx.lineWidth = 3; // Make it slightly thicker
+        canvasCtx.shadowBlur = 8;
+        canvasCtx.shadowColor = glowColor;
         
         canvasCtx.beginPath();
-        canvasCtx.arc(circleX, circleY, circleRadius, 0, 2 * Math.PI, false);
-        canvasCtx.fillStyle = playedColor;
-        canvasCtx.shadowColor = glowColor;
-        canvasCtx.shadowBlur = 10;
-        canvasCtx.fill();
-        canvasCtx.shadowBlur = 0;
+        canvasCtx.moveTo(0, lineY);
+        canvasCtx.lineTo(progressX, lineY);
+        canvasCtx.stroke();
       }
+
+      // Reset shadow for the handle
+      canvasCtx.shadowBlur = 0;
+
+      // 3. Draw handle
+      const circleRadius = 6;
+      
+      canvasCtx.beginPath();
+      canvasCtx.arc(progressX, lineY, circleRadius, 0, 2 * Math.PI, false);
+      canvasCtx.fillStyle = playedColor;
+      canvasCtx.shadowColor = glowColor;
+      canvasCtx.shadowBlur = 10;
+      canvasCtx.fill();
+
+      // Reset shadow for next frame
+      canvasCtx.shadowBlur = 0;
     };
 
     drawVisual();
@@ -169,7 +102,7 @@ const Waveform = ({
         cancelAnimationFrame(animationFrameId.current);
       }
     };
-  }, [analyser, audioElement, isPlaying, isCurrentUser, messageTimestamp]);
+  }, [audioElement, isCurrentUser]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -180,7 +113,7 @@ const Waveform = ({
     }
     const cleanup = draw();
     return cleanup;
-  }, [draw, isPlaying, currentTime]); // Re-draw on seek
+  }, [draw]);
 
   const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current || !audioElement || !isFinite(audioElement.duration)) return;
@@ -190,31 +123,9 @@ const Waveform = ({
     onSeek(progress);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center gap-1 h-8 w-full overflow-hidden cursor-wait">
-        {[...Array(35)].map((_, i) => (
-          <div
-            key={i}
-            style={{
-              height: `${Math.random() * 60 + 20}%`,
-              animation: `loading-pulse 1.2s infinite ease-in-out ${i * 0.04}s`,
-            }}
-            className={cn('w-0.5 rounded-full', isCurrentUser ? 'bg-white/50' : 'bg-primary/30')}
-          />
-        ))}
-        <style>{`
-          @keyframes loading-pulse {
-            0%, 100% { transform: scaleY(0.5); opacity: 0.3; }
-            50% { transform: scaleY(1); opacity: 0.7; }
-          }
-        `}</style>
-      </div>
-    );
-  }
-
   return <canvas ref={canvasRef} className="h-8 w-full cursor-pointer" onClick={handleCanvasClick} />;
 };
+
 
 function SenderAvatar({ senderId }: { senderId: string }) {
     const firestore = useFirestore();
@@ -241,9 +152,6 @@ interface VoiceNotePlayerProps {
 
 export default function VoiceNotePlayer({ message, isCurrentUser, activeConversationId }: VoiceNotePlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
 
   const { setCurrentlyPlayingAudio, currentlyPlayingAudio } = useChatStore();
 
@@ -252,18 +160,6 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
   const [currentTime, setCurrentTime] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const firestore = useFirestore();
-
-  const setupAudioContext = useCallback(() => {
-    if (!audioRef.current || sourceRef.current) return;
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    audioContextRef.current = audioContext;
-    const analyser = audioContext.createAnalyser();
-    analyserRef.current = analyser;
-    const source = audioContext.createMediaElementSource(audioRef.current);
-    sourceRef.current = source;
-    source.connect(analyser);
-    analyser.connect(audioContext.destination);
-  }, []);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -310,8 +206,6 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
 
   const togglePlayPause = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (audioContextRef.current && audioContextRef.current.state === 'suspended') { audioContextRef.current.resume(); }
-    if (!sourceRef.current) { setupAudioContext(); }
     const audio = audioRef.current;
     if (!audio) return;
 
@@ -379,15 +273,10 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
           {isLoading ? ( <Loader2 className="h-5 w-5 animate-spin"/> ) : isPlaying ? ( <Pause className="h-5 w-5 fill-current" /> ) : ( <Play className="h-5 w-5 fill-current ml-0.5" /> )}
         </div>
         <div className="flex-1 min-w-0">
-            <Waveform 
-                analyser={analyserRef.current} 
-                isCurrentUser={isCurrentUser} 
-                isPlaying={isPlaying} 
-                isLoading={isLoading} 
+            <Waveform
+                isCurrentUser={isCurrentUser}
                 audioElement={audioRef.current}
                 onSeek={handleSeek}
-                currentTime={currentTime}
-                messageTimestamp={message.timestamp.toMillis()}
             />
         </div>
         {!isCurrentUser && <SenderAvatar senderId={message.senderId} />}
