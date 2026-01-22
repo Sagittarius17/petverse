@@ -158,10 +158,14 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [isRecording, setIsRecording] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const [recordingTime, setRecordingTime] = useState(0);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const shouldSendOnStop = useRef(true);
+  const recordingStartPos = useRef<{ x: number } | null>(null);
 
 
   const handleConversationSelect = async (convoId: string) => {
@@ -416,70 +420,114 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     if(fileInputRef.current) fileInputRef.current.value = '';
   }
 
-  const handleStartRecording = async () => {
+  const handleMicButtonPress = async (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    if (isRecording || activeConversationId === BILLU_CONVERSATION_ID) return;
+
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorderRef.current = new MediaRecorder(stream);
-        audioChunksRef.current = [];
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      shouldSendOnStop.current = true;
+
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorderRef.current.onstop = () => {
+        stream.getTracks().forEach(track => track.stop());
+
+        if (!shouldSendOnStop.current) {
+          audioChunksRef.current = [];
+          return;
+        }
+        if (!firestore || !activeConversationId || !currentUser) return;
         
-        mediaRecorderRef.current.ondataavailable = (event) => {
-            audioChunksRef.current.push(event.data);
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = () => {
+          const base64Audio = reader.result as string;
+          const messageData = {
+            senderId: currentUser.uid,
+            timestamp: serverTimestamp(),
+            isRead: false,
+            mediaUrl: base64Audio,
+            mediaType: 'audio' as const,
+          };
+          const convoDocRef = doc(firestore, 'conversations', activeConversationId);
+          addDoc(collection(convoDocRef, 'messages'), messageData);
+          const otherParticipantId = selectedConversation?.otherParticipant?.id;
+          if (otherParticipantId) {
+            updateDoc(convoDocRef, {
+              [`unreadCount.${otherParticipantId}`]: increment(1),
+              lastMessage: {
+                text: 'Sent a voice note',
+                timestamp: serverTimestamp(),
+                senderId: currentUser.uid,
+              }
+            });
+          }
         };
-        
-        mediaRecorderRef.current.onstop = async () => {
-            const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-            const audioUrl = URL.createObjectURL(audioBlob);
+      };
 
-            const reader = new FileReader();
-            reader.readAsDataURL(audioBlob);
-            reader.onloadend = () => {
-                const base64Audio = reader.result as string;
-                if (!firestore || !activeConversationId || !currentUser) return;
-                
-                const messageData = {
-                    senderId: currentUser.uid,
-                    timestamp: serverTimestamp(),
-                    isRead: false,
-                    mediaUrl: base64Audio,
-                    mediaType: 'audio' as const,
-                };
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
+      setIsCancelling(false);
 
-                const convoDocRef = doc(firestore, 'conversations', activeConversationId);
-                addDoc(collection(convoDocRef, 'messages'), messageData);
-                const otherParticipantId = selectedConversation?.otherParticipant?.id;
-                if (otherParticipantId) {
-                    updateDoc(convoDocRef, {
-                        [`unreadCount.${otherParticipantId}`]: increment(1),
-                        lastMessage: {
-                            text: 'Sent a voice note',
-                            timestamp: serverTimestamp(),
-                            senderId: currentUser.uid,
-                        }
-                    });
-                }
-            };
-        };
+      const clientX = 'touches' in e ? (e as React.TouchEvent).touches[0].clientX : (e as React.MouseEvent).clientX;
+      recordingStartPos.current = { x: clientX };
 
-        mediaRecorderRef.current.start();
-        setIsRecording(true);
-        recordingTimerRef.current = setInterval(() => {
-          setRecordingTime(prev => prev + 1);
-        }, 1000);
-
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
     } catch (err) {
-        console.error('Error accessing microphone:', err);
-        toast({ variant: 'destructive', title: 'Microphone Error', description: 'Could not access your microphone. Please check permissions.'});
+      console.error('Error accessing microphone:', err);
+      toast({ variant: 'destructive', title: 'Microphone Error', description: 'Could not access your microphone. Please check permissions.' });
     }
   };
 
-  const handleStopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
+  useEffect(() => {
+    if (!isRecording) return;
+
+    const handleMove = (e: MouseEvent | TouchEvent) => {
+      if (!recordingStartPos.current) return;
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const deltaX = clientX - recordingStartPos.current.x;
+      const CANCEL_THRESHOLD = -50;
+
+      if (deltaX < CANCEL_THRESHOLD) {
+        setIsCancelling(true);
+      } else {
+        setIsCancelling(false);
+      }
+    };
+
+    const handleRelease = () => {
+      if (mediaRecorderRef.current?.state === 'recording') {
+        shouldSendOnStop.current = !isCancelling;
+        mediaRecorderRef.current.stop();
+      }
+
       setIsRecording(false);
+      setIsCancelling(false);
       if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
       setRecordingTime(0);
-    }
-  };
+      recordingStartPos.current = null;
+    };
+
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('touchmove', handleMove);
+    window.addEventListener('mouseup', handleRelease);
+    window.addEventListener('touchend', handleRelease);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('touchmove', handleMove);
+      window.removeEventListener('mouseup', handleRelease);
+      window.removeEventListener('touchend', handleRelease);
+    };
+  }, [isRecording, isCancelling]);
 
   const selectedConversation = conversations.find(c => c.id === activeConversationId);
   const pinnedBilluConversation: Conversation = {
@@ -646,9 +694,20 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                         </Button>
                          <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" hidden />
                         {isRecording ? (
-                             <div className="flex-1 flex items-center justify-center gap-2 text-red-500">
-                                <div className="h-3 w-3 rounded-full bg-red-500 animate-pulse"></div>
-                                <span>{new Date(recordingTime * 1000).toISOString().substr(14, 5)}</span>
+                             <div className="flex-1 flex items-center justify-between px-2 overflow-hidden h-10">
+                                <div className={cn(
+                                    "flex w-full items-center justify-between transition-transform duration-200 ease-out",
+                                    isCancelling ? "-translate-x-16" : "translate-x-0"
+                                )}>
+                                    <div className="flex items-center gap-2 text-red-500">
+                                        <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
+                                        <span className="font-mono text-sm tabular-nums">{new Date(recordingTime * 1000).toISOString().substr(14, 5)}</span>
+                                    </div>
+                                    <div className="flex items-center text-muted-foreground text-xs">
+                                        <ArrowLeft className="h-4 w-4 mr-1" />
+                                        <span>Slide to cancel</span>
+                                    </div>
+                                </div>
                             </div>
                         ) : (
                             <Input
@@ -666,8 +725,16 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                                     <Send />
                                 </Button>
                             ) : (
-                                <Button type="button" variant="ghost" size="icon" className={cn("shrink-0 rounded-full", isRecording && "text-red-500")} onClick={isRecording ? handleStopRecording : handleStartRecording} disabled={isSuspended}>
-                                    {isRecording ? <Square /> : <Mic />}
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className={cn("shrink-0 rounded-full z-10", isRecording && "bg-primary text-primary-foreground animate-pulse")}
+                                    onMouseDown={handleMicButtonPress}
+                                    onTouchStart={handleMicButtonPress}
+                                    disabled={isSuspended}
+                                >
+                                    <Mic />
                                 </Button>
                             )}
                         </div>
@@ -760,3 +827,5 @@ function isSameDay(date1: Date, date2: Date) {
          date1.getMonth() === date2.getMonth() &&
          date1.getDate() === date2.getDate();
 }
+
+    
