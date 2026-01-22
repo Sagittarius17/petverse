@@ -186,9 +186,10 @@ interface VoiceNotePlayerProps {
   message: Message;
   isCurrentUser: boolean;
   activeConversationId: string;
+  isHighlighted?: boolean;
 }
 
-export default function VoiceNotePlayer({ message, isCurrentUser, activeConversationId }: VoiceNotePlayerProps) {
+export default function VoiceNotePlayer({ message, isCurrentUser, activeConversationId, isHighlighted }: VoiceNotePlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
   const { currentlyPlayingAudio, setCurrentlyPlayingAudio } = useChatStore();
@@ -308,7 +309,8 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
         "flex flex-col p-2 w-full max-w-[280px] rounded-2xl",
         isCurrentUser 
           ? 'bg-gray-800 text-gray-50 rounded-br-none' 
-          : 'bg-background border rounded-bl-none'
+          : 'bg-background border rounded-bl-none',
+        isHighlighted && "animate-highlight"
       )}
     >
       <div className="flex items-center gap-2">

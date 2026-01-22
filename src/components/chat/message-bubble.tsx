@@ -197,7 +197,7 @@ export default function MessageBubble({ message, isCurrentUser, activeConversati
       >
         {message.mediaType === 'audio' && message.mediaUrl ? (
           <div className={cn('flex items-end gap-2 group', isCurrentUser ? 'justify-end' : 'justify-start')}>
-            <VoiceNotePlayer message={message} isCurrentUser={isCurrentUser} activeConversationId={activeConversationId} />
+            <VoiceNotePlayer message={message} isCurrentUser={isCurrentUser} activeConversationId={activeConversationId} isHighlighted={isHighlighted} />
           </div>
         ) : (
           <div className={cn('flex items-end gap-2 group', isCurrentUser ? 'justify-end' : 'justify-start')}>
