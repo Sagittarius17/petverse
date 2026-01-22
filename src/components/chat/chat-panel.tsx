@@ -434,6 +434,14 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
         setMediaPreview(mediaPreviewToSend);
     }
   };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      const syntheticEvent = { preventDefault: () => {} } as React.FormEvent;
+      handleSendMessage(syntheticEvent);
+    }
+  };
   
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -786,6 +794,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                             <Input
                                 value={newMessage}
                                 onChange={handleTyping}
+                                onKeyDown={handleKeyDown}
                                 placeholder="Type a message..."
                                 autoComplete="off"
                                 className="border-0 bg-secondary focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -873,6 +882,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                 <Input
                     value={newMessage}
                     onChange={handleTyping}
+                    onKeyDown={handleKeyDown}
                     placeholder="Ask Billu something..."
                     autoComplete="off"
                     className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -900,3 +910,4 @@ function isSameDay(date1: Date, date2: Date) {
          date1.getMonth() === date2.getMonth() &&
          date1.getDate() === date2.getDate();
 }
+
