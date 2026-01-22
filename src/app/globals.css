@@ -24,7 +24,6 @@
     --border: 207 67% 85%;
     --input: 207 67% 88%;
     --ring: 207 72% 56%;
-    --radius: 0.5rem;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -133,10 +132,15 @@
   }
 
   @keyframes highlight-pulse {
-    0% {
-      box-shadow: 0 0 0 4px rgb(74 222 128 / 0.4);
-    }
+    0%,
     100% {
+      box-shadow: 0 0 0 0 rgb(74 222 128 / 0);
+    }
+    25%,
+    75% {
+      box-shadow: 0 0 0 5px rgb(74 222 128 / 0.4);
+    }
+    50% {
       box-shadow: 0 0 0 0 rgb(74 222 128 / 0);
     }
   }
