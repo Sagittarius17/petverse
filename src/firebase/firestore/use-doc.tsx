@@ -10,6 +10,7 @@ import {
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { useDevStore } from '@/lib/dev-store';
 
 /** Utility type to add an 'id' field to a given type T. */
 type WithId<T> = T & { id: string };
@@ -46,6 +47,7 @@ export function useDoc<T = any>(
   const [data, setData] = useState<StateDataType>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
+  const incrementReads = useDevStore((state) => state.incrementReads);
 
   useEffect(() => {
     if (!memoizedDocRef) {
@@ -62,6 +64,7 @@ export function useDoc<T = any>(
     const unsubscribe = onSnapshot(
       memoizedDocRef,
       (snapshot: DocumentSnapshot<DocumentData>) => {
+        incrementReads();
         if (snapshot.exists()) {
           setData({ ...(snapshot.data() as T), id: snapshot.id });
         } else {
@@ -87,7 +90,7 @@ export function useDoc<T = any>(
     );
 
     return () => unsubscribe();
-  }, [memoizedDocRef]); // Re-run if the memoizedDocRef changes.
+  }, [memoizedDocRef, incrementReads]); // Re-run if the memoizedDocRef changes.
 
   return { data, isLoading, error };
 }

@@ -8,6 +8,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import MainLayout from '@/components/main-layout';
 import Chat from '@/components/chat/chat';
 import BilluChatLauncher from '@/components/chat/billu-chat-launcher';
+import FirestoreObserver from '@/components/dev/FirestoreObserver';
 
 
 function ChatController() {
@@ -62,6 +63,7 @@ export default function RootLayout({
             </MainLayout>
             <ChatController />
             <Toaster />
+            {process.env.NODE_ENV === 'development' && <FirestoreObserver />}
           </FirebaseClientProvider>
         </ThemeProvider>
       </body>
