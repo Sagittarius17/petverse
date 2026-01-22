@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -219,7 +220,6 @@ interface VoiceNotePlayerProps {
 
 export default function VoiceNotePlayer({ message, isCurrentUser, activeConversationId }: VoiceNotePlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
-
   const { setCurrentlyPlayingAudio, currentlyPlayingAudio } = useChatStore();
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -228,17 +228,18 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
   const [isLoading, setIsLoading] = useState(true);
   const firestore = useFirestore();
 
+  // Effect to manage event listeners for the audio element
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    
+
     const setAudioData = () => { setDuration(audio.duration); setIsLoading(false); };
-    const handleCanPlay = () => { setIsLoading(false); };
-    const handleTimeUpdate = () => { setCurrentTime(audio.currentTime); };
-    const handlePlayEvent = () => setIsPlaying(true);
-    const handlePauseEvent = () => setIsPlaying(false);
-    
-    const handleAudioEnd = () => {
+    const handleCanPlay = () => setIsLoading(false);
+    const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+    const handleEnded = () => {
+      setIsPlaying(false);
       if (currentlyPlayingAudio === audio) {
         setCurrentlyPlayingAudio(null);
       }
@@ -247,23 +248,34 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
     audio.addEventListener('loadedmetadata', setAudioData);
     audio.addEventListener('canplay', handleCanPlay);
     audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('ended', handleAudioEnd);
-    audio.addEventListener('play', handlePlayEvent);
-    audio.addEventListener('pause', handlePauseEvent);
-
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
+    audio.addEventListener('ended', handleEnded);
+    
+    // Set the source if it's different
     if (audio.src !== message.mediaUrl) {
-      setIsLoading(true); setDuration(0); setCurrentTime(0); audio.load();
+      audio.src = message.mediaUrl!;
+      audio.load();
     }
 
     return () => {
       audio.removeEventListener('loadedmetadata', setAudioData);
       audio.removeEventListener('canplay', handleCanPlay);
       audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('ended', handleAudioEnd);
-      audio.removeEventListener('play', handlePlayEvent);
-      audio.removeEventListener('pause', handlePauseEvent);
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('ended', handleEnded);
     };
-  }, [message.mediaUrl, currentlyPlayingAudio, setCurrentlyPlayingAudio]);
+  }, [message.mediaUrl]);
+
+  // Effect to pause this player if another one starts playing globally
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio && currentlyPlayingAudio !== audio && !audio.paused) {
+      audio.pause();
+    }
+  }, [currentlyPlayingAudio]);
+
 
   const handleSeek = (progress: number) => {
     if (audioRef.current && isFinite(audioRef.current.duration)) {
@@ -278,7 +290,7 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
 
     if (audio.paused) {
       if (audio.currentTime >= audio.duration) { audio.currentTime = 0; }
-      setCurrentlyPlayingAudio(audio); // This will pause any other playing audio
+      setCurrentlyPlayingAudio(audio); // This will pause any other playing audio via the store's logic
       audio.play().catch(err => console.error("Audio play failed:", err));
       
       if (!isCurrentUser && !message.isPlayed) {

@@ -1,3 +1,4 @@
+
 /**
  * Core Philosophy:
  * This ruleset enforces a strict, user-centric security model combined with
@@ -391,5 +392,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
