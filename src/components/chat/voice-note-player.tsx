@@ -7,6 +7,7 @@ import { useFirestore, useMemoFirebase, useDoc, updateDocumentNonBlocking } from
 import { doc } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { useChatStore } from '@/lib/chat-store';
 
 // Define Message interface locally as it's passed down
 interface Message {
@@ -228,6 +229,8 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
   const analyserRef = useRef<AnalyserNode | null>(null);
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
 
+  const { setCurrentlyPlayingAudio, currentlyPlayingAudio } = useChatStore();
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -253,12 +256,21 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
     const setAudioData = () => { setDuration(audio.duration); setIsLoading(false); };
     const handleCanPlay = () => { setIsLoading(false); };
     const handleTimeUpdate = () => { setCurrentTime(audio.currentTime); };
-    const handleAudioEnd = () => { setIsPlaying(false); };
+    const handlePlayEvent = () => setIsPlaying(true);
+    const handlePauseEvent = () => setIsPlaying(false);
+    
+    const handleAudioEnd = () => {
+      if (currentlyPlayingAudio === audio) {
+        setCurrentlyPlayingAudio(null);
+      }
+    };
 
     audio.addEventListener('loadedmetadata', setAudioData);
     audio.addEventListener('canplay', handleCanPlay);
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('ended', handleAudioEnd);
+    audio.addEventListener('play', handlePlayEvent);
+    audio.addEventListener('pause', handlePauseEvent);
 
     if (audio.src !== message.mediaUrl) {
       setIsLoading(true); setDuration(0); setCurrentTime(0); audio.load();
@@ -269,8 +281,10 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
       audio.removeEventListener('canplay', handleCanPlay);
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('ended', handleAudioEnd);
+      audio.removeEventListener('play', handlePlayEvent);
+      audio.removeEventListener('pause', handlePauseEvent);
     };
-  }, [message.mediaUrl]);
+  }, [message.mediaUrl, currentlyPlayingAudio, setCurrentlyPlayingAudio]);
 
   const handleSeek = (progress: number) => {
     if (audioRef.current && isFinite(audioRef.current.duration)) {
@@ -284,9 +298,10 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
     if (!sourceRef.current) { setupAudioContext(); }
     const audio = audioRef.current;
     if (!audio) return;
-    if (isPlaying) { audio.pause(); } 
-    else {
+
+    if (audio.paused) {
       if (audio.currentTime >= audio.duration) { audio.currentTime = 0; }
+      setCurrentlyPlayingAudio(audio); // This will pause any other playing audio
       audio.play().catch(err => console.error("Audio play failed:", err));
       
       if (!isCurrentUser && !message.isPlayed) {
@@ -295,8 +310,9 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
           updateDocumentNonBlocking(messageRef, { isPlayed: true });
         }
       }
+    } else {
+      audio.pause();
     }
-    setIsPlaying(!isPlaying);
   };
 
   const formatTime = (time: number) => {
