@@ -65,7 +65,7 @@ function ReplyPreview({ replyTo, currentUser, otherParticipant, onReplyClick }: 
             type="button"
             onClick={() => onReplyClick(replyTo.messageId)}
             onPointerDown={(e) => e.stopPropagation()} // Stop propagation to prevent swipe-to-reply
-            className="bg-black/10 dark:bg-white/10 p-2 rounded-md mb-2 border-l-2 border-green-500 w-full text-left transition-colors hover:bg-black/20 dark:hover:bg-white/20"
+            className="bg-black/10 dark:bg-white/10 p-2 rounded-t-xl mb-2 border-l-2 border-green-500 w-full text-left transition-colors hover:bg-black/20 dark:hover:bg-white/20"
         >
             <p className="font-semibold text-xs text-green-600">{senderName}</p>
             {replyTo.mediaType === 'image' && (
