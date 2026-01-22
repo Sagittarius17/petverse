@@ -350,13 +350,23 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() && !mediaFile) return;
 
+    // Capture current values before clearing state
     const messageText = newMessage.trim();
+    const mediaFileToSend = mediaFile;
+    const mediaPreviewToSend = mediaPreview;
+    const replyingToContext = replyingTo;
+
+    if (!messageText && !mediaFileToSend) return;
+
+    // Optimistically update UI
+    setNewMessage('');
+    setMediaFile(null);
+    setMediaPreview(null);
+    setReplyingTo(null);
     
     if (activeConversationId === BILLU_CONVERSATION_ID) {
       handleBilluSubmit(messageText);
-      setNewMessage('');
       return;
     }
     
@@ -368,52 +378,61 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     }
     updateTypingStatus(false);
     
-    let messageData: Partial<Message> & { senderId: string, timestamp: any } = {
-        senderId: currentUser.uid,
-        timestamp: serverTimestamp(),
-        isRead: false,
-    };
+    try {
+        let messageData: Partial<Message> & { senderId: string, timestamp: any } = {
+            senderId: currentUser.uid,
+            timestamp: serverTimestamp(),
+            isRead: false,
+        };
 
-    if (messageText) {
-        messageData.text = messageText;
-    }
+        if (messageText) {
+            messageData.text = messageText;
+        }
 
-    if (mediaFile && mediaPreview) {
-        messageData.mediaUrl = mediaPreview;
-        messageData.mediaType = mediaFile.type.startsWith('image/') ? 'image' : 'audio'; // Simplified
-    }
+        if (mediaFileToSend && mediaPreviewToSend) {
+            messageData.mediaUrl = mediaPreviewToSend;
+            messageData.mediaType = mediaFileToSend.type.startsWith('image/') ? 'image' : 'audio';
+        }
 
-    if (replyingTo) {
-      const truncatedText = replyingTo.text ? replyingTo.text.substring(0, 70) + (replyingTo.text.length > 70 ? '...' : '') : undefined;
-      
-      messageData.replyTo = {
-        messageId: replyingTo.id,
-        senderId: replyingTo.senderId,
-        ...(truncatedText && { text: truncatedText }),
-        ...(replyingTo.mediaType && { mediaType: replyingTo.mediaType }),
-      };
-    }
-    
-    const convoDocRef = doc(firestore, 'conversations', activeConversationId);
-    await addDoc(collection(convoDocRef, 'messages'), messageData);
-    
-    const otherParticipantId = selectedConversation?.otherParticipant?.id;
-    if (otherParticipantId) {
-        const lastMessageText = messageText || (mediaFile?.type.startsWith('image/') ? 'Sent an image' : 'Sent a voice note');
-        await updateDoc(convoDocRef, {
-            [`unreadCount.${otherParticipantId}`]: increment(1),
-            lastMessage: {
-                text: lastMessageText,
-                timestamp: serverTimestamp(),
-                senderId: currentUser.uid,
-            }
+        if (replyingToContext) {
+          const truncatedText = replyingToContext.text ? replyingToContext.text.substring(0, 70) + (replyingToContext.text.length > 70 ? '...' : '') : undefined;
+          
+          messageData.replyTo = {
+            messageId: replyingToContext.id,
+            senderId: replyingToContext.senderId,
+            ...(truncatedText && { text: truncatedText }),
+            ...(replyingToContext.mediaType && { mediaType: replyingToContext.mediaType }),
+          };
+        }
+        
+        const convoDocRef = doc(firestore, 'conversations', activeConversationId);
+        await addDoc(collection(convoDocRef, 'messages'), messageData);
+        
+        const otherParticipantId = selectedConversation?.otherParticipant?.id;
+        if (otherParticipantId) {
+            const lastMessageText = messageText || (mediaFileToSend?.type.startsWith('image/') ? 'Sent an image' : 'Sent a voice note');
+            await updateDoc(convoDocRef, {
+                [`unreadCount.${otherParticipantId}`]: increment(1),
+                lastMessage: {
+                    text: lastMessageText,
+                    timestamp: serverTimestamp(),
+                    senderId: currentUser.uid,
+                }
+            });
+        }
+    } catch (error) {
+        console.error("Error sending message:", error);
+        toast({
+            variant: "destructive",
+            title: "Failed to send message",
+            description: "Please try again.",
         });
+        // Restore the input fields on error
+        setNewMessage(messageText);
+        setReplyingTo(replyingToContext);
+        setMediaFile(mediaFileToSend);
+        setMediaPreview(mediaPreviewToSend);
     }
-
-    setNewMessage('');
-    setMediaFile(null);
-    setMediaPreview(null);
-    setReplyingTo(null);
   };
   
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
