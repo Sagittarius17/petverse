@@ -26,6 +26,8 @@ const Waveform = ({
   isLoading,
   audioElement,
   onSeek,
+  currentTime,
+  messageTimestamp,
 }: {
   analyser: AnalyserNode | null;
   isCurrentUser: boolean;
@@ -33,32 +35,58 @@ const Waveform = ({
   isLoading: boolean;
   audioElement: HTMLAudioElement | null;
   onSeek: (progress: number) => void;
+  currentTime: number;
+  messageTimestamp: number;
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number>();
+  const staticWaveform = useRef<number[]>([]);
+
+  // Generate a unique but consistent static waveform for each message
+  useEffect(() => {
+    if (canvasRef.current && staticWaveform.current.length === 0 && messageTimestamp > 0) {
+      const numBars = Math.floor(canvasRef.current.width / 4); // Based on barWidth+barGap
+      let seed = messageTimestamp % 2147483647;
+      if (seed <= 0) seed += 2147483646;
+
+      const pseudoRandom = () => {
+        seed = (seed * 16807) % 2147483647;
+        return (seed - 1) / 2147483646;
+      };
+      
+      staticWaveform.current = Array.from({ length: numBars }, () => pseudoRandom());
+    }
+  }, [messageTimestamp]); // Depends on timestamp to generate once
 
   const draw = useCallback(() => {
-    if (!analyser || !canvasRef.current || !audioElement) return;
+    if (!canvasRef.current || !audioElement) return;
 
     const canvas = canvasRef.current;
     const canvasCtx = canvas.getContext('2d');
     if (!canvasCtx) return;
 
-    analyser.fftSize = 128;
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
+    let dataArray: Uint8Array | null = null;
+    if (analyser) {
+        analyser.fftSize = 128;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+    }
+    
+    const barWidth = 2;
+    const barGap = 2;
+    const totalBarWidth = barWidth + barGap;
+    const numBars = Math.floor(canvas.width / totalBarWidth);
 
     const drawVisual = () => {
-      animationFrameId.current = requestAnimationFrame(drawVisual);
-      analyser.getByteFrequencyData(dataArray);
-      canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+      // Loop the drawing only when playing
+      if (isPlaying) {
+        animationFrameId.current = requestAnimationFrame(drawVisual);
+      }
 
-      const barWidth = 2;
-      const barGap = 2;
-      const totalBarWidth = barWidth + barGap;
-      const numBars = Math.floor(canvas.width / totalBarWidth);
-      const step = Math.floor(bufferLength / numBars);
-      let x = 0;
+      if (isPlaying && analyser && dataArray) {
+        analyser.getByteFrequencyData(dataArray);
+      }
+      
+      canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
 
       const progress = audioElement.duration > 0 ? audioElement.currentTime / audioElement.duration : 0;
       const playedBars = Math.floor(numBars * progress);
@@ -67,12 +95,20 @@ const Waveform = ({
       const playedColor = isCurrentUser ? 'rgba(255, 255, 255, 0.9)' : `rgba(${primaryRgb}, 0.9)`;
       const unplayedColor = isCurrentUser ? 'rgba(255, 255, 255, 0.4)' : `rgba(${primaryRgb}, 0.4)`;
 
+      let x = 0;
+
       for (let i = 0; i < numBars; i++) {
-        let barHeightSum = 0;
-        for (let j = 0; j < step; j++) {
-          barHeightSum += dataArray[i * step + j];
+        let barHeight;
+        if (isPlaying && dataArray) {
+          const step = Math.floor(dataArray.length / numBars);
+          let barHeightSum = 0;
+          for (let j = 0; j < step; j++) {
+            barHeightSum += dataArray[i * step + j];
+          }
+          barHeight = (barHeightSum / step / 255) * (canvas.height * 0.9);
+        } else {
+          barHeight = (staticWaveform.current[i] || 0.5) * (canvas.height * 0.7);
         }
-        let barHeight = (barHeightSum / step) / 255 * (canvas.height * 0.9);
         barHeight = Math.max(barHeight, 2);
 
         const y = (canvas.height - barHeight) / 2;
@@ -108,7 +144,8 @@ const Waveform = ({
         canvasCtx.fill();
       }
     };
-    drawVisual();
+
+    drawVisual(); // Draw the first frame
 
     return () => {
       if (animationFrameId.current) {
@@ -126,10 +163,10 @@ const Waveform = ({
     }
     const cleanup = draw();
     return cleanup;
-  }, [draw, isPlaying]);
+  }, [draw, isPlaying, currentTime]); // Re-draw on seek
 
   const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current || !audioElement || audioElement.duration === 0) return;
+    if (!canvasRef.current || !audioElement || !isFinite(audioElement.duration)) return;
     const rect = canvasRef.current.getBoundingClientRect();
     const clickX = event.clientX - rect.left;
     const progress = clickX / rect.width;
@@ -275,13 +312,14 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
     const baseClass = "h-4 w-4";
 
     if (message.isPlayed) {
-        return <Headphones className={cn(baseClass, "text-blue-400")} />;
+      return <Headphones className={cn(baseClass, "text-blue-400")} />;
     }
     if (message.isRead) {
-        return <Mic className={cn(baseClass, "text-blue-400")} />;
+      return <Mic className={cn(baseClass, "text-blue-400")} />;
     }
     return <Mic className={cn(baseClass, "text-primary-foreground/70")} />;
   };
+
 
   const displayTime = isPlaying ? formatTime(currentTime) : formatTime(duration);
 
@@ -316,11 +354,11 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
                 isLoading={isLoading} 
                 audioElement={audioRef.current}
                 onSeek={handleSeek}
+                currentTime={currentTime}
+                messageTimestamp={message.timestamp.toMillis()}
             />
         </div>
-        <div className="flex-shrink-0">
-            <SenderAvatar senderId={message.senderId} />
-        </div>
+        {!isCurrentUser && <SenderAvatar senderId={message.senderId} />}
       </div>
       <div className="flex justify-between items-center px-1">
         <span className={cn("text-xs font-mono tabular-nums", isCurrentUser ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
