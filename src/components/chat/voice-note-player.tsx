@@ -1,14 +1,13 @@
-
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Play, Pause, Loader2, Mic, Headphones } from 'lucide-react';
+import { Play, Pause, PawPrint, Mic, Headphones } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useFirestore, updateDocumentNonBlocking } from '@/firebase';
+import { useFirestore, updateDocumentNonBlocking, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useChatStore } from '@/lib/chat-store';
-import { useDoc, useMemoFirebase } from '@/firebase';
+import { useDoc } from '@/firebase';
 
 // Define Message interface locally as it's passed down
 interface Message {
@@ -197,48 +196,53 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const firestore = useFirestore();
   
-  useEffect(() => {
-    if (message.mediaUrl && !audioRef.current) {
-        audioRef.current = new Audio(message.mediaUrl);
-        audioRef.current.dataset.messageId = message.id;
-    }
-    const audio = audioRef.current;
-    if (!audio) return;
-  
-    setIsLoading(true);
-  
-    const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
-      setIsLoading(false);
-    };
-    const handleCanPlay = () => setIsLoading(false);
-    const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
-    const handlePlay = () => setIsPlaying(true);
-    const handlePause = () => setIsPlaying(false);
-    const handleEnded = () => {
-      setIsPlaying(false);
-      setCurrentlyPlayingAudio(null);
-    };
-  
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('canplaythrough', handleCanPlay);
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('play', handlePlay);
-    audio.addEventListener('pause', handlePause);
-    audio.addEventListener('ended', handleEnded);
-  
-    return () => {
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('canplaythrough', handleCanPlay);
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('play', handlePlay);
-      audio.removeEventListener('pause', handlePause);
-      audio.removeEventListener('ended', handleEnded);
-    };
+  const initAudio = useCallback(() => {
+      if (message.mediaUrl && !audioRef.current) {
+          audioRef.current = new Audio(message.mediaUrl);
+          audioRef.current.dataset.messageId = message.id;
+      }
+      const audio = audioRef.current;
+      if (!audio) return;
+    
+      setIsLoading(true);
+    
+      const handleLoadedMetadata = () => {
+        setDuration(audio.duration);
+        setIsLoading(false);
+      };
+      const handleCanPlay = () => setIsLoading(false);
+      const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
+      const handlePlay = () => setIsPlaying(true);
+      const handlePause = () => setIsPlaying(false);
+      const handleEnded = () => {
+        setIsPlaying(false);
+        setCurrentlyPlayingAudio(null);
+      };
+    
+      audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.addEventListener('canplaythrough', handleCanPlay);
+      audio.addEventListener('timeupdate', handleTimeUpdate);
+      audio.addEventListener('play', handlePlay);
+      audio.addEventListener('pause', handlePause);
+      audio.addEventListener('ended', handleEnded);
+    
+      return () => {
+        audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        audio.removeEventListener('canplaythrough', handleCanPlay);
+        audio.removeEventListener('timeupdate', handleTimeUpdate);
+        audio.removeEventListener('play', handlePlay);
+        audio.removeEventListener('pause', handlePause);
+        audio.removeEventListener('ended', handleEnded);
+      };
   }, [message.id, message.mediaUrl, setCurrentlyPlayingAudio]);
+
+  useEffect(() => {
+    const cleanup = initAudio();
+    return cleanup;
+  }, [initAudio]);
   
   useEffect(() => {
     // This effect ensures this player pauses if another one starts
@@ -305,7 +309,6 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
           ? 'bg-gray-800 text-gray-50 rounded-br-none' 
           : 'bg-background border rounded-bl-none'
       )}
-      onPointerDown={(e) => e.stopPropagation()}
     >
       <div className="flex items-center gap-2">
         <div
@@ -319,9 +322,14 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
           onClick={togglePlayPause}
           onPointerDown={(e) => e.stopPropagation()}
         >
-          {isLoading ? ( <Loader2 className="h-5 w-5 animate-spin"/> ) : isPlaying ? ( <Pause className="h-5 w-5 fill-current" /> ) : ( <Play className="h-5 w-5 fill-current ml-0.5" /> )}
+          {isLoading ? ( 
+            <div className="relative flex h-5 w-5 items-center justify-center">
+              <div className="absolute h-full w-full animate-spin rounded-full border-2 border-current border-t-transparent" />
+              <PawPrint className="h-3 w-3 text-current" />
+            </div>
+           ) : isPlaying ? ( <Pause className="h-5 w-5 fill-current" /> ) : ( <Play className="h-5 w-5 fill-current ml-0.5" /> )}
         </div>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0" onPointerDown={(e) => e.stopPropagation()}>
             <Waveform
                 isCurrentUser={isCurrentUser}
                 audioElement={audioRef.current}

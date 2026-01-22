@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -10,7 +9,7 @@ import ChatPanel from './chat-panel';
 import { useUser, initiateAnonymousSignIn, useAuth } from '@/firebase';
 import { cn } from '@/lib/utils';
 import { type User } from 'firebase/auth';
-import { Loader2 } from 'lucide-react';
+import { PawPrint } from 'lucide-react';
 
 const BILLU_CONVERSATION_ID = 'ai-chatbot-billu';
 const CAT_SOUNDS = ['Meow! 🐾', 'Purrr...', 'Miu 😺', 'Miaowww', '😻', '😽', '😹', '... purr ...'];
@@ -166,7 +165,10 @@ export default function BilluChatLauncher() {
             disabled={isGuestLoading}
           >
             {isGuestLoading ? (
-                <Loader2 className="h-8 w-8 animate-spin text-white" />
+                <div className="relative flex h-8 w-8 items-center justify-center">
+                    <div className="absolute h-full w-full animate-spin rounded-full border-4 border-white border-t-transparent" />
+                    <PawPrint className="h-4 w-4 text-white" />
+                </div>
             ) : (
                 <Avatar className="w-full h-full pointer-events-none">
                   <AvatarImage src={billuAvatar.imageUrl} />
