@@ -177,6 +177,25 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   const shouldSendOnStop = useRef(true);
   const recordingStartPos = useRef<{ x: number } | null>(null);
 
+  const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+
+  const handleScrollToMessage = (messageId: string) => {
+    const messageElement = viewportRef.current?.querySelector(`[data-message-id='${messageId}']`);
+    if (messageElement) {
+        messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setHighlightedMessageId(messageId);
+        setTimeout(() => {
+            setHighlightedMessageId(null);
+        }, 1500); // Animation duration should match CSS
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Could not find message",
+            description: "The original message may not be loaded in the chat history.",
+        });
+    }
+  };
 
   const handleConversationSelect = async (convoId: string) => {
     setActiveConversationId(convoId);
@@ -348,8 +367,8 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     }
   }
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSendMessage = async (e?: React.FormEvent) => {
+    e?.preventDefault();
 
     // Capture current values before clearing state
     const messageText = newMessage.trim();
@@ -438,8 +457,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
-      const syntheticEvent = { preventDefault: () => {} } as React.FormEvent;
-      handleSendMessage(syntheticEvent);
+      handleSendMessage();
     }
   };
   
@@ -711,7 +729,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                         </SheetDescription>
                     </div>
                 </SheetHeader>
-                <ScrollArea className="flex-1 bg-secondary/50 p-4">
+                <ScrollArea className="flex-1 bg-secondary/50 p-4" viewportRef={viewportRef}>
                     {isLoadingMessages ? (
                         <div className="flex justify-center items-center h-full">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -734,6 +752,8 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                                             activeConversationId={activeConversationId!}
                                             currentUser={currentUser}
                                             otherParticipant={otherParticipant}
+                                            highlightedMessageId={highlightedMessageId}
+                                            onReplyClick={handleScrollToMessage}
                                         />
                                     </React.Fragment>
                                 )
@@ -865,7 +885,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
             </div>
             <div className="space-y-2">
                 {billuChatHistory.map((msg) => (
-                     <MessageBubble key={msg.id} message={msg} isCurrentUser={msg.senderId === currentUser.uid} activeConversationId={activeConversationId!} currentUser={currentUser} otherParticipant={null}/>
+                     <MessageBubble key={msg.id} message={msg} isCurrentUser={msg.senderId === currentUser.uid} activeConversationId={activeConversationId!} currentUser={currentUser} otherParticipant={null} highlightedMessageId={null} onReplyClick={() => {}} />
                 ))}
                 {isBilluThinking && (
                     <div className="flex items-end gap-2 justify-start">
@@ -910,4 +930,3 @@ function isSameDay(date1: Date, date2: Date) {
          date1.getMonth() === date2.getMonth() &&
          date1.getDate() === date2.getDate();
 }
-

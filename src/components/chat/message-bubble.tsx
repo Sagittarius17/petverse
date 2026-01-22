@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
@@ -42,16 +43,29 @@ interface MessageBubbleProps {
   activeConversationId: string;
   currentUser: User;
   otherParticipant: OtherParticipant | null;
+  highlightedMessageId: string | null;
+  onReplyClick: (messageId: string) => void;
 }
 
 const SWIPE_THRESHOLD = 60; // pixels
 const SWIPE_MAX_TRANSLATE = 80;
 
-function ReplyPreview({ replyTo, currentUser, otherParticipant }: { replyTo: ReplyContext, currentUser: User, otherParticipant: OtherParticipant | null }) {
+interface ReplyPreviewProps {
+  replyTo: ReplyContext;
+  currentUser: User;
+  otherParticipant: OtherParticipant | null;
+  onReplyClick: (messageId: string) => void;
+}
+
+function ReplyPreview({ replyTo, currentUser, otherParticipant, onReplyClick }: ReplyPreviewProps) {
     const senderName = replyTo.senderId === currentUser.uid ? 'You' : otherParticipant?.displayName || 'User';
     
     return (
-        <div className="bg-black/10 dark:bg-white/10 p-2 rounded-md mb-2 border-l-2 border-primary">
+        <button
+            type="button"
+            onClick={() => onReplyClick(replyTo.messageId)}
+            className="bg-black/10 dark:bg-white/10 p-2 rounded-md mb-2 border-l-2 border-primary w-full text-left transition-colors hover:bg-black/20 dark:hover:bg-white/20"
+        >
             <p className="font-semibold text-xs text-primary">{senderName}</p>
             {replyTo.mediaType === 'image' && (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground italic">
@@ -68,11 +82,11 @@ function ReplyPreview({ replyTo, currentUser, otherParticipant }: { replyTo: Rep
             {replyTo.text && (
                 <p className="text-sm text-muted-foreground truncate">{replyTo.text}</p>
             )}
-        </div>
+        </button>
     );
 }
 
-export default function MessageBubble({ message, isCurrentUser, activeConversationId, currentUser, otherParticipant }: MessageBubbleProps) {
+export default function MessageBubble({ message, isCurrentUser, activeConversationId, currentUser, otherParticipant, highlightedMessageId, onReplyClick }: MessageBubbleProps) {
   const hasMedia = !!message.mediaUrl;
   const hasText = !!message.text;
 
@@ -81,6 +95,7 @@ export default function MessageBubble({ message, isCurrentUser, activeConversati
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef(0);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const isHighlighted = highlightedMessageId === message.id;
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     // Only allow primary button for mouse
@@ -158,7 +173,7 @@ export default function MessageBubble({ message, isCurrentUser, activeConversati
   );
 
   return (
-    <div className="relative">
+    <div className="relative" data-message-id={message.id}>
       <div
         className={cn(
           "absolute top-1/2 -translate-y-1/2 transition-opacity duration-200",
@@ -190,11 +205,17 @@ export default function MessageBubble({ message, isCurrentUser, activeConversati
                 'max-w-xs md:max-w-md rounded-2xl p-1',
                 isCurrentUser
                   ? 'bg-primary text-primary-foreground rounded-br-none'
-                  : 'bg-background border rounded-bl-none'
+                  : 'bg-background border rounded-bl-none',
+                isHighlighted && "animate-highlight"
               )}
             >
               {message.replyTo && (
-                  <ReplyPreview replyTo={message.replyTo} currentUser={currentUser} otherParticipant={otherParticipant} />
+                  <ReplyPreview
+                    replyTo={message.replyTo}
+                    currentUser={currentUser}
+                    otherParticipant={otherParticipant}
+                    onReplyClick={onReplyClick}
+                  />
               )}
               {message.mediaType === 'image' && message.mediaUrl && (
                   <Dialog>
