@@ -31,6 +31,7 @@ const Waveform = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number>();
+  const isSeeking = useRef(false);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -139,10 +140,10 @@ const Waveform = ({
     return cleanup;
   }, [draw]);
 
-  const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current || !audioElement || !isFinite(audioElement.duration)) return;
+  const getProgressFromEvent = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!canvasRef.current || !audioElement || !isFinite(audioElement.duration)) return null;
     const rect = canvasRef.current.getBoundingClientRect();
-    const clickX = event.clientX - rect.left;
+    const x = event.clientX - rect.left;
     
     const circleRadius = 6;
     const playedLineWidth = 3;
@@ -151,14 +152,45 @@ const Waveform = ({
     const endX = rect.width - padding;
     const drawableWidth = endX - startX;
 
-    // Clamp clickX to the drawable area and calculate progress
-    const clampedClickX = Math.max(startX, Math.min(clickX, endX));
-    const progress = (clampedClickX - startX) / drawableWidth;
-
-    onSeek(progress);
+    const clampedX = Math.max(startX, Math.min(x, endX));
+    const progress = (clampedX - startX) / drawableWidth;
+    return progress;
+  };
+  
+  const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    isSeeking.current = true;
+    const progress = getProgressFromEvent(event);
+    if (progress !== null) {
+      onSeek(progress);
+    }
+  };
+  
+  const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isSeeking.current) return;
+    const progress = getProgressFromEvent(event);
+    if (progress !== null) {
+      onSeek(progress);
+    }
   };
 
-  return <canvas ref={canvasRef} className="h-8 w-full cursor-pointer" onClick={handleCanvasClick} />;
+  const handleMouseUp = () => {
+    isSeeking.current = false;
+  };
+  
+  const handleMouseLeave = () => {
+    isSeeking.current = false;
+  };
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="h-8 w-full cursor-pointer"
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseLeave}
+    />
+  );
 };
 
 
