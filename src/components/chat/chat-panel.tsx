@@ -10,7 +10,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, ArrowLeft, Loader2, Sparkles, Paperclip, Mic, X, Square, CornerUpLeft } from 'lucide-react';
+import { Send, ArrowLeft, Sparkles, Paperclip, Mic, X, Square, CornerUpLeft, PawPrint } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import MessageBubble from './message-bubble';
@@ -732,7 +732,10 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                 <ScrollArea className="flex-1 bg-secondary/50 p-4" viewportRef={viewportRef}>
                     {isLoadingMessages ? (
                         <div className="flex justify-center items-center h-full">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <div className="relative flex h-16 w-16 items-center justify-center">
+                                <div className="absolute h-full w-full animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+                                <PawPrint className="h-8 w-8 text-primary" />
+                            </div>
                         </div>
                     ) : (
                         <div className="space-y-2">
@@ -930,3 +933,4 @@ function isSameDay(date1: Date, date2: Date) {
          date1.getMonth() === date2.getMonth() &&
          date1.getDate() === date2.getDate();
 }
+
