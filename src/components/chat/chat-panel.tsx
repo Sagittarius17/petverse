@@ -765,20 +765,20 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                         </div>
                     )}
                 </ScrollArea>
-                <form onSubmit={handleSendMessage} className="p-2 border-t">
+                <form onSubmit={handleSendMessage} className="p-2 border-t space-y-2">
                     {replyingTo && (
-                        <div className="p-2 border-b border-l border-r mx-2 rounded-t-md bg-secondary">
+                        <div className="p-2 rounded-lg bg-secondary">
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <CornerUpLeft className="h-4 w-4 text-green-600" />
-                              <div>
+                            <div className="flex items-center gap-2 overflow-hidden">
+                              <CornerUpLeft className="h-4 w-4 text-green-600 flex-shrink-0" />
+                              <div className="overflow-hidden">
                                 <p className="text-sm font-semibold text-green-600">Replying to {replyingTo.displayName}</p>
-                                <p className="text-sm text-muted-foreground truncate max-w-[200px]">
+                                <p className="text-sm text-muted-foreground truncate">
                                   {replyingTo.text ? replyingTo.text : `A ${replyingTo.mediaType}`}
                                 </p>
                               </div>
                             </div>
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setReplyingTo(null)}>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={() => setReplyingTo(null)}>
                               <X className="h-4 w-4" />
                             </Button>
                           </div>
@@ -792,7 +792,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                             </Button>
                         </div>
                     )}
-                    <div className={cn("relative flex items-center bg-secondary rounded-full", replyingTo && "rounded-t-none")}>
+                    <div className="relative flex items-center bg-secondary rounded-full">
                         <Button type="button" variant="ghost" size="icon" className="shrink-0 rounded-full" onClick={() => fileInputRef.current?.click()} disabled={isRecording}>
                             <Paperclip />
                         </Button>
@@ -820,7 +820,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                                 onKeyDown={handleKeyDown}
                                 placeholder="Type a message..."
                                 autoComplete="off"
-                                className="border-0 bg-secondary focus-visible:ring-0 focus-visible:ring-offset-0"
+                                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                                 disabled={isSuspended}
                             />
                         )}
@@ -908,7 +908,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                     onKeyDown={handleKeyDown}
                     placeholder="Ask Billu something..."
                     autoComplete="off"
-                    className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
                 <Button type="submit" variant="ghost" size="icon" className="shrink-0 rounded-full text-green-600" disabled={!newMessage.trim() || isBilluThinking}>
                     <Send />
