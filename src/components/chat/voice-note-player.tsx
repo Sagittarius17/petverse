@@ -100,7 +100,7 @@ const Waveform = ({
       if (audioElement.duration > 0) {
         const circleX = progress * canvas.width;
         const circleY = canvas.height / 2;
-        const circleRadius = 3;
+        const circleRadius = 5;
         
         canvasCtx.beginPath();
         canvasCtx.arc(circleX, circleY, circleRadius, 0, 2 * Math.PI, false);
@@ -322,7 +322,7 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
             <SenderAvatar senderId={message.senderId} />
         </div>
       </div>
-      <div className="flex justify-between items-center mt-1 px-1">
+      <div className="flex justify-between items-center px-1">
         <span className={cn("text-xs font-mono tabular-nums", isCurrentUser ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
             {displayTime}
         </span>
