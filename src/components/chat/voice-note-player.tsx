@@ -95,6 +95,18 @@ const Waveform = ({
         }
         x += totalBarWidth;
       }
+      
+      // Draw the pointer circle
+      if (audioElement.duration > 0) {
+        const circleX = progress * canvas.width;
+        const circleY = canvas.height / 2;
+        const circleRadius = 3;
+        
+        canvasCtx.beginPath();
+        canvasCtx.arc(circleX, circleY, circleRadius, 0, 2 * Math.PI, false);
+        canvasCtx.fillStyle = playedColor;
+        canvasCtx.fill();
+      }
     };
     drawVisual();
 
@@ -111,8 +123,6 @@ const Waveform = ({
       const { width, height } = canvas.getBoundingClientRect();
       canvas.width = width * window.devicePixelRatio;
       canvas.height = height * window.devicePixelRatio;
-      const ctx = canvas.getContext('2d');
-      ctx?.scale(window.devicePixelRatio, window.devicePixelRatio);
     }
     const cleanup = draw();
     return cleanup;
@@ -262,13 +272,15 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
   const ReadReceipt = () => {
     if (!isCurrentUser) return null;
     
+    const baseClass = "h-4 w-4";
+
     if (message.isPlayed) {
-        return <Headphones className="h-4 w-4 text-blue-400" />;
+        return <Headphones className={cn(baseClass, "text-blue-400")} />;
     }
     if (message.isRead) {
-        return <Mic className="h-4 w-4 text-blue-400" />;
+        return <Mic className={cn(baseClass, "text-blue-400")} />;
     }
-    return <Mic className="h-4 w-4 text-primary-foreground/70" />;
+    return <Mic className={cn(baseClass, "text-primary-foreground/70")} />;
   };
 
   const displayTime = isPlaying ? formatTime(currentTime) : formatTime(duration);
