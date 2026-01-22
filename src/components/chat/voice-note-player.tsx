@@ -54,7 +54,6 @@ const Waveform = ({
       const unplayedColor = isCurrentUser ? 'rgba(255, 255, 255, 0.4)' : `rgba(${primaryRgb}, 0.4)`;
       const glowColor = isCurrentUser ? 'rgba(255, 255, 255, 0.5)' : `rgba(${primaryRgb}, 0.5)`;
       
-      const lineY = canvas.height / 2;
       const circleRadius = 6;
       const playedLineWidth = 3;
       const unplayedLineWidth = 2;
@@ -65,6 +64,7 @@ const Waveform = ({
       const endX = canvas.width - padding;
       const drawableWidth = endX - startX;
       
+      const lineY = canvas.height / 2;
       const progressX = startX + (progress * drawableWidth);
 
       // 1. Draw unplayed (background) line
@@ -260,7 +260,7 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, []); // Run only once on mount
+  }, [currentlyPlayingAudio, setCurrentlyPlayingAudio]);
 
   // Effect to handle source changes
   useEffect(() => {
@@ -294,8 +294,18 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
 
     if (audio.paused) {
       if (audio.currentTime >= audio.duration) { audio.currentTime = 0; }
-      setCurrentlyPlayingAudio(audio); // This will pause any other playing audio via the store's logic
-      audio.play().catch(err => console.error("Audio play failed:", err));
+      
+      setCurrentlyPlayingAudio(audio);
+      
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.error("Audio playback failed:", error);
+          if (currentlyPlayingAudio === audio) {
+            setCurrentlyPlayingAudio(null);
+          }
+        });
+      }
       
       if (!isCurrentUser && !message.isPlayed) {
         if (firestore && activeConversationId) {
@@ -305,6 +315,9 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
       }
     } else {
       audio.pause();
+      if (currentlyPlayingAudio === audio) {
+        setCurrentlyPlayingAudio(null);
+      }
     }
   };
 
