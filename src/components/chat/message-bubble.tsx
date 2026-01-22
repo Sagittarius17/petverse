@@ -196,7 +196,7 @@ export default function MessageBubble({ message, isCurrentUser, activeConversati
         style={{ transform: `translateX(${translateX}px)`}}
       >
         {message.mediaType === 'audio' && message.mediaUrl ? (
-          <div onPointerDown={(e) => e.stopPropagation()} className={cn('flex items-end gap-2 group', isCurrentUser ? 'justify-end' : 'justify-start')}>
+          <div className={cn('flex items-end gap-2 group', isCurrentUser ? 'justify-end' : 'justify-start')}>
             <VoiceNotePlayer message={message} isCurrentUser={isCurrentUser} activeConversationId={activeConversationId} />
           </div>
         ) : (

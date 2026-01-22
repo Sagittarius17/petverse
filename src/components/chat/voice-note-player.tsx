@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -190,8 +191,8 @@ interface VoiceNotePlayerProps {
 export default function VoiceNotePlayer({ message, isCurrentUser, activeConversationId }: VoiceNotePlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
-  const currentlyPlayingId = useChatStore((state) => state.currentlyPlayingAudio?.dataset.messageId);
-  const setCurrentlyPlayingAudio = useChatStore((state) => state.setCurrentlyPlayingAudio);
+  const { currentlyPlayingAudio, setCurrentlyPlayingAudio } = useChatStore();
+  const currentlyPlayingId = currentlyPlayingAudio?.dataset.messageId;
   
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -329,7 +330,7 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
             </div>
            ) : isPlaying ? ( <Pause className="h-5 w-5 fill-current" /> ) : ( <Play className="h-5 w-5 fill-current ml-0.5" /> )}
         </div>
-        <div className="flex-1 min-w-0" onPointerDown={(e) => e.stopPropagation()}>
+        <div className="flex-1 min-w-0">
             <Waveform
                 isCurrentUser={isCurrentUser}
                 audioElement={audioRef.current}
