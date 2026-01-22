@@ -9,7 +9,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, ArrowLeft, Loader2, Sparkles, Paperclip, Mic, X, Square } from 'lucide-react';
+import { Send, ArrowLeft, Loader2, Sparkles, Paperclip, Mic, X, Square, CornerUpLeft } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import MessageBubble from './message-bubble';
@@ -20,6 +20,24 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { billuChatbot } from '@/ai/flows/billu-chatbot';
 import { Badge } from '../ui/badge';
 import { useToast } from '@/hooks/use-toast';
+
+interface ReplyContext {
+  messageId: string;
+  senderId: string;
+  text?: string;
+  mediaType?: 'image' | 'audio';
+}
+
+interface Message {
+  id: string;
+  senderId: string;
+  text?: string;
+  timestamp: Timestamp;
+  isRead?: boolean;
+  mediaUrl?: string;
+  mediaType?: 'image' | 'audio';
+  replyTo?: ReplyContext;
+}
 
 interface Conversation {
   id: string;
@@ -44,15 +62,6 @@ interface Conversation {
   };
 }
 
-interface Message {
-  id: string;
-  senderId: string;
-  text?: string;
-  timestamp: Timestamp;
-  isRead?: boolean;
-  mediaUrl?: string;
-  mediaType?: 'image' | 'audio';
-}
 
 interface UserProfile extends DocumentData {
     id: string;
@@ -140,7 +149,7 @@ function OtherParticipantStatus({ otherParticipantId, typingStatus }: { otherPar
 export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
-  const { activeConversationId, setActiveConversationId } = useChatStore();
+  const { activeConversationId, setActiveConversationId, replyingTo, setReplyingTo } = useChatStore();
   
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -358,7 +367,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     }
     updateTypingStatus(false);
     
-    let messageData: any = {
+    let messageData: Partial<Message> & { senderId: string, timestamp: any } = {
         senderId: currentUser.uid,
         timestamp: serverTimestamp(),
         isRead: false,
@@ -371,6 +380,15 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     if (mediaFile && mediaPreview) {
         messageData.mediaUrl = mediaPreview;
         messageData.mediaType = mediaFile.type.startsWith('image/') ? 'image' : 'audio'; // Simplified
+    }
+
+    if (replyingTo) {
+      messageData.replyTo = {
+        messageId: replyingTo.id,
+        senderId: replyingTo.senderId,
+        text: replyingTo.text ? replyingTo.text.substring(0, 70) + (replyingTo.text.length > 70 ? '...' : '') : undefined,
+        mediaType: replyingTo.mediaType,
+      }
     }
     
     const convoDocRef = doc(firestore, 'conversations', activeConversationId);
@@ -392,6 +410,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     setNewMessage('');
     setMediaFile(null);
     setMediaPreview(null);
+    setReplyingTo(null);
   };
   
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -530,6 +549,8 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   }, [isRecording, isCancelling]);
 
   const selectedConversation = conversations.find(c => c.id === activeConversationId);
+  const otherParticipant = selectedConversation?.otherParticipant;
+
   const pinnedBilluConversation: Conversation = {
     id: BILLU_CONVERSATION_ID,
     participants: [currentUser.uid, BILLU_CONVERSATION_ID],
@@ -630,26 +651,32 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   const renderMessageView = () => {
     if (activeConversationId === BILLU_CONVERSATION_ID) return renderBilluChatView();
     
-    const isSuspended = selectedConversation?.otherParticipant?.status === 'Inactive';
+    const isSuspended = otherParticipant?.status === 'Inactive';
+
+    const getReplyDisplayName = (senderId: string) => {
+      if (senderId === currentUser.uid) return 'You';
+      if (senderId === otherParticipant?.id) return otherParticipant.displayName;
+      return 'User';
+    };
 
     return (
         <div className="flex flex-col h-full">
-            {selectedConversation && selectedConversation.otherParticipant ? (
+            {selectedConversation && otherParticipant ? (
                 <>
                 <SheetHeader className="pb-2 px-2 border-b flex-row items-center gap-2">
                     <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 rounded-full" onClick={() => setActiveConversationId(null)}>
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <Avatar className="h-9 w-9">
-                        <AvatarImage src={isSuspended ? undefined : selectedConversation.otherParticipant.photoURL} />
-                        <AvatarFallback>{isSuspended ? '?' : selectedConversation.otherParticipant.displayName[0] || 'U'}</AvatarFallback>
+                        <AvatarImage src={isSuspended ? undefined : otherParticipant.photoURL} />
+                        <AvatarFallback>{isSuspended ? '?' : otherParticipant.displayName[0] || 'U'}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 overflow-hidden">
-                        <SheetTitle className="text-sm absolute left-18 top-2 font-semibold truncate">{isSuspended ? '[User Deleted/Suspended]' : (selectedConversation.otherParticipant.displayName || 'Chat')}</SheetTitle>
+                        <SheetTitle className="text-sm absolute left-18 top-2 font-semibold truncate">{isSuspended ? '[User Deleted/Suspended]' : (otherParticipant.displayName || 'Chat')}</SheetTitle>
                         <SheetDescription asChild>
                              <OtherParticipantStatus 
-                                otherParticipantId={selectedConversation.otherParticipant.id} 
-                                typingStatus={isSuspended ? false : selectedConversation.typing?.[selectedConversation.otherParticipant.id]}
+                                otherParticipantId={otherParticipant.id} 
+                                typingStatus={isSuspended ? false : selectedConversation.typing?.[otherParticipant.id]}
                             />
                         </SheetDescription>
                     </div>
@@ -671,7 +698,13 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                                                 {formatDateSeparator(msg.timestamp)}
                                             </div>
                                         )}
-                                        <MessageBubble message={msg} isCurrentUser={msg.senderId === currentUser.uid} activeConversationId={activeConversationId} />
+                                        <MessageBubble
+                                            message={msg}
+                                            isCurrentUser={msg.senderId === currentUser.uid}
+                                            activeConversationId={activeConversationId!}
+                                            currentUser={currentUser}
+                                            otherParticipant={otherParticipant}
+                                        />
                                     </React.Fragment>
                                 )
                             })}
@@ -680,6 +713,24 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                     )}
                 </ScrollArea>
                 <form onSubmit={handleSendMessage} className="p-2 border-t">
+                    {replyingTo && (
+                        <div className="p-2 border-b border-l border-r mx-2 rounded-t-md bg-secondary">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <CornerUpLeft className="h-4 w-4 text-primary" />
+                              <div>
+                                <p className="text-sm font-semibold text-primary">Replying to {replyingTo.displayName}</p>
+                                <p className="text-sm text-muted-foreground truncate max-w-[200px]">
+                                  {replyingTo.text ? replyingTo.text : `A ${replyingTo.mediaType}`}
+                                </p>
+                              </div>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setReplyingTo(null)}>
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                    )}
                     {mediaPreview && (
                         <div className="relative p-2">
                             <Image src={mediaPreview} alt="Media preview" width={80} height={80} className="rounded-md" />
@@ -688,7 +739,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                             </Button>
                         </div>
                     )}
-                    <div className="relative flex items-center bg-secondary rounded-full">
+                    <div className={cn("relative flex items-center bg-secondary rounded-full", replyingTo && "rounded-t-none")}>
                         <Button type="button" variant="ghost" size="icon" className="shrink-0 rounded-full" onClick={() => fileInputRef.current?.click()} disabled={isRecording}>
                             <Paperclip />
                         </Button>
@@ -783,7 +834,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
             </div>
             <div className="space-y-2">
                 {billuChatHistory.map((msg) => (
-                     <MessageBubble key={msg.id} message={msg} isCurrentUser={msg.senderId === currentUser.uid} activeConversationId={activeConversationId!} />
+                     <MessageBubble key={msg.id} message={msg} isCurrentUser={msg.senderId === currentUser.uid} activeConversationId={activeConversationId!} currentUser={currentUser} otherParticipant={null}/>
                 ))}
                 {isBilluThinking && (
                     <div className="flex items-end gap-2 justify-start">
@@ -827,5 +878,3 @@ function isSameDay(date1: Date, date2: Date) {
          date1.getMonth() === date2.getMonth() &&
          date1.getDate() === date2.getDate();
 }
-
-    
