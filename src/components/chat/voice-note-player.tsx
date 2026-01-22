@@ -42,6 +42,7 @@ const Waveform = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number>();
   const staticWaveform = useRef<number[]>([]);
+  const animatedHeights = useRef<number[]>([]);
 
   // Generate a unique but consistent static waveform for each message
   useEffect(() => {
@@ -77,12 +78,13 @@ const Waveform = ({
     const totalBarWidth = barWidth + barGap;
     const numBars = Math.floor(canvas.width / totalBarWidth);
 
-    const drawVisual = () => {
-      // Loop the drawing only when playing
-      if (isPlaying) {
-        animationFrameId.current = requestAnimationFrame(drawVisual);
-      }
+    if (animatedHeights.current.length !== numBars) {
+      animatedHeights.current = new Array(numBars).fill(0);
+    }
 
+    const drawVisual = () => {
+      animationFrameId.current = requestAnimationFrame(drawVisual);
+      
       if (isPlaying && analyser && dataArray) {
         analyser.getByteFrequencyData(dataArray);
       }
@@ -95,26 +97,36 @@ const Waveform = ({
       const primaryRgb = getComputedStyle(document.documentElement).getPropertyValue('--primary-rgb').trim();
       const playedColor = isCurrentUser ? 'rgba(255, 255, 255, 0.9)' : `rgba(${primaryRgb}, 0.9)`;
       const unplayedColor = isCurrentUser ? 'rgba(255, 255, 255, 0.4)' : `rgba(${primaryRgb}, 0.4)`;
+      const glowColor = isCurrentUser ? 'rgba(255, 255, 255, 0.5)' : `rgba(${primaryRgb}, 0.5)`;
 
       let x = 0;
 
       for (let i = 0; i < numBars; i++) {
-        let barHeight;
+        let targetHeight;
         if (isPlaying && dataArray) {
           const step = Math.floor(dataArray.length / numBars);
           let barHeightSum = 0;
           for (let j = 0; j < step; j++) {
             barHeightSum += dataArray[i * step + j];
           }
-          barHeight = (barHeightSum / step / 255) * (canvas.height * 0.9);
+          targetHeight = (barHeightSum / step / 255) * (canvas.height * 0.9);
         } else {
-          barHeight = (staticWaveform.current[i] || 0.5) * (canvas.height * 0.7);
+          targetHeight = (staticWaveform.current[i] || 0.5) * (canvas.height * 0.7);
         }
-        barHeight = Math.max(barHeight, 2);
+        
+        const currentHeight = animatedHeights.current[i];
+        const smoothedHeight = currentHeight + (targetHeight - currentHeight) * 0.2;
+        animatedHeights.current[i] = smoothedHeight;
 
+        const barHeight = Math.max(smoothedHeight, 2);
         const y = (canvas.height - barHeight) / 2;
 
-        canvasCtx.fillStyle = i < playedBars ? playedColor : unplayedColor;
+        const isPlayed = i < playedBars;
+        canvasCtx.fillStyle = isPlayed ? playedColor : unplayedColor;
+        
+        canvasCtx.shadowBlur = isPlayed ? 8 : 0;
+        canvasCtx.shadowColor = isPlayed ? glowColor : 'transparent';
+
         const radius = barWidth / 2;
         if (barHeight > 0) {
           canvasCtx.beginPath();
@@ -133,7 +145,8 @@ const Waveform = ({
         x += totalBarWidth;
       }
       
-      // Draw the pointer circle
+      canvasCtx.shadowBlur = 0;
+
       if (audioElement.duration > 0) {
         const circleX = progress * canvas.width;
         const circleY = canvas.height / 2;
@@ -142,18 +155,21 @@ const Waveform = ({
         canvasCtx.beginPath();
         canvasCtx.arc(circleX, circleY, circleRadius, 0, 2 * Math.PI, false);
         canvasCtx.fillStyle = playedColor;
+        canvasCtx.shadowColor = glowColor;
+        canvasCtx.shadowBlur = 10;
         canvasCtx.fill();
+        canvasCtx.shadowBlur = 0;
       }
     };
 
-    drawVisual(); // Draw the first frame
+    drawVisual();
 
     return () => {
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current);
       }
     };
-  }, [analyser, audioElement, isPlaying, isCurrentUser]);
+  }, [analyser, audioElement, isPlaying, isCurrentUser, messageTimestamp]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
