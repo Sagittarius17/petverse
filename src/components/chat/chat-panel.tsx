@@ -52,7 +52,6 @@ interface Message {
   isRead?: boolean;
   mediaUrl?: string;
   mediaType?: 'image' | 'audio';
-  isPlayed?: boolean;
 }
 
 interface UserProfile extends DocumentData {
@@ -115,26 +114,26 @@ function OtherParticipantStatus({ otherParticipantId, typingStatus }: { otherPar
   const { data: userProfile, isLoading } = useDoc<UserProfile>(userDocRef);
 
   if (isLoading) {
-    return <Skeleton className="h-4 w-24" />;
+    return <Skeleton className="h-3 w-20" />;
   }
 
   if (userProfile?.status === 'Inactive') {
-      return <p className="text-sm text-destructive">Suspended</p>;
+      return <p className="text-xs absolute left-18 top-7 text-destructive">Suspended</p>;
   }
 
   if (typingStatus) {
-    return <p className="text-sm text-green-400 animate-pulse">typing...</p>;
+    return <p className="text-xs absolute left-18 top-7 text-green-400 animate-pulse">typing...</p>;
   }
 
   if (userProfile?.isOnline) {
-    return <p className="text-sm text-green-400">Online</p>;
+    return <p className="text-xs absolute left-18 top-7 text-green-400">Online</p>;
   }
 
   if (userProfile?.lastSeen) {
-    return <p className="text-sm text-muted-foreground">last seen {formatRelativeTime(userProfile.lastSeen)}</p>;
+    return <p className="text-xs absolute left-18 top-7 text-muted-foreground">last seen {formatRelativeTime(userProfile.lastSeen)}</p>;
   }
 
-  return <p className="text-sm text-muted-foreground">Offline</p>;
+  return <p className="text-xs absolute left-18 top-7 text-muted-foreground">Offline</p>;
 }
 
 
@@ -429,6 +428,8 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
         
         mediaRecorderRef.current.onstop = async () => {
             const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+
             const reader = new FileReader();
             reader.readAsDataURL(audioBlob);
             reader.onloadend = () => {
@@ -502,7 +503,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
 
   const renderConversationList = () => (
     <div className="flex flex-col h-full">
-      <SheetHeader className="p-4 border-b">
+      <SheetHeader className="p-2 border-b">
         <SheetTitle>Messages</SheetTitle>
       </SheetHeader>
       <ScrollArea className="flex-1">
@@ -517,7 +518,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
             </div>
           ))
         ) : allConversations.length > 0 ? (
-          <div className="p-2 space-y-1">
+          <div className="p-2">
             {allConversations.map(convo => {
               const unread = convo.unreadCount?.[currentUser.uid] || 0;
               const isActive = activeConversationId === convo.id;
@@ -549,20 +550,20 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                   </div>
                   <div className="flex-1 overflow-hidden min-w-0">
                     <div className="flex justify-between items-center">
-                        <h4 className="font-semibold truncate pr-2">{isSuspended ? '[User Deleted/Suspended]' : (convo.otherParticipant?.displayName || 'Unknown User')}</h4>
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant="outline">{isSuspended ? '[User Deleted/Suspended]' : (convo.otherParticipant?.displayName || 'Unknown User')}</Badge>
+                          {unread > 0 && (
+                              <Badge variant="destructive" className="h-5 w-5 p-0 flex items-center justify-center">{unread}</Badge>
+                          )}
+                        </div>
                         <span className="text-xs text-muted-foreground whitespace-nowrap pl-2">
                             {formatRelativeTime(convo.lastMessage?.timestamp)}
                         </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                        <p className={cn("text-sm truncate", unread > 0 ? "font-bold text-foreground" : "text-muted-foreground")}>
-                            {convo.lastMessage?.senderId === currentUser.uid && 'You: '}
-                            {convo.lastMessage?.text}
-                        </p>
-                        {unread > 0 && (
-                            <Badge variant="destructive" className="h-5 w-5 p-0 flex items-center justify-center">{unread}</Badge>
-                        )}
-                    </div>
+                    <p className={cn("text-sm truncate", unread > 0 ? "font-bold absolute left-[12vh] text-foreground" : "text-xs absolute left-[12vh] text-muted-foreground")}>
+                        {convo.lastMessage?.senderId === currentUser.uid && 'You: '}
+                        {convo.lastMessage?.text}
+                    </p>
                   </div>
                 </div>
               )
@@ -587,16 +588,16 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
         <div className="flex flex-col h-full">
             {selectedConversation && selectedConversation.otherParticipant ? (
                 <>
-                <SheetHeader className="p-2 border-b flex-row items-center gap-2">
-                    <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 rounded-full" onClick={() => setActiveConversationId(null)}>
+                <SheetHeader className="pb-2 px-2 border-b flex-row items-center gap-2">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 rounded-full" onClick={() => setActiveConversationId(null)}>
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <Avatar className="h-10 w-10">
+                    <Avatar className="h-9 w-9">
                         <AvatarImage src={isSuspended ? undefined : selectedConversation.otherParticipant.photoURL} />
                         <AvatarFallback>{isSuspended ? '?' : selectedConversation.otherParticipant.displayName[0] || 'U'}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 overflow-hidden">
-                        <SheetTitle className="text-base font-semibold truncate">{isSuspended ? '[User Deleted/Suspended]' : (selectedConversation.otherParticipant.displayName || 'Chat')}</SheetTitle>
+                        <SheetTitle className="text-sm absolute left-18 top-2 font-semibold truncate">{isSuspended ? '[User Deleted/Suspended]' : (selectedConversation.otherParticipant.displayName || 'Chat')}</SheetTitle>
                         <SheetDescription asChild>
                              <OtherParticipantStatus 
                                 otherParticipantId={selectedConversation.otherParticipant.id} 
@@ -622,11 +623,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                                                 {formatDateSeparator(msg.timestamp)}
                                             </div>
                                         )}
-                                        <MessageBubble 
-                                            message={msg} 
-                                            isCurrentUser={msg.senderId === currentUser.uid} 
-                                            activeConversationId={activeConversationId}
-                                        />
+                                        <MessageBubble message={msg} isCurrentUser={msg.senderId === currentUser.uid} />
                                     </React.Fragment>
                                 )
                             })}
@@ -634,7 +631,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                         </div>
                     )}
                 </ScrollArea>
-                <form onSubmit={handleSendMessage} className="p-2 border-t bg-background">
+                <form onSubmit={handleSendMessage} className="p-2 border-t">
                     {mediaPreview && (
                         <div className="relative p-2">
                             <Image src={mediaPreview} alt="Media preview" width={80} height={80} className="rounded-md" />
@@ -643,7 +640,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                             </Button>
                         </div>
                     )}
-                    <div className="relative flex items-center bg-secondary rounded-full px-2">
+                    <div className="relative flex items-center bg-secondary rounded-full">
                         <Button type="button" variant="ghost" size="icon" className="shrink-0 rounded-full" onClick={() => fileInputRef.current?.click()} disabled={isRecording}>
                             <Paperclip />
                         </Button>
@@ -659,7 +656,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                                 onChange={handleTyping}
                                 placeholder="Type a message..."
                                 autoComplete="off"
-                                className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
+                                className="border-0 bg-secondary focus-visible:ring-0 focus-visible:ring-offset-0"
                                 disabled={isSuspended}
                             />
                         )}
@@ -695,17 +692,17 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
 
   const renderBilluChatView = () => (
     <div className="flex flex-col h-full">
-        <SheetHeader className="p-2 border-b flex-row items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 rounded-full" onClick={() => setActiveConversationId(null)}>
+        <SheetHeader className="pb-2 px-2 border-b flex-row items-center gap-2">
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 rounded-full" onClick={() => setActiveConversationId(null)}>
                 <ArrowLeft className="h-5 w-5" />
             </Button>
-            <Avatar className="h-10 w-10">
+            <Avatar className="h-9 w-9">
                 <AvatarImage src={billuAvatar.imageUrl} />
                 <AvatarFallback>B</AvatarFallback>
             </Avatar>
             <div className="flex-1 overflow-hidden">
-                <SheetTitle className="text-base font-semibold truncate">Ask Billu!</SheetTitle>
-                 <SheetDescription className="text-sm">Your AI companion</SheetDescription>
+                <SheetTitle className="text-sm absolute left-18 top-2 font-semibold truncate">Ask Billu!</SheetTitle>
+                 <SheetDescription className="text-xs absolute left-18 top-6">Your AI companion</SheetDescription>
             </div>
         </SheetHeader>
         <ScrollArea className="flex-1 bg-secondary/50 p-4">
@@ -719,7 +716,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
             </div>
             <div className="space-y-2">
                 {billuChatHistory.map((msg) => (
-                     <MessageBubble key={msg.id} message={msg} isCurrentUser={msg.senderId === currentUser.uid} activeConversationId={activeConversationId!} />
+                     <MessageBubble key={msg.id} message={msg} isCurrentUser={msg.senderId === currentUser.uid} />
                 ))}
                 {isBilluThinking && (
                     <div className="flex items-end gap-2 justify-start">
@@ -731,14 +728,14 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                 <div ref={messagesEndRef} />
             </div>
         </ScrollArea>
-        <form onSubmit={handleSendMessage} className="p-2 border-t bg-background">
-            <div className="relative flex items-center bg-secondary rounded-full px-2">
+        <form onSubmit={handleSendMessage} className="p-2 border-t">
+            <div className="relative flex items-center">
                 <Input
                     value={newMessage}
                     onChange={handleTyping}
                     placeholder="Ask Billu something..."
                     autoComplete="off"
-                    className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
+                    className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
                 <Button type="submit" variant="ghost" size="icon" className="shrink-0 rounded-full text-primary" disabled={!newMessage.trim() || isBilluThinking}>
                     <Send />
