@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -383,12 +384,14 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     }
 
     if (replyingTo) {
+      const truncatedText = replyingTo.text ? replyingTo.text.substring(0, 70) + (replyingTo.text.length > 70 ? '...' : '') : undefined;
+      
       messageData.replyTo = {
         messageId: replyingTo.id,
         senderId: replyingTo.senderId,
-        text: replyingTo.text ? replyingTo.text.substring(0, 70) + (replyingTo.text.length > 70 ? '...' : '') : undefined,
-        mediaType: replyingTo.mediaType,
-      }
+        ...(truncatedText && { text: truncatedText }),
+        ...(replyingTo.mediaType && { mediaType: replyingTo.mediaType }),
+      };
     }
     
     const convoDocRef = doc(firestore, 'conversations', activeConversationId);
