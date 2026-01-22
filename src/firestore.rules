@@ -1,3 +1,4 @@
+
 /**
  * Core Philosophy:
  * This ruleset enforces a strict, user-centric security model combined with
@@ -367,14 +368,15 @@ service cloud.firestore {
       allow get: if isParticipant(conversationId);
       allow list: if isSignedIn();
       
-      allow write: if isParticipantInRequest(request.resource.data);
+      allow create: if isParticipantInRequest(request.resource.data);
+      allow update: if isParticipant(conversationId);
 
       allow delete: if false;
 
       match /messages/{messageId} {
         allow read, list: if isParticipant(conversationId);
         allow create: if isParticipant(conversationId) && createdBy('senderId');
-        allow update: if isParticipant(conversationId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
+        allow update: if isParticipant(conversationId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead', 'isPlayed']);
         allow delete: if false;
       }
     }

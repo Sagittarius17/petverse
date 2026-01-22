@@ -228,7 +228,7 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
   const [isLoading, setIsLoading] = useState(true);
   const firestore = useFirestore();
 
-  // Effect to manage event listeners for the audio element
+  // Effect to set up event listeners
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -251,12 +251,6 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
     audio.addEventListener('play', handlePlay);
     audio.addEventListener('pause', handlePause);
     audio.addEventListener('ended', handleEnded);
-    
-    // Set the source if it's different
-    if (audio.src !== message.mediaUrl) {
-      audio.src = message.mediaUrl!;
-      audio.load();
-    }
 
     return () => {
       audio.removeEventListener('loadedmetadata', setAudioData);
@@ -266,6 +260,16 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('ended', handleEnded);
     };
+  }, []); // Run only once on mount
+
+  // Effect to handle source changes
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio && message.mediaUrl && audio.src !== message.mediaUrl) {
+      setIsLoading(true);
+      audio.src = message.mediaUrl;
+      audio.load();
+    }
   }, [message.mediaUrl]);
 
   // Effect to pause this player if another one starts playing globally
@@ -337,7 +341,7 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
           : 'bg-background border rounded-bl-none'
       )}
     >
-      <audio ref={audioRef} src={message.mediaUrl} crossOrigin="anonymous" preload="metadata" />
+      <audio ref={audioRef} crossOrigin="anonymous" preload="metadata" />
       <div className="flex items-center gap-2">
         <div
           role="button"
