@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -58,9 +57,10 @@ const Waveform = ({
       const playedLineWidth = 3;
       const unplayedLineWidth = 2;
 
-      // Adjust drawing area to account for line caps
-      const startX = Math.max(playedLineWidth / 2, unplayedLineWidth / 2);
-      const endX = canvas.width - startX;
+      // Adjust drawing area to account for line caps and handle radius
+      const padding = circleRadius + playedLineWidth;
+      const startX = padding;
+      const endX = canvas.width - padding;
       const drawableWidth = endX - startX;
       
       const progressX = startX + (progress * drawableWidth);
@@ -129,6 +129,11 @@ const Waveform = ({
       const { width, height } = canvas.getBoundingClientRect();
       canvas.width = width * window.devicePixelRatio;
       canvas.height = height * window.devicePixelRatio;
+      
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      }
     }
     const cleanup = draw();
     return cleanup;
@@ -138,11 +143,12 @@ const Waveform = ({
     if (!canvasRef.current || !audioElement || !isFinite(audioElement.duration)) return;
     const rect = canvasRef.current.getBoundingClientRect();
     const clickX = event.clientX - rect.left;
-
+    
+    const circleRadius = 6;
     const playedLineWidth = 3;
-    const unplayedLineWidth = 2;
-    const startX = Math.max(playedLineWidth / 2, unplayedLineWidth / 2);
-    const endX = rect.width - startX;
+    const padding = circleRadius + playedLineWidth;
+    const startX = padding;
+    const endX = rect.width - padding;
     const drawableWidth = endX - startX;
 
     // Clamp clickX to the drawable area and calculate progress
