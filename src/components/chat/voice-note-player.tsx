@@ -190,20 +190,10 @@ interface VoiceNotePlayerProps {
 
 export default function VoiceNotePlayer({ message, isCurrentUser, activeConversationId }: VoiceNotePlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const { currentlyPlayingId, setCurrentlyPlayingId } = useChatStore(state => ({
-    currentlyPlayingId: state.currentlyPlayingAudio?.dataset.messageId,
-    setCurrentlyPlayingId: (id: string | null) => {
-        if (id === null) {
-            state.currentlyPlayingAudio?.pause();
-            state.setCurrentlyPlayingAudio(null);
-        } else if (id === message.id) {
-            if (audioRef.current) {
-                state.setCurrentlyPlayingAudio(audioRef.current);
-                audioRef.current.play().catch(console.error);
-            }
-        }
-    },
-  }));
+  
+  const currentlyPlayingId = useChatStore((state) => state.currentlyPlayingAudio?.dataset.messageId);
+  const setCurrentlyPlayingAudio = useChatStore((state) => state.setCurrentlyPlayingAudio);
+  
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -230,7 +220,7 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
     const handlePause = () => setIsPlaying(false);
     const handleEnded = () => {
       setIsPlaying(false);
-      setCurrentlyPlayingId(null);
+      setCurrentlyPlayingAudio(null);
     };
   
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
@@ -248,7 +238,7 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [message.id, message.mediaUrl, setCurrentlyPlayingId]);
+  }, [message.id, message.mediaUrl, setCurrentlyPlayingAudio]);
   
   useEffect(() => {
     // This effect ensures this player pauses if another one starts
@@ -269,9 +259,11 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
     if (!audioRef.current || isLoading) return;
 
     if (isPlaying) {
-      setCurrentlyPlayingId(null);
+      setCurrentlyPlayingAudio(null);
     } else {
-      setCurrentlyPlayingId(message.id);
+      setCurrentlyPlayingAudio(audioRef.current);
+      audioRef.current.play().catch(console.error);
+
       if (!isCurrentUser && !message.isPlayed) {
         if (firestore && activeConversationId) {
           const messageRef = doc(firestore, 'conversations', activeConversationId, 'messages', message.id);
@@ -295,12 +287,12 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
     const baseClass = "h-4 w-4";
 
     if (message.isPlayed) {
-      return <Headphones className={cn(baseClass, "text-green-500")} />;
+      return <Headphones className={cn(baseClass, "text-green-400")} />;
     }
     if (message.isRead) {
-      return <Mic className={cn(baseClass, "text-green-500")} />;
+      return <Mic className={cn(baseClass, "text-green-400")} />;
     }
-    return <Mic className={cn(baseClass, "text-gray-300")} />;
+    return <Mic className={cn(baseClass, "text-gray-400")} />;
   };
 
   const displayTime = isPlaying ? formatTime(currentTime) : formatTime(duration);
@@ -313,6 +305,7 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
           ? 'bg-gray-800 text-gray-50 rounded-br-none' 
           : 'bg-background border rounded-bl-none'
       )}
+      onPointerDown={(e) => e.stopPropagation()}
     >
       <div className="flex items-center gap-2">
         <div
@@ -320,7 +313,7 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
           aria-label={isPlaying ? "Pause audio" : "Play audio"}
           className={cn(
             "h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center cursor-pointer",
-            isCurrentUser ? "bg-white/20 hover:bg-white/30 text-white" : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200",
+            "bg-green-500/20 hover:bg-green-500/30 text-green-600 dark:text-green-400",
             isLoading && "cursor-not-allowed"
           )}
           onClick={togglePlayPause}
