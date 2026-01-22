@@ -52,7 +52,7 @@ const Waveform = ({
       
       const circleRadius = 6;
       const playedLineWidth = 3;
-      const padding = circleRadius + playedLineWidth;
+      const padding = circleRadius + playedLineWidth / 2; // Adjust padding
       const startX = padding;
       const endX = canvas.width - padding;
       const drawableWidth = endX - startX;
@@ -69,16 +69,6 @@ const Waveform = ({
       canvasCtx.lineTo(endX, lineY);
       canvasCtx.stroke();
       
-      const endCapRadius = playedLineWidth / 2;
-      canvasCtx.fillStyle = unplayedColor;
-      canvasCtx.beginPath();
-      canvasCtx.arc(startX, lineY, endCapRadius, 0, 2 * Math.PI);
-      canvasCtx.fill();
-      canvasCtx.beginPath();
-      canvasCtx.arc(endX, lineY, endCapRadius, 0, 2 * Math.PI);
-      canvasCtx.fill();
-      
-
       if (progress > 0) {
         canvasCtx.strokeStyle = playedColor;
         canvasCtx.lineWidth = playedLineWidth;
@@ -125,14 +115,14 @@ const Waveform = ({
     return cleanup;
   }, [draw]);
   
-  const getProgressFromEvent = (event: React.MouseEvent<HTMLCanvasElement>) => {
+  const getProgressFromEvent = (event: React.PointerEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current || !audioElement || !isFinite(audioElement.duration)) return null;
     const rect = canvasRef.current.getBoundingClientRect();
     const x = event.clientX - rect.left;
     
     const circleRadius = 6;
     const playedLineWidth = 3;
-    const padding = circleRadius + playedLineWidth;
+    const padding = circleRadius + playedLineWidth / 2;
     const startX = padding;
     const endX = rect.width - padding;
     const drawableWidth = endX - startX;
@@ -141,7 +131,8 @@ const Waveform = ({
     return progress;
   };
   
-  const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
+  const handlePointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    event.stopPropagation(); // Prevent swipe-to-reply gesture
     isSeeking.current = true;
     const progress = getProgressFromEvent(event);
     if (progress !== null) {
@@ -149,7 +140,7 @@ const Waveform = ({
     }
   };
   
-  const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
+  const handlePointerMove = (event: React.PointerEvent<HTMLCanvasElement>) => {
     if (!isSeeking.current) return;
     const progress = getProgressFromEvent(event);
     if (progress !== null) {
@@ -157,11 +148,7 @@ const Waveform = ({
     }
   };
 
-  const handleMouseUp = () => {
-    isSeeking.current = false;
-  };
-  
-  const handleMouseLeave = () => {
+  const handlePointerUp = () => {
     isSeeking.current = false;
   };
 
@@ -169,10 +156,10 @@ const Waveform = ({
     <canvas
       ref={canvasRef}
       className="h-8 w-full cursor-pointer"
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseLeave}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerUp}
     />
   );
 };
@@ -307,7 +294,6 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
 
   return (
     <div
-      onPointerDown={(e) => e.stopPropagation()}
       className={cn(
         "flex flex-col p-2 w-full max-w-[280px] rounded-2xl",
         isCurrentUser 
@@ -325,6 +311,7 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
             isLoading && "cursor-not-allowed"
           )}
           onClick={togglePlayPause}
+          onPointerDown={(e) => e.stopPropagation()} // Stop swipe gesture on button
         >
           {isLoading ? ( <Loader2 className="h-5 w-5 animate-spin"/> ) : isPlaying ? ( <Pause className="h-5 w-5 fill-current" /> ) : ( <Play className="h-5 w-5 fill-current ml-0.5" /> )}
         </div>
