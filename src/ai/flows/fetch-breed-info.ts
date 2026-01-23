@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Fetches detailed information about a specific pet breed using an AI model and saves it to Firestore.
@@ -44,7 +43,7 @@ export async function fetchBreedInfo(input: FetchBreedInfoInput): Promise<PetBre
     id: breedId,
     name: result.name,
     description: result.description || `A wonderful ${input.speciesName} looking for a home!`,
-    imageIds: result.imageIds || [`${input.speciesName.toLowerCase()}-1`],
+    imageIds: result.imageIds?.length ? result.imageIds : [`${input.speciesName.toLowerCase()}-1`],
     careDetails: result.careDetails || [],
   };
 
@@ -75,11 +74,17 @@ export async function fetchBreedInfo(input: FetchBreedInfoInput): Promise<PetBre
   return breedData;
 }
 
+// New schema for the text-only output from the initial prompt
+const BreedInfoTextOutputSchema = PetBreedSchema.pick({
+  name: true,
+  description: true,
+  careDetails: true,
+}).partial();
 
 const fetchBreedInfoPrompt = ai.definePrompt({
     name: 'fetchBreedInfoPrompt',
     input: { schema: FetchBreedInfoInputSchema },
-    output: { schema: FetchBreedInfoOutputSchema },
+    output: { schema: BreedInfoTextOutputSchema },
     prompt: `You are a pet expert and researcher. The user wants to learn about a specific breed of {{speciesName}}.
 
     Your FIRST task is to determine if the user-provided breed name, "{{breedName}}", is a real, recognized breed of {{speciesName}}.
@@ -90,7 +95,6 @@ const fetchBreedInfoPrompt = ai.definePrompt({
     1.  'name': The most common, official name of the breed.
     2.  'description': A concise, one-sentence 'description' for this breed.
     3.  'careDetails': A comprehensive set of care details in an array. Include topics like Overview, Temperament, Lifespan, etc.
-    4.  'imageIds': Assign a new, unique, and descriptive placeholder imageId for the breed, following the format 'ai-generated-[species]-[breed]-1'. For example, for a "Siberian Husky" dog, the imageId should be 'ai-generated-dog-siberian-husky-1'. Return a list containing just this one new ID.
 
     Ensure the output is structured according to the provided JSON schema. If the breed is not real, return an empty object.`,
 });
@@ -102,7 +106,37 @@ const fetchBreedInfoFlow = ai.defineFlow(
     outputSchema: FetchBreedInfoOutputSchema,
   },
   async (input) => {
-    const { output } = await fetchBreedInfoPrompt(input);
-    return output!;
+    // 1. Get text info from the prompt
+    const { output: textOutput } = await fetchBreedInfoPrompt(input);
+    if (!textOutput || !textOutput.name) {
+      return {}; // Not a real breed, return empty object.
+    }
+
+    // 2. If it's a real breed, generate images in parallel.
+    const imagePrompts = [
+        `A high-quality, photorealistic image of a ${textOutput.name}.`,
+        `A cute ${textOutput.name} playing outdoors in a sunny field.`,
+        `A professional, close-up portrait of a ${textOutput.name}, highlighting its features.`
+    ];
+    
+    const imageGenerationPromises = imagePrompts.map(prompt => 
+        ai.generate({
+            model: 'googleai/imagen-4.0-fast-generate-001',
+            prompt: prompt,
+        })
+    );
+
+    const imageResults = await Promise.all(imageGenerationPromises);
+    
+    // Filter out any failed generations and get the data URIs.
+    const imageUrls = imageResults
+      .map(result => result.media?.url)
+      .filter((url): url is string => !!url);
+
+    // 3. Combine text info and image URLs and return
+    return {
+      ...textOutput,
+      imageIds: imageUrls,
+    };
   }
 );
