@@ -9,7 +9,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { petCategories } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Loader2, SlidersHorizontal } from 'lucide-react';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const PAGE_SIZE = 8;
 
@@ -186,19 +187,27 @@ export default function AdoptPage() {
       </div>
       
       <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
-        <SheetContent side="left" className="w-full max-w-sm p-0">
-            <div className="h-full overflow-y-auto p-6">
-                 <PetFilters
-                    searchTerm={searchTerm}
-                    setSearchTerm={setSearchTerm}
-                    categoryFilter={categoryFilter}
-                    setCategoryFilter={setCategoryFilter}
-                    genderFilter={genderFilter}
-                    setGenderFilter={setGenderFilter}
-                    ageRange={ageRange}
-                    setAgeRange={setAgeRange}
-                />
-            </div>
+        <SheetContent side="left" className="w-full max-w-sm p-0 flex flex-col">
+            <SheetHeader className="p-6 pb-4 border-b">
+                <SheetTitle>Filter Pets</SheetTitle>
+                <SheetDescription>
+                    Refine your search to find the perfect companion.
+                </SheetDescription>
+            </SheetHeader>
+            <ScrollArea className="flex-1">
+                <div className="p-6">
+                    <PetFilters
+                        searchTerm={searchTerm}
+                        setSearchTerm={setSearchTerm}
+                        categoryFilter={categoryFilter}
+                        setCategoryFilter={setCategoryFilter}
+                        genderFilter={genderFilter}
+                        setGenderFilter={setGenderFilter}
+                        ageRange={ageRange}
+                        setAgeRange={setAgeRange}
+                    />
+                </div>
+            </ScrollArea>
         </SheetContent>
       </Sheet>
 
