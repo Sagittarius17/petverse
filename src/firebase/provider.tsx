@@ -4,7 +4,7 @@ import React, { DependencyList, createContext, useContext, ReactNode, useMemo, u
 import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, onSnapshot, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
-import { Performance } from 'firebase/performance';
+import { Performance, getPerformance } from 'firebase/performance';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 import { toast } from '@/hooks/use-toast';
 
@@ -13,7 +13,6 @@ interface FirebaseProviderProps {
   firebaseApp: FirebaseApp;
   firestore: Firestore;
   auth: Auth;
-  performance: Performance | null;
 }
 
 // Internal state for user authentication
@@ -65,13 +64,14 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   firebaseApp,
   firestore,
   auth,
-  performance,
 }) => {
   const [userAuthState, setUserAuthState] = useState<UserAuthState>({
     user: null,
     isUserLoading: true, // Start loading until first auth event
     userError: null,
   });
+
+  const [performance, setPerformance] = useState<Performance | null>(null);
 
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
@@ -93,7 +93,13 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       }
     );
     return () => unsubscribe(); // Cleanup
-  }, [auth, firestore]); // Depends on the auth instance and firestore
+  }, [auth, firestore]);
+  
+  useEffect(() => {
+    if (firebaseApp && typeof window !== 'undefined') {
+      setPerformance(getPerformance(firebaseApp));
+    }
+  }, [firebaseApp]);
   
     // Effect to listen for user status changes (e.g., being disabled by an admin)
   useEffect(() => {
@@ -133,7 +139,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       firebaseApp: servicesAvailable ? firebaseApp : null,
       firestore: servicesAvailable ? firestore : null,
       auth: servicesAvailable ? auth : null,
-      performance: servicesAvailable ? performance : null,
+      performance: performance,
       user: userAuthState.user,
       isUserLoading: userAuthState.isUserLoading,
       userError: userAuthState.userError,

@@ -5,7 +5,6 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore'
 import { getDatabase } from 'firebase/database';
-import { getPerformance } from 'firebase/performance';
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
@@ -37,14 +36,12 @@ export function initializeFirebase() {
 export function getSdks(firebaseApp: FirebaseApp) {
   const firestore = getFirestore(firebaseApp);
   const database = getDatabase(firebaseApp);
-  const performance = typeof window !== 'undefined' ? getPerformance(firebaseApp) : null;
   
   return {
     firebaseApp,
     auth: getAuth(firebaseApp),
     firestore,
     database,
-    performance
   };
 }
 
