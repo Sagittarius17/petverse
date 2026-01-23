@@ -67,18 +67,18 @@ function ActivityItem({ activity }: { activity: Activity }) {
 
   const ActionIcon = iconMap[activity.iconName] || Edit;
   
-  const displayName = userProfile?.displayName || activity.userName;
+  const nameToDisplay = userProfile?.username || activity.userName;
   const avatarUrl = userProfile?.profilePicture || activity.userAvatar;
 
   return (
     <div className="grid items-start grid-cols-[auto_1fr_auto] gap-x-4">
         <Avatar className="h-10 w-10">
             <AvatarImage src={avatarUrl} />
-            <AvatarFallback>{displayName?.charAt(0) || 'A'}</AvatarFallback>
+            <AvatarFallback>{nameToDisplay?.charAt(0) || 'A'}</AvatarFallback>
         </Avatar>
         <div className="text-sm">
             <div>
-                <span className="font-semibold">{displayName}</span>
+                <span className="font-semibold">{nameToDisplay}</span>
                 <span className="text-muted-foreground"> performed action </span>
                 <Badge variant={activity.badgeVariant || 'secondary'} className="mx-1">
                     <ActionIcon className="h-3 w-3 mr-1" />
