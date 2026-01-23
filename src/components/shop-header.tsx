@@ -28,6 +28,7 @@ import { useTheme } from 'next-themes';
 import useCartStore from '@/lib/cart-store';
 import { Badge } from './ui/badge';
 import CartSheet from './cart-sheet';
+import { Skeleton } from './ui/skeleton';
 
 const navLinks = [
   { href: '/shop', label: 'Home', icon: Home },
@@ -249,10 +250,28 @@ export default function ShopHeader() {
             </>
           )}
         </div>
-        <div className="md:hidden">
-          <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
-            <Menu className="h-6 w-6" />
+        <div className="flex items-center gap-2 md:hidden">
+          <Button variant="ghost" size="icon" className="relative" onClick={() => setIsCartOpen(true)}>
+              <ShoppingCart className="h-5 w-5" />
+              {totalItems > 0 && (
+                <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center rounded-full bg-destructive p-0">
+                  {totalItems}
+                </Badge>
+              )}
+              <span className="sr-only">Shopping Cart</span>
           </Button>
+          {isUserLoading ? <Skeleton className="h-8 w-8 rounded-full" /> : user && !user.isAnonymous ? (
+            <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0" onClick={() => setIsMenuOpen(true)}>
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={userProfile?.profilePicture || user.photoURL || undefined} alt={userProfile?.displayName || user.displayName || user.email || ''} />
+                <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
+              </Avatar>
+            </Button>
+          ) : (
+            <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
+              <Menu className="h-6 w-6" />
+            </Button>
+          )}
         </div>
       </div>
       {isMenuOpen && (

@@ -25,6 +25,7 @@ import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { useTheme } from 'next-themes';
 import { ScrollArea } from './ui/scroll-area';
+import { Skeleton } from './ui/skeleton';
 
 
 const navLinks = [
@@ -273,9 +274,20 @@ export default function AdoptionHeader() {
           )}
         </div>
         <div className="md:hidden">
-          <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
-            <Menu className="h-6 w-6" />
-          </Button>
+          {isUserLoading ? (
+            <Skeleton className="h-8 w-8 rounded-full" />
+          ) : user && !user.isAnonymous ? (
+            <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0" onClick={() => setIsMenuOpen(true)}>
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={userProfile?.profilePicture || user.photoURL || undefined} alt={userProfile?.displayName || user.displayName || user.email || ''} />
+                <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
+              </Avatar>
+            </Button>
+          ) : (
+            <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
+              <Menu className="h-6 w-6" />
+            </Button>
+          )}
         </div>
       </div>
       {isMenuOpen && (
