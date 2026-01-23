@@ -1,3 +1,4 @@
+
 'use client';
 
 import { MoreHorizontal } from 'lucide-react';
@@ -47,22 +48,23 @@ export default function AdminPetsPage() {
   };
 
   return (
-    <Card>
+    <Card className="h-[calc(100vh_-_8rem)] flex flex-col">
       <CardHeader>
         <CardTitle>Pet Management</CardTitle>
         <CardDescription>
           Manage all pets for adoption and lost & found reports from one place.
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="adoption">
+      <CardContent className="flex-1 flex flex-col min-h-0">
+        <Tabs defaultValue="adoption" className="flex flex-col h-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="adoption">Adoption Pets</TabsTrigger>
             <TabsTrigger value="lost-and-found">Lost & Found Reports</TabsTrigger>
           </TabsList>
-          <TabsContent value="adoption" className="mt-4">
+          <div className="flex-1 overflow-y-auto mt-4">
+            <TabsContent value="adoption" className="m-0">
             <Table>
-              <TableHeader>
+              <TableHeader className="sticky top-0 bg-card">
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Species</TableHead>
@@ -76,7 +78,7 @@ export default function AdminPetsPage() {
               </TableHeader>
               <TableBody>
                 {isLoadingPets ? (
-                    Array.from({ length: 5 }).map((_, i) => (
+                    Array.from({ length: 15 }).map((_, i) => (
                       <TableRow key={i}>
                         <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                         <TableCell><Skeleton className="h-5 w-16" /></TableCell>
@@ -125,9 +127,9 @@ export default function AdminPetsPage() {
               </TableBody>
             </Table>
           </TabsContent>
-          <TabsContent value="lost-and-found" className="mt-4">
+          <TabsContent value="lost-and-found" className="m-0">
              <Table>
-              <TableHeader>
+              <TableHeader className="sticky top-0 bg-card">
                 <TableRow>
                   <TableHead className="w-[80px]">Image</TableHead>
                   <TableHead>Pet Name</TableHead>
@@ -141,7 +143,7 @@ export default function AdminPetsPage() {
               </TableHeader>
               <TableBody>
                 {isLoadingReports ? (
-                  Array.from({ length: 5 }).map((_, i) => (
+                  Array.from({ length: 15 }).map((_, i) => (
                     <TableRow key={i}>
                       <TableCell><Skeleton className="h-12 w-12 rounded-md" /></TableCell>
                       <TableCell><Skeleton className="h-5 w-24" /></TableCell>
@@ -198,6 +200,7 @@ export default function AdminPetsPage() {
               </TableBody>
             </Table>
           </TabsContent>
+          </div>
         </Tabs>
       </CardContent>
     </Card>
