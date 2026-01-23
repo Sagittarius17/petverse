@@ -8,7 +8,8 @@ import PetFilters from '@/components/pet-filters';
 import { Skeleton } from '@/components/ui/skeleton';
 import { petCategories } from '@/lib/data';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, SlidersHorizontal } from 'lucide-react';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 
 const PAGE_SIZE = 8;
 
@@ -60,6 +61,7 @@ export default function AdoptPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 
   const fetchPets = useCallback(async (lastDoc: DocumentSnapshot<DocumentData> | null) => {
     if (!firestore) return;
@@ -144,9 +146,9 @@ export default function AdoptPage() {
 
   if (isLoading) {
     return (
-        <div className="container mx-auto px-4 py-6 md:py-8">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
-                <div className="lg:col-span-1 space-y-4">
+        <div className="container mx-auto px-4 py-4 md:py-8">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-8">
+                <div className="hidden lg:block lg:col-span-1 space-y-4">
                     <Skeleton className="h-10 w-full" />
                     <Skeleton className="h-32 w-full" />
                     <Skeleton className="h-24 w-full" />
@@ -168,16 +170,41 @@ export default function AdoptPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 md:py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tight">Find Your New Best Friend</h1>
-        <p className="mt-2 text-md md:text-lg text-muted-foreground">
+    <div className="container mx-auto px-4 py-4 md:py-8">
+      <div className="text-center mb-6 md:mb-8">
+        <h1 className="text-3xl sm:text-4xl font-bold font-headline tracking-tight">Find Your New Best Friend</h1>
+        <p className="mt-2 text-base md:text-lg text-muted-foreground">
           Browse our listings of lovable pets waiting for a forever home.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8 items-start">
-        <div className="lg:col-span-1 lg:sticky lg:top-20">
+      <div className="flex justify-end items-center mb-4 lg:hidden">
+        <Button variant="outline" onClick={() => setIsFilterSheetOpen(true)}>
+            <SlidersHorizontal className="mr-2 h-4 w-4" />
+            Filters
+        </Button>
+      </div>
+      
+      <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
+        <SheetContent side="left" className="w-full max-w-sm p-0">
+            <div className="h-full overflow-y-auto p-6">
+                 <PetFilters
+                    searchTerm={searchTerm}
+                    setSearchTerm={setSearchTerm}
+                    categoryFilter={categoryFilter}
+                    setCategoryFilter={setCategoryFilter}
+                    genderFilter={genderFilter}
+                    setGenderFilter={setGenderFilter}
+                    ageRange={ageRange}
+                    setAgeRange={setAgeRange}
+                />
+            </div>
+        </SheetContent>
+      </Sheet>
+
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 items-start">
+        <div className="hidden lg:block lg:col-span-1 lg:sticky lg:top-20">
           <PetFilters
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
