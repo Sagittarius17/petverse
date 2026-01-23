@@ -321,9 +321,40 @@ export default function ShopHeader() {
                     />
                     <Label htmlFor="view-mode-mobile-shop" className="font-bold cursor-pointer">PetShop</Label>
                 </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="lg" className="w-full justify-start text-lg p-6">
+                      <Sun className="h-6 w-6 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                      <Moon className="absolute left-6 h-6 w-6 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                      <span className="ml-4">Change Theme</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="center">
+                    <DropdownMenuItem onClick={() => setTheme('light')}>
+                      <Sun className="mr-2 h-4 w-4" />
+                      <span>Light</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme('dark')}>
+                      <Moon className="mr-2 h-4 w-4" />
+                      <span>Dark</span>
+                    </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setTheme("dark-forest")}>
+                      <Trees className="mr-2 h-4 w-4" />
+                      <span>Forest</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme("light-rose")}>
+                      <Flower className="mr-2 h-4 w-4" />
+                      <span>Rose</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme('system')}>
+                      <Monitor className="mr-2 h-4 w-4" />
+                      <span>System</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               {user && !user.isAnonymous ? (
                 <>
-                  <Button asChild size="lg" className="w-full justify-start text-lg p-6 mt-4">
+                  <Button asChild size="lg" className="w-full justify-start text-lg p-6">
                     <Link href="/profile" onClick={() => setIsMenuOpen(false)}>
                       <User className="mr-4 h-6 w-6" />
                       <span>Profile</span>
@@ -336,7 +367,7 @@ export default function ShopHeader() {
                 </>
               ) : (
                 <>
-                  <Button asChild size="lg" className="w-full mt-4">
+                  <Button asChild size="lg" className="w-full">
                       <Link href="/login" onClick={() => setIsMenuOpen(false)}>Log In</Link>
                   </Button>
                   <Button variant="outline" asChild size="lg" className="w-full">
