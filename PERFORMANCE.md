@@ -24,13 +24,13 @@ The application relies heavily on Firestore's real-time listeners (`useCollectio
 **Potential Issues:**
 
 -   **Unmemoized Queries:** Passing new query or document reference objects on every render to `useCollection` or `useDoc` will cause infinite loops of data fetching. The app correctly uses `useMemoFirebase` to prevent this, and this practice must be maintained.
+-   **`getSpeciesData` Server Action:** The function in `src/app/know-your-pet/[category]/[petType]/actions.ts` fetches breeds for a species from Firestore every time a user visits a species page. While it correctly filters by species, this is still a database read that happens on every visit.
 -   **Over-fetching Data:** Some pages might fetch more data than is immediately necessary. For example, fetching entire document collections when only a few fields are needed for a list view.
--   **`getPetCategories` Server Action:** The function in `src/app/know-your-pet/[category]/[petType]/actions.ts` fetches *all* documents from the `animalBreeds` collection from the database every time a user visits a breed page. This is highly inefficient and will become very slow as the number of breeds grows.
 
 **Recommendations:**
 
--   **Cache Server-Side Fetches:** The `getPetCategories` function is a prime candidate for server-side caching. Use Next.js's caching mechanisms (like `unstable_cache` or the built-in `fetch` caching) to cache the results from Firestore for a specific duration (e.g., 10 minutes). This would dramatically reduce database reads and speed up page loads.
--   **Implement Pagination:** For large collections like `/pets`, `/blogs`, and `/users` (in the admin panel), implement pagination instead of fetching all documents at once. Use Firestore's `limit()` and `startAfter()` query methods.
+-   **Cache Server-Side Fetches:** The `getSpeciesData` function is a prime candidate for server-side caching using Next.js's built-in caching mechanisms (like `unstable_cache` or `fetch` caching with revalidation). Caching the results from Firestore for a specific duration (e.g., 10 minutes) would dramatically reduce database reads and speed up page loads for frequently visited species pages.
+-   **Implement Pagination:** For large collections like `/pets`, `/blogs`, and `/users` (in the admin panel), implement pagination instead of fetching all documents at once. Use Firestore's `limit()` and `startAfter()` query methods. The `/adopt` page is a good example of this being implemented correctly.
 -   **Selective Field Fetching:** While Firestore's client SDK doesn't support selecting specific fields for a collection query in the same way as a traditional SQL database, consider structuring your data to separate frequently accessed list data from large, detailed content if performance becomes an issue.
 
 ## 3. Animations
@@ -39,11 +39,11 @@ Animations can significantly impact CPU and GPU performance if not implemented c
 
 **Potential Issues:**
 
--   **Heavy CSS Properties:** Animating properties like `border` (especially `border-dashed`), `box-shadow`, `width`, or `height` can be performance-intensive as they trigger browser layout recalculations. The previous global loader used a dashed border, which caused high CPU usage.
+-   **Heavy CSS Properties:** The `highlight-pulse` animation in `globals.css` uses `box-shadow`, which can be performance-intensive as it triggers browser layout recalculations. The previous global loader also used a dashed border, which caused high CPU usage.
 
 **Recommendations:**
 
--   **Prioritize `transform` and `opacity`:** Stick to animating `transform` (e.g., `translateX`, `scale`) and `opacity`. These properties can be handled by the browser's compositor thread, resulting in much smoother, hardware-accelerated animations that don't block the main thread.
+-   **Prioritize `transform` and `opacity`:** Stick to animating `transform` (e.g., `translateX`, `scale`) and `opacity`. These properties can be handled by the browser's compositor thread, resulting in much smoother, hardware-accelerated animations that don't block the main thread. The `highlight-pulse` could be refactored to use opacity or a pseudo-element's transform.
 -   **Use `will-change` Sparingly:** For complex animations, you can hint to the browser that a property is going to change by using the `will-change` CSS property. However, this should be used cautiously as it can consume memory.
 
 ## 4. AI Flows and Server Actions

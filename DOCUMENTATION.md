@@ -81,7 +81,7 @@ The application uses Next.js Server Actions, which are functions that run on the
 
 | Endpoint / Action                    | File Path                                                 | Description                                                                                                                              |
 | ------------------------------------ | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `getPetCategories`                   | `src/app/know-your-pet/[category]/[petType]/actions.ts`   | Fetches all pet categories and merges them with AI-generated breeds stored in the `animalBreeds` Firestore collection.               |
+| `getSpeciesData`                     | `src/app/know-your-pet/[category]/[petType]/actions.ts`   | Fetches data for a specific pet species, merging its static breed list with any additional breeds found in the `animalBreeds` Firestore collection. |
 | `handleLostPetReport`                | `src/app/lost-and-found/actions.ts`                       | Takes a pet image data URI, passes it to the `analyzePetImageForMatching` Genkit flow, and returns the AI-generated analysis summary. |
 | `analyzePetImageForMatching` (Flow)  | `src/ai/flows/analyze-pet-image-for-matching.ts`          | A Genkit flow that receives a pet image and uses a multimodal AI model to generate a descriptive summary of the pet's attributes.      |
 | `fetchBreedInfo` (Flow)              | `src/ai/flows/fetch-breed-info.ts`                        | A Genkit flow that takes a breed and species name, uses an AI model to research it, and saves the detailed information to Firestore.  |
@@ -136,3 +136,4 @@ To facilitate communication between users for pet adoptions, a real-time messagi
 -   **Initiation:** Users can start a chat with a pet's owner directly from the pet detail dialog.
 -   **Presence:** The system includes a presence feature, showing whether a user is "Online" or their "last seen" status, based on their interaction with the chat panel.
 -   **Implementation:** The chat functionality is managed by a global `useChatStore` (Zustand) and several React components in `src/components/chat/`. It uses Firestore's real-time listeners (`onSnapshot`) to get new messages and conversation updates instantly.
+
