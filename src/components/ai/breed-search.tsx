@@ -133,9 +133,12 @@ export default function BreedSearch({
           className="w-full pl-10 pr-10"
         />
         {isSearching && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <PawPrint className="h-5 w-5 animate-spin text-primary" />
-          </div>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <div className="relative flex h-5 w-5 items-center justify-center">
+                    <div className="absolute h-full w-full animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                    <PawPrint className="h-3 w-3 text-primary" />
+                </div>
+            </div>
         )}
       </div>
       {isSearching && (
