@@ -10,10 +10,12 @@ interface DevState {
   // Persistent total counts
   totalReads: number;
   totalWrites: number;
+  isObserverEnabled: boolean;
   // Actions
   incrementReads: () => void;
   incrementWrites: () => void;
   resetCounts: () => void;
+  setIsObserverEnabled: (enabled: boolean) => void;
 }
 
 export const useDevStore = create<DevState>()(
@@ -23,6 +25,7 @@ export const useDevStore = create<DevState>()(
       writes: 0,
       totalReads: 0,
       totalWrites: 0,
+      isObserverEnabled: true, // Default to true for dev environments
       incrementReads: () =>
         set((state) => ({
           reads: state.reads + 1,
@@ -34,14 +37,16 @@ export const useDevStore = create<DevState>()(
           totalWrites: state.totalWrites + 1,
         })),
       resetCounts: () => set({ reads: 0, writes: 0 }), // Only resets session counts
+      setIsObserverEnabled: (enabled: boolean) => set({ isObserverEnabled: enabled }),
     }),
     {
-      name: 'dev-store-totals', // name of the item in storage
+      name: 'dev-settings-storage', // name of the item in storage
       storage: createJSONStorage(() => localStorage), // use localStorage
-      // Only persist total counts, session counts will be reset on load.
+      // Persist totals and the enabled flag
       partialize: (state) => ({
         totalReads: state.totalReads,
         totalWrites: state.totalWrites,
+        isObserverEnabled: state.isObserverEnabled,
       }),
     }
   )

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, setDoc, getDoc, writeBatch, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, writeBatch, updateDoc, DocumentData } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -17,11 +17,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
-import { Sun, Moon, Trees, Flower, Monitor, Loader2, Timer } from 'lucide-react';
+import { Sun, Moon, Trees, Flower, Monitor, Loader2, Timer, Database } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { differenceInSeconds, formatDuration, intervalToDuration } from 'date-fns';
 import { updateProfile } from 'firebase/auth';
+import { useDevStore } from '@/lib/dev-store';
 
 interface MaintenanceSettings {
   isMaintenanceMode?: boolean;
@@ -30,9 +31,10 @@ interface MaintenanceSettings {
   maintenanceEndTime?: string | null;
 }
 
-interface UserProfile {
+interface UserProfile extends DocumentData {
     username?: string;
     displayName?: string;
+    role?: 'Admin' | 'Superadmin' | 'Superuser' | 'User';
 }
 
 
@@ -119,6 +121,8 @@ export default function AdminSettingsPage() {
 
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
   const { data: maintenanceSettings, isLoading: isSettingsLoading } = useDoc<MaintenanceSettings>(settingsDocRef);
+  
+  const { isObserverEnabled, setIsObserverEnabled } = useDevStore();
   
   const [isMaintenanceOn, setIsMaintenanceOn] = useState(false);
   const [message, setMessage] = useState('');
@@ -260,6 +264,7 @@ export default function AdminSettingsPage() {
   };
   
   const isLoading = isUserLoading || isSettingsLoading || isProfileLoading;
+  const isPrivilegedAdmin = userProfile?.role === 'Admin' || userProfile?.role === 'Superadmin';
 
   if (isLoading || !user) {
     return (
@@ -447,6 +452,39 @@ export default function AdminSettingsPage() {
           <Button onClick={handleNotificationsSave}>Save Notifications</Button>
         </CardFooter>
       </Card>
+      
+      {isPrivilegedAdmin && (
+        <Card className="flex flex-col lg:col-span-3">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="h-5 w-5" />
+              Developer Tools
+            </CardTitle>
+            <CardDescription>Manage development-only widgets and tools.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex-grow grid gap-4">
+            <div className="flex items-center justify-between space-x-2 rounded-lg border p-4">
+              <Label htmlFor="firestore-observer-switch" className="flex flex-col space-y-1">
+                <span>Firestore Activity Monitor</span>
+                <span className="font-normal leading-snug text-muted-foreground">
+                  Show a real-time widget for Firestore document reads and writes.
+                </span>
+              </Label>
+              <Switch
+                id="firestore-observer-switch"
+                checked={isObserverEnabled}
+                onCheckedChange={setIsObserverEnabled}
+              />
+            </div>
+          </CardContent>
+          <CardFooter>
+             <p className="text-xs text-muted-foreground">
+                These tools are only available in the development environment and are hidden from regular users.
+            </p>
+          </CardFooter>
+        </Card>
+      )}
+
     </div>
   );
 }
