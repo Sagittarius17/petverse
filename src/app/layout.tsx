@@ -9,6 +9,7 @@ import MainLayout from '@/components/main-layout';
 import Chat from '@/components/chat/chat';
 import BilluChatLauncher from '@/components/chat/billu-chat-launcher';
 import ConditionalFirestoreObserver from '@/components/dev/ConditionalFirestoreObserver';
+import NotificationManager from '@/components/NotificationManager';
 
 
 function ChatController() {
@@ -63,6 +64,7 @@ export default function RootLayout({
             </MainLayout>
             <ChatController />
             <Toaster />
+            <NotificationManager />
             {process.env.NODE_ENV === 'development' && <ConditionalFirestoreObserver />}
           </FirebaseClientProvider>
         </ThemeProvider>

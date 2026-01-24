@@ -5,6 +5,7 @@ import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, onSnapshot, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { Performance, getPerformance } from 'firebase/performance';
+import { Messaging, getMessaging } from 'firebase/messaging';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 import { toast } from '@/hooks/use-toast';
 
@@ -29,6 +30,7 @@ export interface FirebaseContextState {
   firestore: Firestore | null;
   auth: Auth | null; // The Auth service instance
   performance: Performance | null;
+  messaging: Messaging | null;
   // User authentication state
   user: User | null;
   isUserLoading: boolean; // True during initial auth check
@@ -41,6 +43,7 @@ export interface FirebaseServicesAndUser {
   firestore: Firestore;
   auth: Auth;
   performance: Performance | null;
+  messaging: Messaging | null;
   user: User | null;
   isUserLoading: boolean;
   userError: Error | null;
@@ -72,6 +75,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   });
 
   const [performance, setPerformance] = useState<Performance | null>(null);
+  const [messaging, setMessaging] = useState<Messaging | null>(null);
 
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
@@ -98,6 +102,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   useEffect(() => {
     if (firebaseApp && typeof window !== 'undefined') {
       setPerformance(getPerformance(firebaseApp));
+      setMessaging(getMessaging(firebaseApp));
     }
   }, [firebaseApp]);
   
@@ -140,11 +145,12 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       firestore: servicesAvailable ? firestore : null,
       auth: servicesAvailable ? auth : null,
       performance: performance,
+      messaging: messaging,
       user: userAuthState.user,
       isUserLoading: userAuthState.isUserLoading,
       userError: userAuthState.userError,
     };
-  }, [firebaseApp, firestore, auth, performance, userAuthState]);
+  }, [firebaseApp, firestore, auth, performance, messaging, userAuthState]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>
@@ -175,6 +181,7 @@ export const useFirebase = (): FirebaseServicesAndUser => {
     firestore: context.firestore,
     auth: context.auth,
     performance: context.performance,
+    messaging: context.messaging,
     user: context.user,
     isUserLoading: context.isUserLoading,
     userError: context.userError,
@@ -198,6 +205,13 @@ export const useFirebaseApp = (): FirebaseApp => {
   const { firebaseApp } = useFirebase();
   return firebaseApp;
 };
+
+/** Hook to access Firebase Messaging instance. */
+export const useMessaging = (): Messaging | null => {
+    const { messaging } = useFirebase();
+    return messaging;
+};
+
 
 type MemoFirebase <T> = T & {__memo?: boolean};
 
