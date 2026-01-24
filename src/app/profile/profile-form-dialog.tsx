@@ -99,7 +99,6 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
 
     if (wantsToRemovePfp) {
         photoUpdateType = 'remove';
-        newPhotoUrl = null;
     } else if (data.pfp && data.pfp.length > 0) {
         const file = data.pfp[0];
         try {
@@ -117,16 +116,10 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
     }
 
     try {
-      const authProfileUpdates: { displayName?: string, photoURL?: string | null } = {};
+      // Only update displayName on the Firebase Auth user object.
+      // photoURL is NOT updated here to avoid length limit errors.
       if (auth.currentUser.displayName !== data.displayName) {
-          authProfileUpdates.displayName = data.displayName;
-      }
-      if (photoUpdateType !== 'none') {
-          authProfileUpdates.photoURL = newPhotoUrl;
-      }
-
-      if (Object.keys(authProfileUpdates).length > 0) {
-          await updateProfile(auth.currentUser, authProfileUpdates);
+        await updateProfile(auth.currentUser, { displayName: data.displayName });
       }
       
       const firestoreUpdateData: any = {
@@ -134,6 +127,7 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
           bio: data.bio,
       };
 
+      // The full data URI is only stored in Firestore.
       if (photoUpdateType === 'upload') {
           firestoreUpdateData.profilePicture = newPhotoUrl;
       } else if (photoUpdateType === 'remove') {
