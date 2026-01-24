@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useChatStore } from '@/lib/chat-store';
 import { useUser, useFirestore } from '@/firebase';
 import { doc, updateDoc, serverTimestamp, collection, query, where, onSnapshot } from 'firebase/firestore';
@@ -14,6 +15,7 @@ export default function Chat() {
   const firestore = useFirestore();
   const [totalUnreadMessages, setTotalUnreadMessages] = useState(0);
   const [totalUnreadChats, setTotalUnreadChats] = useState(0);
+  const lastUnreadCount = useRef(0);
 
 
   // Effect for online presence
@@ -67,8 +69,15 @@ export default function Chat() {
             chatTotal += 1;
         }
       });
+      
+      if (!useChatStore.getState().isOpen && messageTotal > lastUnreadCount.current) {
+        const audio = new Audio('/sounds/incoming_msg.mp3');
+        audio.play().catch(e => console.error("Error playing incoming message sound:", e));
+      }
+
       setTotalUnreadMessages(messageTotal);
       setTotalUnreadChats(chatTotal);
+      lastUnreadCount.current = messageTotal;
     });
 
     return () => unsubscribe();

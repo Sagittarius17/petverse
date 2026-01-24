@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -176,9 +177,12 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   const audioChunksRef = useRef<Blob[]>([]);
   const shouldSendOnStop = useRef(true);
   const recordingStartPos = useRef<{ x: number } | null>(null);
+  const recordingTimerRef = useRef<NodeJS.Timeout>();
 
   const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
+
+  const isInitialSnapshot = useRef(true);
 
   const handleScrollToMessage = (messageId: string) => {
     const messageElement = viewportRef.current?.querySelector(`[data-message-id='${messageId}']`);
@@ -273,6 +277,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
       return;
     }
 
+    isInitialSnapshot.current = true;
     setIsLoadingMessages(true);
     const messagesQuery = query(
       collection(firestore, `conversations/${activeConversationId}/messages`),
@@ -280,6 +285,20 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     );
     
     const unsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
+      if (isInitialSnapshot.current) {
+        isInitialSnapshot.current = false;
+      } else {
+        querySnapshot.docChanges().forEach((change) => {
+            if (change.type === 'added') {
+                const messageData = change.doc.data();
+                if (messageData.senderId !== currentUser.uid) {
+                    const audio = new Audio('/sounds/open_chat_msg_receive.mp3');
+                    audio.play().catch(e => console.error("Error playing receive sound:", e));
+                }
+            }
+        });
+      }
+      
       const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
       setMessages(msgs);
       setIsLoadingMessages(false);
@@ -377,6 +396,10 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     const replyingToContext = replyingTo;
 
     if (!messageText && !mediaFileToSend) return;
+
+    // Play sound for sending a message
+    const audio = new Audio('/sounds/open_chat_msg_send.mp3');
+    audio.play().catch(err => console.error("Failed to play send sound:", err));
 
     // Optimistically update UI
     setNewMessage('');
