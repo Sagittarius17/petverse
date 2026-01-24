@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -163,8 +164,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-8rem)] bg-secondary/50 p-4">
-      <Card className="w-full max-w-sm">
+    <div className="flex items-center justify-center min-h-[calc(100vh-8rem)] bg-background p-4">
+      <Card className="w-full max-w-sm bg-secondary shadow-2xl">
         <CardHeader>
           <CardTitle className="text-2xl font-headline">Welcome Back!</CardTitle>
           <CardDescription>Enter your email below to login to your account.</CardDescription>
@@ -179,7 +180,7 @@ export default function LoginPage() {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              <span className="bg-secondary px-2 text-muted-foreground">Or continue with</span>
             </div>
           </div>
           <form onSubmit={handleSubmit(onEmailSubmit)} className="space-y-4">
