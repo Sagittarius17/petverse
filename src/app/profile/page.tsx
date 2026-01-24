@@ -293,15 +293,17 @@ export default function ProfilePage() {
                     <AvatarFallback><PawPrint className="h-12 w-12 text-muted-foreground" /></AvatarFallback>
                 </Avatar>
             </DialogTrigger>
-            {avatarUrl && (
-                <DialogContent className="p-0 border-0 max-w-md">
-                    <DialogHeader className="sr-only">
-                        <DialogTitle>User Avatar Preview</DialogTitle>
-                        <DialogDescription>A larger view of your profile picture.</DialogDescription>
-                    </DialogHeader>
-                    <Image src={avatarUrl} alt="User Avatar Preview" width={512} height={512} className="rounded-lg w-full h-auto" />
-                </DialogContent>
-            )}
+            <DialogContent className="p-0 border-0 max-w-md bg-background flex items-center justify-center aspect-square">
+                <DialogHeader className="sr-only">
+                    <DialogTitle>User Avatar Preview</DialogTitle>
+                    <DialogDescription>A larger view of your profile picture.</DialogDescription>
+                </DialogHeader>
+                {avatarUrl ? (
+                    <Image src={avatarUrl} alt="User Avatar Preview" width={512} height={512} className="rounded-lg w-full h-auto object-contain" />
+                ) : (
+                    <PawPrint className="h-48 w-48 text-muted-foreground/50" />
+                )}
+            </DialogContent>
         </Dialog>
 
         <div className="text-center sm:text-left flex-grow">
@@ -458,3 +460,5 @@ export default function ProfilePage() {
     </>
   );
 }
+
+    
