@@ -13,9 +13,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Loader2, Trash2, PawPrint } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const profileSchema = z.object({
   displayName: z.string().min(2, 'Display name must be at least 2 characters.').max(50),
@@ -53,7 +52,6 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
   const [preview, setPreview] = useState<string | null>(null);
   const [wantsToRemovePfp, setWantsToRemovePfp] = useState(false);
   const pfpFile = watch('pfp');
-  const defaultAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar-1');
 
   const handleRemovePfp = () => {
     setPreview(null);
@@ -79,10 +77,10 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
         bio: userProfile?.bio || '',
         pfp: undefined,
       });
-      setPreview(userProfile?.profilePicture || user.photoURL || defaultAvatar?.imageUrl || null);
+      setPreview(userProfile?.profilePicture || user.photoURL || null);
       setWantsToRemovePfp(false); // Reset on open
     }
-  }, [user, userProfile, isOpen, reset, defaultAvatar?.imageUrl]);
+  }, [user, userProfile, isOpen, reset]);
 
   const onSubmit = async (data: ProfileFormData) => {
     if (!firestore || !auth.currentUser) {
@@ -201,7 +199,7 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
              <div className="flex items-center gap-6">
               <Avatar className="h-24 w-24">
                 <AvatarImage src={preview || undefined} />
-                <AvatarFallback>{user?.displayName?.[0] || 'U'}</AvatarFallback>
+                <AvatarFallback><PawPrint className="h-12 w-12 text-muted-foreground" /></AvatarFallback>
               </Avatar>
               <div className="grid w-full max-w-sm items-center gap-1.5">
                 <Label htmlFor="pfp">Update Picture</Label>

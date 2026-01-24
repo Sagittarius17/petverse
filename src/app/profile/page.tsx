@@ -8,7 +8,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Edit, LogOut, Trash2, Eye, EyeOff, PlusCircle, Heart, Tag } from 'lucide-react';
+import { Edit, LogOut, Trash2, Eye, EyeOff, PlusCircle, Heart, Tag, PawPrint } from 'lucide-react';
 import PetCard from '@/components/pet-card';
 import { type Pet, type PetBreed } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -88,8 +88,6 @@ export default function ProfilePage() {
   const [isFavoritesLoading, setIsFavoritesLoading] = useState(true);
   const [selectedBreed, setSelectedBreed] = useState<PetBreed | null>(null);
   const [isIdVisible, setIsIdVisible] = useState(false);
-  
-  const defaultAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar-1');
   
   const userDocRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -282,7 +280,7 @@ export default function ProfilePage() {
     );
   }
 
-  const avatarUrl = userProfile?.profilePicture || user.photoURL || defaultAvatar?.imageUrl;
+  const avatarUrl = userProfile?.profilePicture || user.photoURL;
 
   return (
     <>
@@ -292,7 +290,7 @@ export default function ProfilePage() {
             <DialogTrigger asChild>
                 <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-primary cursor-pointer">
                     <AvatarImage src={avatarUrl} alt="User Avatar" />
-                    <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
+                    <AvatarFallback><PawPrint className="h-12 w-12 text-muted-foreground" /></AvatarFallback>
                 </Avatar>
             </DialogTrigger>
             {avatarUrl && (

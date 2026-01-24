@@ -9,7 +9,6 @@ import { doc } from 'firebase/firestore';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useChatStore } from '@/lib/chat-store';
 import { useDoc } from '@/firebase';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 // Define Message interface locally as it's passed down
 interface Message {
@@ -173,12 +172,11 @@ function SenderAvatar({ senderId }: { senderId: string }) {
       [firestore, senderId]
     );
     const { data: userProfile } = useDoc<{ profilePicture?: string, displayName?: string }>(userDocRef);
-    const defaultAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar-1');
   
     return (
         <Avatar className="h-8 w-8">
-            <AvatarImage src={userProfile?.profilePicture || defaultAvatar?.imageUrl} />
-            <AvatarFallback>{userProfile?.displayName?.[0] || 'U'}</AvatarFallback>
+            <AvatarImage src={userProfile?.profilePicture} />
+            <AvatarFallback><PawPrint className="h-4 w-4 text-muted-foreground" /></AvatarFallback>
         </Avatar>
     );
 }

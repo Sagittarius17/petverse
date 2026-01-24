@@ -379,12 +379,6 @@
       "imageHint": "fish aquarium"
     },
     {
-      "id": "user-avatar-1",
-      "description": "A placeholder avatar for a user profile.",
-      "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3Njc1MTExMDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "person portrait"
-    },
-    {
       "id": "know-rabbit",
       "description": "A fluffy rabbit in a green field.",
       "imageUrl": "https://images.unsplash.com/photo-1595972727402-084f2162d637?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxyYWJiaXQlMjBuYXR1cmV8ZW58MHx8fHwxNzY3NzIxNjI1fDA&ixlib=rb-4.1.0&q=80&w=1080",

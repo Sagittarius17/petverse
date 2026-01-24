@@ -16,10 +16,10 @@ import {
   Trash2,
   PlusCircle,
   ListCollapse,
+  PawPrint,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { UserProfile } from '@/lib/data';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 type ActivityType = 'User' | 'Blog' | 'Pet';
 type BadgeVariant = 'default' | 'secondary' | 'destructive';
@@ -57,7 +57,6 @@ function ActivityItem({ activity }: { activity: Activity }) {
     [firestore, activity.userId]
   );
   const { data: userProfile } = useDoc<UserProfile>(userDocRef);
-  const defaultAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar-1');
 
   const iconMap: Record<string, React.ElementType> = useMemo(() => ({
     ShieldCheck: ShieldCheck,
@@ -70,13 +69,13 @@ function ActivityItem({ activity }: { activity: Activity }) {
   const ActionIcon = iconMap[activity.iconName] || Edit;
   
   const nameToDisplay = userProfile?.username || activity.userName;
-  const avatarUrl = userProfile?.profilePicture || activity.userAvatar || defaultAvatar?.imageUrl;
+  const avatarUrl = userProfile?.profilePicture || activity.userAvatar;
 
   return (
     <div className="grid items-start grid-cols-[auto_1fr_auto] gap-x-4">
         <Avatar className="h-10 w-10">
             <AvatarImage src={avatarUrl} />
-            <AvatarFallback>{nameToDisplay?.charAt(0) || 'A'}</AvatarFallback>
+            <AvatarFallback><PawPrint className="h-5 w-5 text-muted-foreground" /></AvatarFallback>
         </Avatar>
         <div className="text-sm">
             <div>

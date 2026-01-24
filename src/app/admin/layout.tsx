@@ -31,7 +31,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const menuItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -69,7 +68,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const { user, isUserLoading: isAuthLoading } = useUser();
   const firestore = useFirestore();
-  const defaultAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar-1');
 
   const userDocRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -105,7 +103,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return <AccessDeniedScreen />;
   }
   
-  const avatarUrl = userProfile?.profilePicture || user?.photoURL || defaultAvatar?.imageUrl;
+  const avatarUrl = userProfile?.profilePicture || user?.photoURL;
 
   return (
     <SidebarProvider>
@@ -150,7 +148,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <div className="flex items-center gap-2 p-2 group-data-[collapsible=icon]:justify-center">
                     <Avatar className="h-8 w-8">
                         <AvatarImage src={avatarUrl} alt={userProfile?.username} />
-                        <AvatarFallback>{user?.email?.[0].toUpperCase()}</AvatarFallback>
+                        <AvatarFallback><PawPrint className="h-4 w-4 text-muted-foreground" /></AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col text-sm group-data-[collapsible=icon]:hidden">
                         <span className="font-semibold text-foreground truncate">{userProfile?.username || user?.displayName || 'Admin'}</span>

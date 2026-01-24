@@ -84,7 +84,6 @@ interface ChatPanelProps {
 
 const BILLU_CONVERSATION_ID = 'ai-chatbot-billu';
 const billuAvatar = PlaceHolderImages.find(p => p.id === 'billu-avatar') || { imageUrl: '', imageHint: 'cat' };
-const defaultAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar-1');
 
 function formatRelativeTime(timestamp?: Timestamp): string {
     if (!timestamp) return '';
@@ -641,7 +640,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
               const unread = convo.unreadCount?.[currentUser.uid] || 0;
               const isActive = activeConversationId === convo.id;
               const isSuspended = convo.otherParticipant?.status === 'Inactive';
-              const participantAvatar = convo.otherParticipant?.photoURL || defaultAvatar?.imageUrl;
+              const participantAvatar = convo.otherParticipant?.photoURL;
 
               return (
                 <div
@@ -657,7 +656,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                   <div className="relative">
                     <Avatar className="h-12 w-12">
                       <AvatarImage src={isSuspended ? undefined : participantAvatar} />
-                      <AvatarFallback>{isSuspended ? '?' : convo.otherParticipant?.displayName[0] || 'U'}</AvatarFallback>
+                      <AvatarFallback>{isSuspended ? '?' : <PawPrint className="h-6 w-6 text-muted-foreground" />}</AvatarFallback>
                     </Avatar>
                     {convo.otherParticipant && convo.id !== BILLU_CONVERSATION_ID && (
                        <PresenceIndicator userId={convo.otherParticipant.id} />
@@ -703,7 +702,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     if (activeConversationId === BILLU_CONVERSATION_ID) return renderBilluChatView();
     
     const isSuspended = otherParticipant?.status === 'Inactive';
-    const participantAvatar = otherParticipant?.photoURL || defaultAvatar?.imageUrl;
+    const participantAvatar = otherParticipant?.photoURL;
 
     const getReplyDisplayName = (senderId: string) => {
       if (senderId === currentUser.uid) return 'You';
@@ -721,7 +720,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                     </Button>
                     <Avatar className="h-9 w-9">
                         <AvatarImage src={isSuspended ? undefined : participantAvatar} />
-                        <AvatarFallback>{isSuspended ? '?' : otherParticipant.displayName[0] || 'U'}</AvatarFallback>
+                        <AvatarFallback>{isSuspended ? '?' : <PawPrint className="h-5 w-5 text-muted-foreground" />}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 overflow-hidden">
                         <SheetTitle className="text-sm absolute left-18 top-2 font-semibold truncate">{isSuspended ? '[User Deleted/Suspended]' : (otherParticipant.displayName || 'Chat')}</SheetTitle>
