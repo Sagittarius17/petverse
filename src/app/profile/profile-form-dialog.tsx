@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -14,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const profileSchema = z.object({
@@ -51,13 +50,21 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
   });
   
   const [preview, setPreview] = useState<string | null>(null);
+  const [wantsToRemovePfp, setWantsToRemovePfp] = useState(false);
   const pfpFile = watch('pfp');
+
+  const handleRemovePfp = () => {
+    setPreview(null);
+    reset({ ...watch(), pfp: undefined });
+    setWantsToRemovePfp(true);
+  };
 
   useEffect(() => {
     if (pfpFile && pfpFile.length > 0) {
       const file = pfpFile[0];
       const newPreview = URL.createObjectURL(file);
       setPreview(newPreview);
+      setWantsToRemovePfp(false); // New file cancels removal
       return () => URL.revokeObjectURL(newPreview);
     }
   }, [pfpFile]);
@@ -71,6 +78,7 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
         pfp: undefined,
       });
       setPreview(userProfile?.profilePicture || user.photoURL || null);
+      setWantsToRemovePfp(false); // Reset on open
     }
   }, [user, userProfile, isOpen, reset]);
 
@@ -85,39 +93,52 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
     }
 
     const userDocRef = doc(firestore, 'users', auth.currentUser.uid);
-    let photoDataUri: string | null = null;
     
-    // Handle new profile picture
-    if (data.pfp && data.pfp.length > 0) {
+    let newPhotoUrl: string | null = null;
+    let photoUpdateType: 'upload' | 'remove' | 'none' = 'none';
+
+    if (wantsToRemovePfp) {
+        photoUpdateType = 'remove';
+        newPhotoUrl = null;
+    } else if (data.pfp && data.pfp.length > 0) {
         const file = data.pfp[0];
         try {
-            photoDataUri = await new Promise<string>((resolve, reject) => {
+            newPhotoUrl = await new Promise<string>((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
                 reader.onload = () => resolve(reader.result as string);
                 reader.onerror = (error) => reject(error);
             });
+            photoUpdateType = 'upload';
         } catch (error) {
             toast({ variant: "destructive", title: "Image Upload Failed", description: "Could not process the image file." });
             return;
         }
     }
 
-
     try {
-      // Update Firebase Auth profile displayName ONLY
+      const authProfileUpdates: { displayName?: string, photoURL?: string | null } = {};
       if (auth.currentUser.displayName !== data.displayName) {
-        await updateProfile(auth.currentUser, { displayName: data.displayName });
+          authProfileUpdates.displayName = data.displayName;
+      }
+      if (photoUpdateType !== 'none') {
+          authProfileUpdates.photoURL = newPhotoUrl;
+      }
+
+      if (Object.keys(authProfileUpdates).length > 0) {
+          await updateProfile(auth.currentUser, authProfileUpdates);
       }
       
       const firestoreUpdateData: any = {
           displayName: data.displayName,
           bio: data.bio,
       };
-      if (photoDataUri) {
-          firestoreUpdateData.profilePicture = photoDataUri;
-      }
 
+      if (photoUpdateType === 'upload') {
+          firestoreUpdateData.profilePicture = newPhotoUrl;
+      } else if (photoUpdateType === 'remove') {
+          firestoreUpdateData.profilePicture = '';
+      }
 
       // If username has changed, handle uniqueness and update flow
       if (data.username !== userProfile?.username) {
@@ -182,7 +203,14 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
               </Avatar>
               <div className="grid w-full max-w-sm items-center gap-1.5">
                 <Label htmlFor="pfp">Update Picture</Label>
-                <Input id="pfp" type="file" accept="image/*" {...register('pfp')} />
+                 <div className="flex items-center gap-2">
+                    <Input id="pfp" type="file" accept="image/*" {...register('pfp')} />
+                    {preview && (
+                        <Button type="button" variant="ghost" size="icon" onClick={handleRemovePfp} aria-label="Remove picture">
+                            <Trash2 className="h-5 w-5 text-destructive" />
+                        </Button>
+                    )}
+                </div>
                 {errors.pfp && <p className="text-sm text-destructive">{(errors.pfp as any).message}</p>}
               </div>
             </div>
@@ -218,4 +246,3 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
     </Dialog>
   );
 }
-
