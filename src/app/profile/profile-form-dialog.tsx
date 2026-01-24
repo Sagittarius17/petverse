@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const profileSchema = z.object({
   displayName: z.string().min(2, 'Display name must be at least 2 characters.').max(50),
@@ -52,6 +53,7 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
   const [preview, setPreview] = useState<string | null>(null);
   const [wantsToRemovePfp, setWantsToRemovePfp] = useState(false);
   const pfpFile = watch('pfp');
+  const defaultAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar-1');
 
   const handleRemovePfp = () => {
     setPreview(null);
@@ -77,10 +79,10 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
         bio: userProfile?.bio || '',
         pfp: undefined,
       });
-      setPreview(userProfile?.profilePicture || user.photoURL || null);
+      setPreview(userProfile?.profilePicture || user.photoURL || defaultAvatar?.imageUrl || null);
       setWantsToRemovePfp(false); // Reset on open
     }
-  }, [user, userProfile, isOpen, reset]);
+  }, [user, userProfile, isOpen, reset, defaultAvatar?.imageUrl]);
 
   const onSubmit = async (data: ProfileFormData) => {
     if (!firestore || !auth.currentUser) {

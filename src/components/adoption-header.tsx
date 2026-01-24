@@ -26,6 +26,7 @@ import { Switch } from './ui/switch';
 import { useTheme } from 'next-themes';
 import { ScrollArea } from './ui/scroll-area';
 import { Skeleton } from './ui/skeleton';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 
 const navLinks = [
@@ -130,6 +131,7 @@ export default function AdoptionHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
+  const defaultAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar-1');
 
   // Fetch user profile from firestore
   const userDocRef = useMemoFirebase(() => {
@@ -166,6 +168,8 @@ export default function AdoptionHeader() {
     setIsMenuOpen(false);
     setIsServicesMenuOpen(false);
   }
+  
+  const avatarUrl = userProfile?.profilePicture || user?.photoURL || defaultAvatar?.imageUrl;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -198,7 +202,7 @@ export default function AdoptionHeader() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={userProfile?.profilePicture || user.photoURL || undefined} alt={userProfile?.displayName || user.displayName || user.email || ''} />
+                    <AvatarImage src={avatarUrl} alt={userProfile?.displayName || user.displayName || user.email || ''} />
                     <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
                   </Avatar>
                 </Button>
@@ -279,7 +283,7 @@ export default function AdoptionHeader() {
           ) : user && !user.isAnonymous ? (
             <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0" onClick={() => setIsMenuOpen(true)}>
               <Avatar className="h-8 w-8">
-                <AvatarImage src={userProfile?.profilePicture || user.photoURL || undefined} alt={userProfile?.displayName || user.displayName || user.email || ''} />
+                <AvatarImage src={avatarUrl} alt={userProfile?.displayName || user.displayName || user.email || ''} />
                 <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
               </Avatar>
             </Button>

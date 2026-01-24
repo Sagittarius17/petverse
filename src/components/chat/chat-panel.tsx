@@ -72,6 +72,7 @@ interface UserProfile extends DocumentData {
     isOnline?: boolean;
     lastSeen?: Timestamp;
     status?: 'Active' | 'Inactive';
+    profilePicture?: string;
 }
 
 
@@ -83,6 +84,7 @@ interface ChatPanelProps {
 
 const BILLU_CONVERSATION_ID = 'ai-chatbot-billu';
 const billuAvatar = PlaceHolderImages.find(p => p.id === 'billu-avatar') || { imageUrl: '', imageHint: 'cat' };
+const defaultAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar-1');
 
 function formatRelativeTime(timestamp?: Timestamp): string {
     if (!timestamp) return '';
@@ -173,7 +175,6 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const shouldSendOnStop = useRef(true);
   const recordingStartPos = useRef<{ x: number } | null>(null);
 
@@ -229,7 +230,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
         if (otherParticipantId) {
           const userDoc = await getDoc(doc(firestore, 'users', otherParticipantId));
           if (userDoc.exists()) {
-            const userData = userDoc.data();
+            const userData = userDoc.data() as UserProfile;
             otherParticipant = {
               id: userDoc.id,
               displayName: userData.username || userData.displayName || 'User',
@@ -640,6 +641,8 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
               const unread = convo.unreadCount?.[currentUser.uid] || 0;
               const isActive = activeConversationId === convo.id;
               const isSuspended = convo.otherParticipant?.status === 'Inactive';
+              const participantAvatar = convo.otherParticipant?.photoURL || defaultAvatar?.imageUrl;
+
               return (
                 <div
                   key={convo.id}
@@ -653,7 +656,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                 >
                   <div className="relative">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={isSuspended ? undefined : convo.otherParticipant?.photoURL} />
+                      <AvatarImage src={isSuspended ? undefined : participantAvatar} />
                       <AvatarFallback>{isSuspended ? '?' : convo.otherParticipant?.displayName[0] || 'U'}</AvatarFallback>
                     </Avatar>
                     {convo.otherParticipant && convo.id !== BILLU_CONVERSATION_ID && (
@@ -700,6 +703,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     if (activeConversationId === BILLU_CONVERSATION_ID) return renderBilluChatView();
     
     const isSuspended = otherParticipant?.status === 'Inactive';
+    const participantAvatar = otherParticipant?.photoURL || defaultAvatar?.imageUrl;
 
     const getReplyDisplayName = (senderId: string) => {
       if (senderId === currentUser.uid) return 'You';
@@ -716,7 +720,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <Avatar className="h-9 w-9">
-                        <AvatarImage src={isSuspended ? undefined : otherParticipant.photoURL} />
+                        <AvatarImage src={isSuspended ? undefined : participantAvatar} />
                         <AvatarFallback>{isSuspended ? '?' : otherParticipant.displayName[0] || 'U'}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 overflow-hidden">

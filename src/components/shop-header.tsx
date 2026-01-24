@@ -29,6 +29,7 @@ import useCartStore from '@/lib/cart-store';
 import { Badge } from './ui/badge';
 import CartSheet from './cart-sheet';
 import { Skeleton } from './ui/skeleton';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const navLinks = [
   { href: '/shop', label: 'Home', icon: Home },
@@ -53,6 +54,7 @@ export default function ShopHeader() {
   const searchParams = useSearchParams();
   const [isClient, setIsClient] = useState(false);
   const { totalItems } = useCartStore();
+  const defaultAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar-1');
 
   // Fetch user profile from firestore
   const userDocRef = useMemoFirebase(() => {
@@ -104,6 +106,8 @@ export default function ShopHeader() {
     router.push(`${currentPath}?${params.toString()}`);
     setIsMenuOpen(false);
   };
+
+  const avatarUrl = userProfile?.profilePicture || user?.photoURL || defaultAvatar?.imageUrl;
 
   return (
     <>
@@ -158,7 +162,7 @@ export default function ShopHeader() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={userProfile?.profilePicture || user.photoURL || undefined} alt={userProfile?.displayName || user.displayName || user.email || ''} />
+                    <AvatarImage src={avatarUrl} alt={userProfile?.displayName || user.displayName || user.email || ''} />
                     <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
                   </Avatar>
                 </Button>
@@ -263,7 +267,7 @@ export default function ShopHeader() {
           {isUserLoading ? <Skeleton className="h-8 w-8 rounded-full" /> : user && !user.isAnonymous ? (
             <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0" onClick={() => setIsMenuOpen(true)}>
               <Avatar className="h-8 w-8">
-                <AvatarImage src={userProfile?.profilePicture || user.photoURL || undefined} alt={userProfile?.displayName || user.displayName || user.email || ''} />
+                <AvatarImage src={avatarUrl} alt={userProfile?.displayName || user.displayName || user.email || ''} />
                 <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
               </Avatar>
             </Button>

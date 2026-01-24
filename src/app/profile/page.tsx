@@ -89,6 +89,8 @@ export default function ProfilePage() {
   const [selectedBreed, setSelectedBreed] = useState<PetBreed | null>(null);
   const [isIdVisible, setIsIdVisible] = useState(false);
   
+  const defaultAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar-1');
+  
   const userDocRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return doc(firestore, 'users', user.uid);
@@ -280,6 +282,8 @@ export default function ProfilePage() {
     );
   }
 
+  const avatarUrl = userProfile?.profilePicture || user.photoURL || defaultAvatar?.imageUrl;
+
   return (
     <>
     <div className="container mx-auto max-w-5xl px-4 py-8">
@@ -287,17 +291,17 @@ export default function ProfilePage() {
         <Dialog>
             <DialogTrigger asChild>
                 <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-primary cursor-pointer">
-                    { (userProfile?.profilePicture || user.photoURL) && <AvatarImage src={userProfile?.profilePicture || user.photoURL} alt="User Avatar" /> }
+                    <AvatarImage src={avatarUrl} alt="User Avatar" />
                     <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
                 </Avatar>
             </DialogTrigger>
-            { (userProfile?.profilePicture || user.photoURL) && (
+            {avatarUrl && (
                 <DialogContent className="p-0 border-0 max-w-md">
                     <DialogHeader className="sr-only">
                         <DialogTitle>User Avatar Preview</DialogTitle>
                         <DialogDescription>A larger view of your profile picture.</DialogDescription>
                     </DialogHeader>
-                    <Image src={userProfile?.profilePicture || user.photoURL!} alt="User Avatar Preview" width={512} height={512} className="rounded-lg w-full h-auto" />
+                    <Image src={avatarUrl} alt="User Avatar Preview" width={512} height={512} className="rounded-lg w-full h-auto" />
                 </DialogContent>
             )}
         </Dialog>
