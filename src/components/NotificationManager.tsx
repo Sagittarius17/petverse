@@ -132,7 +132,7 @@ export default function NotificationManager() {
   if (permission === 'denied') {
       return (
           <div className="fixed bottom-4 left-4 z-50 flex items-center gap-2">
-               <Button onClick={requestPermissionAndToken} variant="outline" className="bg-background shadow-lg border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive">
+               <Button onClick={requestPermissionAndToken} variant="destructive-outline" className="shadow-lg">
                 <BellOff className="mr-2 h-4 w-4" />
                 Notifications Blocked
               </Button>
