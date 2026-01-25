@@ -356,27 +356,31 @@ service cloud.firestore {
        CONVERSATIONS & MESSAGES
     ───────────────────────────── */
 
-    function isParticipant(conversationId) {
-      return isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
-    }
-    
     function isParticipantInRequest(requestData) {
       return isSignedIn() && request.auth.uid in requestData.participants;
     }
+    
+    function isParticipantInResource() {
+        return isSignedIn() && request.auth.uid in resource.data.participants;
+    }
+
+    function isParticipantInParent(conversationId) {
+      return isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+    }
 
     match /conversations/{conversationId} {
-      allow get: if isParticipant(conversationId);
+      allow get: if isParticipantInResource();
       allow list: if isSignedIn();
       
       allow create: if isParticipantInRequest(request.resource.data);
-      allow update: if isParticipant(conversationId);
+      allow update: if isParticipantInResource();
 
       allow delete: if false;
 
       match /messages/{messageId} {
-        allow read, list: if isParticipant(conversationId);
-        allow create: if isParticipant(conversationId) && createdBy('senderId');
-        allow update: if isParticipant(conversationId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead', 'isPlayed']);
+        allow read, list: if isParticipantInParent(conversationId);
+        allow create: if isParticipantInParent(conversationId) && createdBy('senderId');
+        allow update: if isParticipantInParent(conversationId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead', 'isPlayed']);
         allow delete: if false;
       }
     }
@@ -393,3 +397,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
