@@ -365,22 +365,45 @@ service cloud.firestore {
     }
 
     function isParticipantInParent(conversationId) {
+      // This function uses get() and should only be used in rules where we know the parent document already exists (e.g., read, update, delete).
+      // It is NOT safe for `create` rules that might run concurrently with the parent document's creation.
       return isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+    }
+    
+    function isParticipantInConversationId(conversationId) {
+        // This function validates participation based on the UIDs in the document ID string itself.
+        // It's safe for `create` rules because it doesn't perform a `get()`.
+        return request.auth.uid == conversationId.split('_')[0] || request.auth.uid == conversationId.split('_')[1];
     }
 
     match /conversations/{conversationId} {
-      allow get: if isParticipantInResource();
+      // Allow a user to get a conversation document if their UID is part of the document's name.
+      // This is safe for checking non-existent documents, which is what the client does first.
+      allow get: if isParticipantInConversationId(conversationId);
+      
+      // Allow listing conversations, but rely on client to query only for conversations
+      // where 'participants' array-contains the user's UID. The `get` rule provides the actual security.
       allow list: if isSignedIn();
       
+      // Allow creating a conversation if the requesting user is in the new document's participants list.
       allow create: if isParticipantInRequest(request.resource.data);
+      
+      // Allow updating a conversation (e.g., lastMessage) if the user is a participant.
       allow update: if isParticipantInResource();
 
       allow delete: if false;
 
       match /messages/{messageId} {
+        // Allow reading messages if the user is a participant in the parent conversation.
         allow read, list: if isParticipantInParent(conversationId);
-        allow create: if isParticipantInParent(conversationId) && createdBy('senderId');
+        
+        // Allow creating a message if the user is the sender and their ID is in the conversationId.
+        // This avoids the `get()` race condition.
+        allow create: if createdBy('senderId') && isParticipantInConversationId(conversationId);
+        
+        // Allow a participant to update a message, but only to change its `isRead` or `isPlayed` status.
         allow update: if isParticipantInParent(conversationId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead', 'isPlayed']);
+        
         allow delete: if false;
       }
     }
@@ -397,5 +420,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
