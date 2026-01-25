@@ -368,7 +368,8 @@ service cloud.firestore {
       allow get: if isParticipant(conversationId);
       allow list: if isSignedIn();
       
-      allow write: if isParticipantInRequest(request.resource.data);
+      allow create: if isParticipantInRequest(request.resource.data);
+      allow update: if isParticipant(conversationId);
 
       allow delete: if false;
 
