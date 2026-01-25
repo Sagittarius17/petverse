@@ -7,6 +7,7 @@ import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from './ui/button';
 import { BellRing, BellOff } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function NotificationManager() {
   const messaging = useMessaging();
@@ -92,10 +93,10 @@ export default function NotificationManager() {
   if (permission === 'denied') {
       return (
           <div className="fixed bottom-4 left-4 z-50">
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-secondary text-secondary-foreground shadow-lg">
-                <BellOff className="h-4 w-4" />
-                <p className="text-sm">Notifications are blocked.</p>
-              </div>
+               <Button onClick={requestPermissionAndToken} variant="outline" className="bg-background shadow-lg border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive">
+                <BellOff className="mr-2 h-4 w-4" />
+                Notifications Blocked
+              </Button>
           </div>
       )
   }
