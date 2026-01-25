@@ -6,7 +6,7 @@ import { getToken, onMessage } from 'firebase/messaging';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from './ui/button';
-import { BellRing, BellOff } from 'lucide-react';
+import { BellRing, BellOff, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function NotificationManager() {
@@ -15,6 +15,7 @@ export default function NotificationManager() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [permission, setPermission] = useState<NotificationPermission | 'loading'>('loading');
+  const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
     // A more robust way to check for notification permission and listen for changes.
@@ -98,6 +99,10 @@ export default function NotificationManager() {
     }
   };
 
+  if (isDismissed) {
+    return null;
+  }
+
   // Only show the button if a user is logged in, permission isn't granted, and the state isn't loading.
   if (!user || permission === 'granted' || permission === 'loading') {
     return null;
@@ -106,10 +111,13 @@ export default function NotificationManager() {
   // If permission is denied, show the "Blocked" button.
   if (permission === 'denied') {
       return (
-          <div className="fixed bottom-4 left-4 z-50">
+          <div className="fixed bottom-4 left-4 z-50 flex items-center gap-2">
                <Button onClick={requestPermissionAndToken} variant="outline" className="bg-background shadow-lg border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive">
                 <BellOff className="mr-2 h-4 w-4" />
                 Notifications Blocked
+              </Button>
+               <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-background shadow-lg" onClick={() => setIsDismissed(true)}>
+                <X className="h-4 w-4" />
               </Button>
           </div>
       )
@@ -117,10 +125,13 @@ export default function NotificationManager() {
 
   // If permission is 'default' (not yet chosen), show the "Enable" button.
   return (
-    <div className="fixed bottom-4 left-4 z-50">
+    <div className="fixed bottom-4 left-4 z-50 flex items-center gap-2">
       <Button onClick={requestPermissionAndToken} variant="outline" className="bg-background shadow-lg">
         <BellRing className="mr-2 h-4 w-4" />
         Enable Notifications
+      </Button>
+       <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-background shadow-lg" onClick={() => setIsDismissed(true)}>
+        <X className="h-4 w-4" />
       </Button>
     </div>
   );
