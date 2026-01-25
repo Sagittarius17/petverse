@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import * as React from 'react';
 import { useMessaging, useUser, useFirestore } from '@/firebase';
 import { getToken, onMessage } from 'firebase/messaging';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
@@ -65,9 +66,27 @@ export default function NotificationManager() {
 
       if (currentPermission === 'granted') {
         const vapidKey = process.env.NEXT_PUBLIC_VAPID_KEY;
-        if (!vapidKey) {
-            console.error("VAPID key not found. Push notifications will not work.");
-            toast({ variant: 'destructive', title: 'Configuration Error', description: 'VAPID key is missing.' });
+        if (!vapidKey || vapidKey === 'YOUR_VAPID_KEY_HERE') {
+            console.error("VAPID key not found or is a placeholder. Push notifications will not work.");
+            toast({
+                variant: 'destructive',
+                title: 'Configuration Error: VAPID Key Missing',
+                description: (
+                    <div className="text-sm">
+                        <p>To enable push notifications, you need to add your Web Push Certificate key (VAPID key) from Firebase.</p>
+                        <ol className="list-decimal list-inside mt-2 space-y-1">
+                            <li>Go to your Firebase project settings.</li>
+                            <li>Go to the "Cloud Messaging" tab.</li>
+                            <li>Under "Web configuration", generate a key pair.</li>
+                            <li>Copy the public key.</li>
+                            <li>Create a <code className="font-mono bg-muted p-1 rounded">.env.local</code> file in your project root.</li>
+                            <li>Add the key: <code className="font-mono bg-muted p-1 rounded">NEXT_PUBLIC_VAPID_KEY=YOUR_KEY_HERE</code></li>
+                            <li>Restart your development server.</li>
+                        </ol>
+                    </div>
+                ),
+                duration: 20000,
+            });
             return;
         }
 
@@ -90,7 +109,8 @@ export default function NotificationManager() {
         console.log('Unable to get permission to notify.');
         toast({
           title: 'Notifications Blocked',
-          description: 'You can enable them in your browser settings if you change your mind.',
+          description: 'To enable notifications, please go to your browser settings for this site and change the permission to "Allow".',
+          duration: 9000,
         });
       }
     } catch (error) {
