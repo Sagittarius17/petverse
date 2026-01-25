@@ -17,8 +17,18 @@ export default function NotificationManager() {
   const [permission, setPermission] = useState<NotificationPermission | 'loading'>('loading');
 
   useEffect(() => {
-    // This effect ensures we only check Notification.permission on the client
-    setPermission(Notification.permission);
+    // A more robust way to check for notification permission and listen for changes.
+    if ('permissions' in navigator) {
+      navigator.permissions.query({ name: 'notifications' }).then((permissionStatus) => {
+        setPermission(permissionStatus.state);
+        permissionStatus.onchange = () => {
+          setPermission(permissionStatus.state);
+        };
+      });
+    } else {
+      // Fallback for older browsers.
+      setPermission(Notification.permission);
+    }
   }, []);
 
   useEffect(() => {
@@ -48,6 +58,8 @@ export default function NotificationManager() {
     
     try {
       const currentPermission = await Notification.requestPermission();
+      // The state will be updated automatically by the 'onchange' listener,
+      // but we can set it here for immediate feedback.
       setPermission(currentPermission);
 
       if (currentPermission === 'granted') {
@@ -86,10 +98,12 @@ export default function NotificationManager() {
     }
   };
 
+  // Only show the button if a user is logged in, permission isn't granted, and the state isn't loading.
   if (!user || permission === 'granted' || permission === 'loading') {
     return null;
   }
 
+  // If permission is denied, show the "Blocked" button.
   if (permission === 'denied') {
       return (
           <div className="fixed bottom-4 left-4 z-50">
@@ -101,6 +115,7 @@ export default function NotificationManager() {
       )
   }
 
+  // If permission is 'default' (not yet chosen), show the "Enable" button.
   return (
     <div className="fixed bottom-4 left-4 z-50">
       <Button onClick={requestPermissionAndToken} variant="outline" className="bg-background shadow-lg">
