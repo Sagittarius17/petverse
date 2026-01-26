@@ -131,28 +131,32 @@ export default function NotificationManager() {
   // If permission is denied, show the "Blocked" button.
   if (permission === 'denied') {
       return (
-          <div className="fixed bottom-4 left-4 z-50 flex items-center gap-2">
-               <Button onClick={requestPermissionAndToken} variant="destructive-outline" className="shadow-lg">
-                <BellOff className="mr-2 h-4 w-4" />
-                Notifications Blocked
-              </Button>
-               <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-background shadow-lg" onClick={() => setIsDismissed(true)}>
-                <X className="h-4 w-4" />
-              </Button>
+          <div className="fixed bottom-4 left-4 z-50">
+               <div className={cn("inline-flex items-stretch rounded-md border bg-background shadow-lg", "border-destructive/50 text-destructive")}>
+                 <button onClick={requestPermissionAndToken} data-firebase-performance-ignore="true" className="flex items-center gap-2 px-4 py-2 text-sm font-medium hover:bg-destructive/10 h-10">
+                    <BellOff className="h-4 w-4" />
+                    <span>Notifications Blocked</span>
+                 </button>
+                 <button onClick={() => setIsDismissed(true)} data-firebase-performance-ignore="true" className="px-3 border-l border-destructive/50 hover:bg-destructive/10">
+                    <X className="h-4 w-4" />
+                 </button>
+               </div>
           </div>
       )
   }
 
   // If permission is 'default' (not yet chosen), show the "Enable" button.
   return (
-    <div className="fixed bottom-4 left-4 z-50 flex items-center gap-2">
-      <Button onClick={requestPermissionAndToken} variant="outline" className="bg-background shadow-lg">
-        <BellRing className="mr-2 h-4 w-4" />
-        Enable Notifications
-      </Button>
-       <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-background shadow-lg" onClick={() => setIsDismissed(true)}>
-        <X className="h-4 w-4" />
-      </Button>
+    <div className="fixed bottom-4 left-4 z-50">
+      <div className={cn("inline-flex items-stretch rounded-md border border-input bg-background shadow-lg text-sm font-medium")}>
+        <button onClick={requestPermissionAndToken} data-firebase-performance-ignore="true" className="flex items-center gap-2 px-4 py-2 h-10 hover:bg-accent hover:text-accent-foreground">
+            <BellRing className="h-4 w-4" />
+            <span>Enable Notifications</span>
+        </button>
+        <button onClick={() => setIsDismissed(true)} data-firebase-performance-ignore="true" className="px-3 border-l border-input hover:bg-accent hover:text-accent-foreground">
+            <X className="h-4 w-4" />
+        </button>
+      </div>
     </div>
   );
 }
