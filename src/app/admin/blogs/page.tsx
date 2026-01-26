@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,46 @@ export interface Blog {
   updatedAt?: Timestamp;
 }
 
+const formatDate = (timestamp?: Timestamp) => {
+    if (!timestamp) return 'N/A';
+    return timestamp.toDate().toLocaleDateString('en-GB');
+};
+
+const BlogRow = memo(function BlogRow({ post, onEdit, onDelete }: { post: Blog; onEdit: (post: Blog) => void; onDelete: (post: Blog) => void; }) {
+  const handleEdit = () => onEdit(post);
+  const handleDelete = () => onDelete(post);
+
+  return (
+    <TableRow className={cn(post.status === 'Draft' && 'bg-muted/50 text-muted-foreground')}>
+      <TableCell className="font-medium">{post.title}</TableCell>
+      <TableCell>{post.authorName}</TableCell>
+      <TableCell>{post.categoryName}</TableCell>
+      <TableCell>
+        <Badge variant={post.status === 'Published' ? 'default' : 'outline'}>
+          {post.status}
+        </Badge>
+      </TableCell>
+      <TableCell>{formatDate(post.createdAt)}</TableCell>
+      <TableCell>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button aria-haspopup="true" size="icon" variant="ghost">
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Toggle menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem onSelect={handleEdit}>Edit</DropdownMenuItem>
+            <DropdownMenuItem onSelect={handleDelete} className="text-destructive">Delete</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
+    </TableRow>
+  );
+});
+
+
 export default function AdminBlogsPage() {
   const firestore = useFirestore();
   const { user, isUserLoading: isAuthLoading } = useUser();
@@ -46,15 +86,15 @@ export default function AdminBlogsPage() {
     setIsFormOpen(true);
   };
 
-  const handleEdit = (blog: Blog) => {
+  const handleEdit = useCallback((blog: Blog) => {
     setSelectedBlog(blog);
     setIsFormOpen(true);
-  };
+  }, []);
 
-  const handleDeleteConfirm = (blog: Blog) => {
+  const handleDeleteConfirm = useCallback((blog: Blog) => {
     setSelectedBlog(blog);
     setIsDeleteDialogOpen(true);
-  };
+  }, []);
 
   const handleDelete = async () => {
     if (!selectedBlog || !firestore || !user) return;
@@ -85,11 +125,6 @@ export default function AdminBlogsPage() {
       setIsDeleteDialogOpen(false);
       setSelectedBlog(null);
     }
-  };
-
-  const formatDate = (timestamp?: Timestamp) => {
-    if (!timestamp) return 'N/A';
-    return timestamp.toDate().toLocaleDateString('en-GB');
   };
 
   return (
@@ -135,32 +170,12 @@ export default function AdminBlogsPage() {
                 ))
               ) : blogs && blogs.length > 0 ? (
                 blogs.map((post) => (
-                  <TableRow key={post.id} className={cn(post.status === 'Draft' && 'bg-muted/50 text-muted-foreground')}>
-                    <TableCell className="font-medium">{post.title}</TableCell>
-                    <TableCell>{post.authorName}</TableCell>
-                    <TableCell>{post.categoryName}</TableCell>
-                    <TableCell>
-                      <Badge variant={post.status === 'Published' ? 'default' : 'outline'}>
-                        {post.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{formatDate(post.createdAt)}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onSelect={() => handleEdit(post)}>Edit</DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => handleDeleteConfirm(post)} className="text-destructive">Delete</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
+                  <BlogRow 
+                    key={post.id} 
+                    post={post}
+                    onEdit={handleEdit}
+                    onDelete={handleDeleteConfirm}
+                  />
                 ))
               ) : (
                 <TableRow>

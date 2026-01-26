@@ -1,6 +1,6 @@
 
 'use client';
-
+import { memo } from 'react';
 import { MoreHorizontal } from 'lucide-react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +33,82 @@ import { collection, Timestamp } from 'firebase/firestore';
 import type { Pet, LostPetReport } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 
+const formatDate = (timestamp?: Timestamp) => {
+    if (!timestamp) return 'N/A';
+    return timestamp.toDate().toLocaleDateString('en-GB');
+};
+
+const PetRow = memo(function PetRow({ pet }: { pet: Pet }) {
+    return (
+        <TableRow>
+            <TableCell className="font-medium">{pet.name}</TableCell>
+            <TableCell>{pet.species}</TableCell>
+            <TableCell>{pet.breed}</TableCell>
+            <TableCell>{pet.age}</TableCell>
+            <TableCell>
+            <Badge variant={pet.isAdoptable !== false ? 'default' : 'secondary'}>
+                {pet.isAdoptable !== false ? 'Adoptable' : 'Adopted'}
+            </Badge>
+            </TableCell>
+            <TableCell>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button aria-haspopup="true" size="icon" variant="ghost">
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="sr-only">Toggle menu</span>
+                </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem>Edit</DropdownMenuItem>
+                <DropdownMenuItem>Delete</DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+            </TableCell>
+        </TableRow>
+    );
+});
+
+const ReportRow = memo(function ReportRow({ report }: { report: LostPetReport }) {
+    return (
+        <TableRow>
+            <TableCell>
+                <Image
+                    alt={report.petName}
+                    className="aspect-square rounded-md object-cover"
+                    height="64"
+                    src={report.petImage}
+                    width="64"
+                />
+            </TableCell>
+            <TableCell className="font-medium">{report.petName}</TableCell>
+            <TableCell>
+                <Badge variant={report.reportType === 'Lost' ? 'destructive' : 'default'}>
+                    {report.reportType}
+                </Badge>
+            </TableCell>
+            <TableCell>{report.lastSeenLocation}</TableCell>
+            <TableCell>{formatDate(report.reportDate)}</TableCell>
+            <TableCell>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button aria-haspopup="true" size="icon" variant="ghost">
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="sr-only">Toggle menu</span>
+                </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem>View Report</DropdownMenuItem>
+                <DropdownMenuItem>Delete</DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+            </TableCell>
+        </TableRow>
+    );
+});
+
+
 export default function AdminPetsPage() {
   const firestore = useFirestore();
 
@@ -41,11 +117,6 @@ export default function AdminPetsPage() {
 
   const lostFoundReportsCollection = useMemoFirebase(() => collection(firestore, 'lost_found_reports'), [firestore]);
   const { data: reports, isLoading: isLoadingReports } = useCollection<LostPetReport>(lostFoundReportsCollection);
-
-  const formatDate = (timestamp?: Timestamp) => {
-    if (!timestamp) return 'N/A';
-    return timestamp.toDate().toLocaleDateString('en-GB');
-  };
 
   return (
     <Card className="h-[calc(100vh_-_8rem)] flex flex-col">
@@ -90,32 +161,7 @@ export default function AdminPetsPage() {
                     ))
                 ) : pets && pets.length > 0 ? (
                   pets.map((pet) => (
-                    <TableRow key={pet.id}>
-                      <TableCell className="font-medium">{pet.name}</TableCell>
-                      <TableCell>{pet.species}</TableCell>
-                      <TableCell>{pet.breed}</TableCell>
-                      <TableCell>{pet.age}</TableCell>
-                      <TableCell>
-                        <Badge variant={pet.isAdoptable !== false ? 'default' : 'secondary'}>
-                          {pet.isAdoptable !== false ? 'Adoptable' : 'Adopted'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button aria-haspopup="true" size="icon" variant="ghost">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Toggle menu</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem>Edit</DropdownMenuItem>
-                            <DropdownMenuItem>Delete</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
+                    <PetRow key={pet.id} pet={pet} />
                   ))
                 ) : (
                     <TableRow>
@@ -155,40 +201,7 @@ export default function AdminPetsPage() {
                   ))
                 ) : reports && reports.length > 0 ? (
                   reports.map((report) => (
-                    <TableRow key={report.id}>
-                      <TableCell>
-                        <Image
-                          alt={report.petName}
-                          className="aspect-square rounded-md object-cover"
-                          height="64"
-                          src={report.petImage}
-                          width="64"
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium">{report.petName}</TableCell>
-                      <TableCell>
-                        <Badge variant={report.reportType === 'Lost' ? 'destructive' : 'default'}>
-                          {report.reportType}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{report.lastSeenLocation}</TableCell>
-                      <TableCell>{formatDate(report.reportDate)}</TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button aria-haspopup="true" size="icon" variant="ghost">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Toggle menu</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem>View Report</DropdownMenuItem>
-                            <DropdownMenuItem>Delete</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
+                    <ReportRow key={report.id} report={report} />
                   ))
                 ) : (
                   <TableRow>
