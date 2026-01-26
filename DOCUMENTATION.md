@@ -81,7 +81,7 @@ The application uses Next.js Server Actions, which are functions that run on the
 
 | Endpoint / Action                    | File Path                                                 | Description                                                                                                                              |
 | ------------------------------------ | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `getSpeciesData`                     | `src/app/know-your-pet/[category]/[petType]/actions.ts`   | Fetches data for a specific pet species, merging its static breed list with any additional breeds found in the `animalBreeds` Firestore collection. |
+| `getSpeciesData`                     | `src/app/know-your-pet/[category]/[petType]/actions.ts`   | Fetches data for a specific pet species, merging its static breed list with any additional breeds found in the `animalBreeds` Firestore collection. This action is cached on the server for 10 minutes to improve performance. |
 | `handleLostPetReport`                | `src/app/lost-and-found/actions.ts`                       | Takes a pet image data URI, passes it to the `analyzePetImageForMatching` Genkit flow, and returns the AI-generated analysis summary. |
 | `analyzePetImageForMatching` (Flow)  | `src/ai/flows/analyze-pet-image-for-matching.ts`          | A Genkit flow that receives a pet image and uses a multimodal AI model to generate a descriptive summary of the pet's attributes.      |
 | `fetchBreedInfo` (Flow)              | `src/ai/flows/fetch-breed-info.ts`                        | A Genkit flow that takes a breed and species name, uses an AI model to research it, and saves the detailed information to Firestore.  |
@@ -100,7 +100,7 @@ The `firestore.rules` file enforces a user-centric security model. Key principle
 -   **Role-Based Access Control (RBAC):** Admins and Superadmins have elevated privileges to manage users and content.
 -   **Public Read, Owner Write:** Collections like `/pets` and `/blogs` are publicly readable, but write operations are restricted to the document owner or an admin.
 -   **Authentication Required for Writes:** Most write operations require the user to be signed in and have an "Active" status.
--   **Secure Queries:** Rules are structured to enforce secure queries, such as only allowing a user to list conversations they are a participant in.
+-   **Secure Queries & Writes:** Rules are structured to enforce secure queries, such as only allowing a user to list conversations they are a participant in. **Write rules for conversations are carefully structured to prevent race conditions during chat initiation.**
 
 ### Firestore Data Collections
 
@@ -117,7 +117,7 @@ The `firestore.rules` file enforces a user-centric security model. Key principle
 | `/vet_services/{serviceId}`                   | A collection for veterinary service listings.                                                                      |
 | `/lost_found_reports/{reportId}`              | A collection for storing lost and found pet reports.                                                               |
 | `/conversations/{conversationId}`             | Stores metadata for a chat between two users, including participant IDs and the last message summary.              |
-| `/conversations/{conversationId}/messages/{messageId}` | A subcollection containing all the individual messages for a specific conversation. Write access is limited to participants. |
+| `/conversations/{conversationId}/messages/{messageId}` | A subcollection containing all individual messages for a specific conversation. Write access is limited to participants and secured against race conditions by validating against the parent conversationId on create. |
 | `/notifications/{notificationId}`             | Stores global notifications for events like adoptions, visible to all users.                                       |
 
 
@@ -136,4 +136,3 @@ To facilitate communication between users for pet adoptions, a real-time messagi
 -   **Initiation:** Users can start a chat with a pet's owner directly from the pet detail dialog.
 -   **Presence:** The system includes a presence feature, showing whether a user is "Online" or their "last seen" status, based on their interaction with the chat panel.
 -   **Implementation:** The chat functionality is managed by a global `useChatStore` (Zustand) and several React components in `src/components/chat/`. It uses Firestore's real-time listeners (`onSnapshot`) to get new messages and conversation updates instantly.
-

@@ -24,12 +24,12 @@ The application relies heavily on Firestore's real-time listeners (`useCollectio
 **Potential Issues:**
 
 -   **Unmemoized Queries:** Passing new query or document reference objects on every render to `useCollection` or `useDoc` will cause infinite loops of data fetching. The app correctly uses `useMemoFirebase` to prevent this, and this practice must be maintained.
--   **`getSpeciesData` Server Action:** The function in `src/app/know-your-pet/[category]/[petType]/actions.ts` fetches breeds for a species from Firestore every time a user visits a species page. While it correctly filters by species, this is still a database read that happens on every visit.
+-   **`getSpeciesData` Server Action:** Previously, the function in `src/app/know-your-pet/[category]/[petType]/actions.ts` fetched from Firestore on every page visit. This has since been optimized with server-side caching.
 -   **Over-fetching Data:** Some pages might fetch more data than is immediately necessary. For example, fetching entire document collections when only a few fields are needed for a list view.
 
 **Recommendations:**
 
--   **Cache Server-Side Fetches:** The `getSpeciesData` function is a prime candidate for server-side caching using Next.js's built-in caching mechanisms (like `unstable_cache` or `fetch` caching with revalidation). Caching the results from Firestore for a specific duration (e.g., 10 minutes) would dramatically reduce database reads and speed up page loads for frequently visited species pages.
+-   **Cache Server-Side Fetches (Implemented):** The `getSpeciesData` function has been wrapped with Next.js's `unstable_cache`. This caches the results from Firestore for 10 minutes, dramatically reducing database reads and speeding up page loads for frequently visited species pages.
 -   **Implement Pagination:** For large collections like `/pets`, `/blogs`, and `/users` (in the admin panel), implement pagination instead of fetching all documents at once. Use Firestore's `limit()` and `startAfter()` query methods. The `/adopt` page is a good example of this being implemented correctly.
 -   **Selective Field Fetching:** While Firestore's client SDK doesn't support selecting specific fields for a collection query in the same way as a traditional SQL database, consider structuring your data to separate frequently accessed list data from large, detailed content if performance becomes an issue.
 
@@ -63,5 +63,9 @@ Calls to Genkit AI flows involve external network requests to the AI model's API
 ## 5. General Frontend Performance
 
 -   **Bundle Size:** Keep an eye on your JavaScript bundle size. Avoid adding large libraries unless absolutely necessary. Use a tool like `@next/bundle-analyzer` to inspect what's contributing to your bundle size.
--   **Memoization:** Use `React.memo` for components that are expensive to render and are re-rendered often with the same props. Use `useMemo` and `useCallback` to prevent unnecessary re-calculations and re-renders in child components.
+-   **Memoization (Implemented):** To improve rendering performance, `React.memo` has been applied to several list-item components across the application, including the chat's `MessageBubble` and various tables in the admin panel (`UserRow`, `BlogRow`, `PetRow`, `ActivityItem`). This prevents the entire list from re-rendering when only a single item changes, making the UI more responsive.
 -   **Code Splitting:** Next.js App Router does automatic code splitting by route. Continue to leverage this by keeping page-specific components within their respective page directories.
+
+## 6. Build & Monitoring Performance
+
+-   **Firebase Performance Monitoring:** The application uses Firebase Performance Monitoring to track app performance. A previous issue caused crashes due to long class names on buttons being logged as attributes. This has been resolved by adding the `data-firebase-performance-ignore="true"` attribute to the base `Button` component (`src/components/ui/button.tsx`), preventing the SDK from tracking these specific interactions.
