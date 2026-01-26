@@ -28,7 +28,7 @@ import {
 import { useCollection, useFirestore, useMemoFirebase, updateDocumentNonBlocking, useUser, useDoc } from '@/firebase';
 import { collection, doc, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -67,7 +67,7 @@ const roleVisuals: Record<Role, { icon: React.ElementType; color: string }> = {
   User: { icon: UserIcon, color: 'text-muted-foreground' },
 };
 
-function RoleDisplay({ role }: { role: Role }) {
+const RoleDisplay = memo(function RoleDisplay({ role }: { role: Role }) {
   const { icon: Icon, color } = roleVisuals[role] || roleVisuals.User;
   return (
     <div className={cn('flex items-center gap-2', color)}>
@@ -75,7 +75,79 @@ function RoleDisplay({ role }: { role: Role }) {
       <span>{role}</span>
     </div>
   );
-}
+});
+
+const getDisplayName = (user: UserProfile) => {
+  if (user.firstName && user.lastName) {
+    return `${user.firstName} ${user.lastName}`;
+  }
+  return user.username || user.email;
+};
+
+const formatDate = (timestamp?: Timestamp) => {
+  if (!timestamp) return 'N/A';
+  return timestamp.toDate().toLocaleDateString('en-GB');
+};
+
+const UserRow = memo(function UserRow({
+  user,
+  isManageable,
+  canManage,
+  onEdit,
+  onToggleStatus,
+}: {
+  user: UserProfile;
+  isManageable: boolean;
+  canManage: boolean;
+  onEdit: (user: UserProfile) => void;
+  onToggleStatus: (user: UserProfile) => void;
+}) {
+
+  const handleEditClick = () => onEdit(user);
+  const handleToggleClick = () => onToggleStatus(user);
+
+  return (
+    <TableRow className={cn(user.status === 'Inactive' && 'bg-muted/50 text-muted-foreground')}>
+      <TableCell className="font-medium">{getDisplayName(user)}</TableCell>
+      <TableCell>{user.email}</TableCell>
+      <TableCell>
+        <RoleDisplay role={user.role || 'User'} />
+      </TableCell>
+      <TableCell>
+        <Badge variant={user.status === 'Active' ? 'default' : 'destructive'}>
+          {user.status || 'Active'}
+        </Badge>
+      </TableCell>
+      <TableCell>{formatDate(user.createdAt)}</TableCell>
+      <TableCell>
+        {isManageable && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button aria-haspopup="true" size="icon" variant="ghost" disabled={!canManage}>
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem onSelect={handleEditClick}>Edit Role</DropdownMenuItem>
+              {user.status !== 'Active' ? (
+                <DropdownMenuItem onSelect={handleToggleClick} className="text-green-600 focus:text-green-600">
+                  <ShieldCheck className="mr-2 h-4 w-4" /> Enable
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onSelect={handleToggleClick} className="text-destructive focus:text-destructive">
+                  <ShieldOff className="mr-2 h-4 w-4" /> Disable
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </TableCell>
+    </TableRow>
+  );
+});
+
 
 type SortConfig = {
   key: keyof UserProfile | 'displayName';
@@ -107,13 +179,6 @@ export default function AdminUsersPage() {
   const [newRole, setNewRole] = useState<Role>('User');
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
 
-  const getDisplayName = (user: UserProfile) => {
-    if (user.firstName && user.lastName) {
-      return `${user.firstName} ${user.lastName}`;
-    }
-    return user.username || user.email;
-  };
-  
   const sortedUsers = useMemo(() => {
     let sortableUsers = users ? [...users] : [];
     if (sortConfig !== null) {
@@ -154,11 +219,6 @@ export default function AdminUsersPage() {
       direction = 'descending';
     }
     setSortConfig({ key, direction });
-  };
-
-  const formatDate = (timestamp?: Timestamp) => {
-    if (!timestamp) return 'N/A';
-    return timestamp.toDate().toLocaleDateString('en-GB');
   };
 
   const handleToggleStatus = () => {
@@ -207,12 +267,17 @@ export default function AdminUsersPage() {
     }
   };
 
-  const openEditDialog = (user: UserProfile) => {
+  const openEditDialog = useCallback((user: UserProfile) => {
     setUserToEdit(user);
     setNewRole(user.role || 'User');
-  };
+  }, []);
 
-  const canManageUser = (targetUser: UserProfile): boolean => {
+  const handleSetUserToToggleStatus = useCallback((user: UserProfile) => {
+    setUserToToggleStatus(user);
+  }, []);
+
+
+  const canManageUser = useCallback((targetUser: UserProfile): boolean => {
     if (!currentUserProfile) return false;
     const requesterRole = currentUserProfile.role;
     const targetRole = targetUser.role;
@@ -221,12 +286,12 @@ export default function AdminUsersPage() {
     if (requesterRole === 'Admin') return targetRole !== 'Admin' && targetRole !== 'Superadmin';
     
     return false;
-  };
+  }, [currentUserProfile]);
 
-  const canBeManaged = (user: UserProfile): boolean => {
+  const canBeManaged = useCallback((user: UserProfile): boolean => {
     if (!currentUserProfile) return false;
     return user.id !== currentUserProfile.id;
-  };
+  }, [currentUserProfile]);
   
   const getAvailableRoles = (): Role[] => {
     if (!currentUserProfile) return [];
@@ -308,44 +373,14 @@ export default function AdminUsersPage() {
                 ))
               ) : sortedUsers && sortedUsers.length > 0 ? (
                 sortedUsers.map((user) => (
-                  <TableRow key={user.id} className={cn(user.status === 'Inactive' && 'bg-muted/50 text-muted-foreground')}>
-                    <TableCell className="font-medium">{getDisplayName(user)}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <RoleDisplay role={user.role || 'User'} />
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={user.status === 'Active' ? 'default' : 'destructive'}>
-                        {user.status || 'Active'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{formatDate(user.createdAt)}</TableCell>
-                    <TableCell>
-                      {canBeManaged(user) && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button aria-haspopup="true" size="icon" variant="ghost" disabled={!canManageUser(user)}>
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Toggle menu</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onSelect={() => openEditDialog(user)}>Edit Role</DropdownMenuItem>
-                            {user.status !== 'Active' ? (
-                              <DropdownMenuItem onSelect={() => setUserToToggleStatus(user)} className="text-green-600 focus:text-green-600">
-                                <ShieldCheck className="mr-2 h-4 w-4" /> Enable
-                              </DropdownMenuItem>
-                            ) : (
-                              <DropdownMenuItem onSelect={() => setUserToToggleStatus(user)} className="text-destructive focus:text-destructive">
-                                <ShieldOff className="mr-2 h-4 w-4" /> Disable
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
-                    </TableCell>
-                  </TableRow>
+                  <UserRow
+                    key={user.id}
+                    user={user}
+                    isManageable={canBeManaged(user)}
+                    canManage={canManageUser(user)}
+                    onEdit={openEditDialog}
+                    onToggleStatus={handleSetUserToToggleStatus}
+                  />
                 ))
               ) : (
                   <TableRow>
