@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import { useCollection, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, Timestamp, doc } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,6 +16,7 @@ import {
   Trash2,
   PlusCircle,
   ListCollapse,
+  PawPrint,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { UserProfile } from '@/lib/data';
@@ -49,7 +50,7 @@ function formatRelativeTime(timestamp?: Timestamp): string {
     return `${formatDistanceToNow(timestamp.toDate())} ago`;
 }
 
-function ActivityItem({ activity }: { activity: Activity }) {
+const ActivityItem = memo(function ActivityItem({ activity }: { activity: Activity }) {
   const firestore = useFirestore();
   const userDocRef = useMemoFirebase(
     () => (firestore ? doc(firestore, 'users', activity.userId) : null),
@@ -74,7 +75,7 @@ function ActivityItem({ activity }: { activity: Activity }) {
     <div className="grid items-start grid-cols-[auto_1fr_auto] gap-x-4">
         <Avatar className="h-10 w-10">
             <AvatarImage src={avatarUrl} />
-            <AvatarFallback>{nameToDisplay?.charAt(0) || 'A'}</AvatarFallback>
+            <AvatarFallback><PawPrint className="h-5 w-5 text-muted-foreground" /></AvatarFallback>
         </Avatar>
         <div className="text-sm">
             <div>
@@ -96,7 +97,7 @@ function ActivityItem({ activity }: { activity: Activity }) {
         </div>
     </div>
   );
-}
+});
 
 
 export default function ActivityLog() {
