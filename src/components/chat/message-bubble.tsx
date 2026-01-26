@@ -87,7 +87,7 @@ function ReplyPreview({ replyTo, currentUser, otherParticipant, onReplyClick }: 
     );
 }
 
-export default function MessageBubble({ message, isCurrentUser, activeConversationId, currentUser, otherParticipant, highlightedMessageId, onReplyClick }: MessageBubbleProps) {
+function MessageBubble({ message, isCurrentUser, activeConversationId, currentUser, otherParticipant, highlightedMessageId, onReplyClick }: MessageBubbleProps) {
   const hasMedia = !!message.mediaUrl;
   const hasText = !!message.text;
 
@@ -246,3 +246,5 @@ export default function MessageBubble({ message, isCurrentUser, activeConversati
     </div>
   );
 }
+
+export default React.memo(MessageBubble);
