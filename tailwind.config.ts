@@ -20,7 +20,7 @@ const config = {
     extend: {
       fontFamily: {
         heading: ["var(--font-heading)", "sans-serif"],
-        body: ["Inter", "sans-serif"], // <-- Changed from PT Sans
+        body: ["var(--font-body)", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
