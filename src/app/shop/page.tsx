@@ -1,6 +1,5 @@
 
-'use client';
-
+import { type Metadata } from 'next';
 import { Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -11,6 +10,11 @@ import ProductCard from '@/components/product-card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { PawPrint, Sparkles } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+
+export const metadata: Metadata = {
+  title: 'PetVerse Shop - High-Quality Pet Supplies',
+  description: 'Shop for everything your pet deserves! Find high-quality food, engaging toys, cozy beds, and stylish accessories to keep your best friend happy and healthy.',
+};
 
 function ShopContent() {
   const searchParams = useSearchParams();

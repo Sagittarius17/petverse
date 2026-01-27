@@ -1,20 +1,33 @@
-'use client';
 
-import { notFound, useRouter } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
+import type { Metadata } from 'next';
 import { allCareGuides } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import { use } from 'react';
 
-// Using a client component to use the useRouter hook
-export default function CareGuidePage({ params }: { params: Promise<{ id: string }> }) {
-  const router = useRouter();
-  const resolvedParams = use(params);
-  const guide = allCareGuides.find(g => g.id === resolvedParams.id);
+export function generateMetadata({ params }: { params: { id: string } }): Metadata {
+  const guide = allCareGuides.find(g => g.id === params.id);
+  if (!guide) {
+    return { title: 'Guide Not Found' };
+  }
+  return {
+    title: `${guide.title} | PetVerse Care Guides`,
+    description: guide.summary,
+     openGraph: {
+      title: guide.title,
+      description: guide.summary,
+      type: 'article',
+    }
+  };
+}
+
+export default function CareGuidePage({ params }: { params: { id: string } }) {
+  const guide = allCareGuides.find(g => g.id === params.id);
 
   if (!guide) {
     notFound();
@@ -43,9 +56,11 @@ export default function CareGuidePage({ params }: { params: Promise<{ id: string
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
-       <Button variant="ghost" onClick={() => router.back()} className="mb-4 pl-0">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Go Back
+       <Button variant="ghost" asChild className="mb-4 pl-0">
+          <Link href="/care">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Go Back
+          </Link>
         </Button>
       <article>
         <header className="mb-8">
