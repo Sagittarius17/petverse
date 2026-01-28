@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2, MapPin, Send } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
+import { LocationInput } from './ui/location-input';
 
 const formSchema = z.object({
   reportType: z.enum(['Lost', 'Found'], {
@@ -205,10 +206,18 @@ export default function LostPetForm() {
             <div>
               <Label htmlFor="lastSeenLocation">Location (Lost or Found)</Label>
               <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input id="lastSeenLocation" {...form.register('lastSeenLocation')} className="pl-10" />
+                <Controller
+                    name="lastSeenLocation"
+                    control={form.control}
+                    render={({ field }) => (
+                      <LocationInput
+                        {...field}
+                        placeholder="e.g. Delhi, Delhi"
+                      />
+                    )}
+                />
                 <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" onClick={handleUseLocation} title="Use my current location">
-                    <MapPin className="h-4 w-4" />
+                    <MapPin className="h-4 w-4 text-muted-foreground hover:text-primary" />
                     <span className="sr-only">Use my location</span>
                 </Button>
               </div>

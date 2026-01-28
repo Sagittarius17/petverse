@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Search, MapPin } from 'lucide-react';
 import { petCategories } from '@/lib/data';
+import { LocationInput } from './ui/location-input';
 
 interface PetFiltersProps {
   searchTerm: string;
@@ -97,16 +99,14 @@ export default function PetFilters({
       <div className="space-y-2">
         <Label htmlFor="location">Location</Label>
         <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
+            <LocationInput
                 id="location"
                 placeholder="City, State"
                 value={locationFilter}
-                onChange={(e) => setLocationFilter(e.target.value)}
-                className="w-full pl-10 pr-10"
+                onChange={setLocationFilter}
             />
             <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" onClick={onUseLocation} title="Find pets near me">
-                <MapPin />
+                <MapPin className="h-4 w-4 text-muted-foreground hover:text-primary"/>
                 <span className="sr-only">Use my location</span>
             </Button>
         </div>
