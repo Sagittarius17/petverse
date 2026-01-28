@@ -17,6 +17,10 @@ interface Blog {
 
 // Server-side function to fetch a single blog post
 async function getPost(id: string): Promise<Blog | null> {
+  if (!db) {
+    console.warn("Firestore Admin SDK not initialized. Server-side data fetching for blogs is disabled. Please check your server environment variables.");
+    return null;
+  }
   const docRef = db.collection('blogs').doc(id);
   const docSnap = await docRef.get();
   
