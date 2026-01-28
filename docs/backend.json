@@ -60,16 +60,21 @@
             "format": "date-time",
             "description": "The timestamp when the user was last seen online."
         },
-        "address": {
-          "type": "object",
-          "description": "The user's saved shipping address.",
-          "properties": {
-            "fullName": { "type": "string" },
-            "streetAddress": { "type": "string" },
-            "city": { "type": "string" },
-            "state": { "type": "string" },
-            "zip": { "type": "string" },
-            "phone": { "type": "string" }
+        "addresses": {
+          "type": "array",
+          "description": "The user's saved shipping addresses.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "fullName": { "type": "string" },
+              "streetAddress": { "type": "string" },
+              "city": { "type": "string" },
+              "state": { "type": "string" },
+              "zip": { "type": "string" },
+              "phone": { "type": "string" }
+            },
+            "required": ["id"]
           }
         }
       },

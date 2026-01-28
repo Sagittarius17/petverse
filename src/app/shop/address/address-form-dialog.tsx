@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useFirestore, useUser } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,6 +24,7 @@ const addressSchema = z.object({
 type AddressFormData = z.infer<typeof addressSchema>;
 
 interface Address {
+    id: string;
     fullName: string;
     streetAddress: string;
     city: string;
@@ -64,7 +65,19 @@ export function AddressFormDialog({ isOpen, onClose, onSuccess, existingAddress 
     if (!user) return;
     const userDocRef = doc(firestore, 'users', user.uid);
     try {
-        await updateDoc(userDocRef, { address: data });
+        if (existingAddress) { // Edit mode
+            const userDocSnap = await getDoc(userDocRef);
+            const currentAddresses = userDocSnap.data()?.addresses || [];
+            const updatedAddresses = currentAddresses.map((addr: Address) => 
+                addr.id === existingAddress.id ? { ...data, id: existingAddress.id } : addr
+            );
+            await updateDoc(userDocRef, { addresses: updatedAddresses });
+        } else { // Create mode
+            const newAddress = { ...data, id: new Date().getTime().toString() };
+            await updateDoc(userDocRef, {
+                addresses: arrayUnion(newAddress)
+            });
+        }
         onSuccess();
     } catch (error) {
         console.error("Error saving address:", error);
