@@ -183,6 +183,20 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
       return;
     }
 
+    let lat: number | undefined;
+    let lon: number | undefined;
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(data.location)}&format=json&limit=1`);
+        const geocodeData = await response.json();
+        if (geocodeData && geocodeData.length > 0) {
+            lat = parseFloat(geocodeData[0].lat);
+            lon = parseFloat(geocodeData[0].lon);
+        }
+    } catch (e) {
+        console.error("Geocoding failed during pet submission:", e);
+        // Silently fail, the pet can still be submitted without coordinates.
+    }
+
     let ageString = '';
     if (data.ageYears) ageString += `${data.ageYears} year${data.ageYears > 1 ? 's' : ''} `;
     if (data.ageMonths) ageString += `${data.ageMonths} month${data.ageMonths > 1 ? 's' : ''}`;
@@ -215,7 +229,9 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
       const petData = { 
         ...restOfData, 
         age: ageString, 
-        imageId: imageToStore
+        imageId: imageToStore,
+        lat: lat,
+        lon: lon,
       };
 
       if (isEditMode) {

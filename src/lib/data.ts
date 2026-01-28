@@ -38,6 +38,8 @@ export interface Pet {
   age: string;
   gender: 'Male' | 'Female';
   location?: string;
+  lat?: number;
+  lon?: number;
   imageId: string;
   description: string;
   isAdoptable?: boolean;

@@ -51,24 +51,19 @@ speciesToCategoryMap.set('Bird', 'Birds');
 speciesToCategoryMap.set('Lizard', 'Reptiles');
 speciesToCategoryMap.set('Fish', 'Fish');
 
-// This is a mock function for demonstration purposes to avoid API keys and costs.
-// In a real app, you would use a proper geocoding service.
-const mockGeocode = (location: string): { lat: number; lon: number } | null => {
-  if (!location) return null;
-  let hash = 0;
-  for (let i = 0; i < location.length; i++) {
-    const char = location.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash |= 0; // Convert to 32bit integer
-  }
-  // Base coordinates (center of India)
-  const baseLat = 20.5937;
-  const baseLon = 78.9629;
-  // Generate deterministic "random" coordinates based on the location hash
-  const lat = baseLat + (hash % 1000) / 250; // Spread over ~4 degrees latitude (~444km)
-  const lon = baseLon + ((hash >> 16) % 1000) / 250; // Spread over ~4 degrees longitude
-  return { lat, lon };
-};
+const geocode = async (location: string): Promise<{ lat: number; lon: number } | null> => {
+    if (!location) return null;
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)}&format=json&limit=1`);
+        const data = await response.json();
+        if (data && data.length > 0) {
+            return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+        }
+    } catch (error) {
+        console.error("Geocoding error:", error);
+    }
+    return null;
+}
 
 
 export default function AdoptPageClient() {
@@ -88,6 +83,26 @@ export default function AdoptPageClient() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+  const [userCoords, setUserCoords] = useState<{ lat: number; lon: number } | null>(null);
+
+  useEffect(() => {
+    const geocodeLocation = async () => {
+        if (locationFilter) {
+            const coords = await geocode(locationFilter);
+            setUserCoords(coords);
+             if (!coords) {
+                toast({
+                    variant: 'destructive',
+                    title: "Location not found",
+                    description: "Could not find coordinates for the entered location."
+                })
+            }
+        } else {
+            setUserCoords(null);
+        }
+    };
+    geocodeLocation();
+  }, [locationFilter, toast]);
 
   const handleUseLocation = () => {
     if (navigator.geolocation) {
@@ -208,8 +223,6 @@ export default function AdoptPageClient() {
 
 
   const filteredPets = useMemo(() => {
-    const userCoords = locationFilter ? mockGeocode(locationFilter) : null;
-
     return allPets.filter(pet => {
       const matchesSearch =
         pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -222,22 +235,21 @@ export default function AdoptPageClient() {
       
       let matchesLocation = true;
       if (locationFilter && userCoords) {
-        if (pet.location) {
-          const petCoords = mockGeocode(pet.location);
-          if (petCoords) {
-            const distance = getDistance(userCoords.lat, userCoords.lon, petCoords.lat, petCoords.lon);
-            matchesLocation = distance <= distanceRange[0];
-          } else {
-            matchesLocation = false;
-          }
+        if (pet.lat && pet.lon) {
+          const distance = getDistance(userCoords.lat, userCoords.lon, pet.lat, pet.lon);
+          matchesLocation = distance <= distanceRange[0];
         } else {
+            // If user is filtering by location, pets without coordinates don't match.
             matchesLocation = false;
         }
+      } else if (locationFilter && !userCoords) {
+        // If user entered a location that couldn't be geocoded, show no results for location.
+        matchesLocation = false;
       }
       
       return matchesSearch && matchesCategory && matchesGender && matchesAge && matchesLocation;
     });
-  }, [allPets, searchTerm, locationFilter, categoryFilter, genderFilter, ageRange, distanceRange]);
+  }, [allPets, searchTerm, locationFilter, userCoords, categoryFilter, genderFilter, ageRange, distanceRange]);
   
 
   if (isLoading) {
