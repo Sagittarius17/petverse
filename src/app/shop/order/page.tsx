@@ -80,7 +80,9 @@ function OrderCard({ order }: { order: Order }) {
                 )}
             </CardContent>
             <CardFooter>
-                <Button variant="outline" className="w-full">Track Order</Button>
+                <Button asChild variant="outline" className="w-full">
+                    <Link href={`/shop/order/${order.id}`}>Track Order</Link>
+                </Button>
             </CardFooter>
         </Card>
     )

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -196,7 +195,7 @@ export default function ShopHeader() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/profile/addresses">
+                  <Link href="/shop/address">
                     <Home className="mr-2 h-4 w-4" />
                     <span>Address</span>
                   </Link>
