@@ -63,7 +63,7 @@ export default function PetFilters({
     setCategoryFilter([]);
     setGenderFilter([]);
     setAgeRange([180]);
-    setDistanceRange([50]);
+    setDistanceRange([100]);
   };
 
   const formatAgeLabel = (months: number): string => {
@@ -119,8 +119,8 @@ export default function PetFilters({
         <CardContent>
           <Slider
             min={0}
-            max={50}
-            step={5}
+            max={100}
+            step={10}
             value={distanceRange}
             onValueChange={(value) => setDistanceRange(value as [number])}
             disabled={!locationFilter}

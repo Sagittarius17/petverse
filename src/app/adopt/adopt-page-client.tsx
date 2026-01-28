@@ -74,7 +74,7 @@ export default function AdoptPageClient() {
   const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
   const [genderFilter, setGenderFilter] = useState<string[]>([]);
   const [ageRange, setAgeRange] = useState<[number]>([180]); // Max age in months (15 years)
-  const [distanceRange, setDistanceRange] = useState<[number]>([50]); // Max distance in km
+  const [distanceRange, setDistanceRange] = useState<[number]>([100]); // Max distance in km
 
   const [allPets, setAllPets] = useState<Pet[]>([]);
   const [userProfilesMap, setUserProfilesMap] = useState<Map<string, UserProfile>>(new Map());
