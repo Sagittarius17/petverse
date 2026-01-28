@@ -21,6 +21,7 @@ const blogSchema = z.object({
   content: z.string().min(10, 'Content must be at least 10 characters long'),
   categoryName: z.string().min(1, 'Category is required'),
   status: z.enum(['Draft', 'Published']),
+  image: z.any().optional(),
 });
 
 type BlogFormData = z.infer<typeof blogSchema>;
@@ -49,6 +50,7 @@ export function BlogForm({ isOpen, onClose, blog, user }: BlogFormProps) {
         content: blog.content,
         categoryName: blog.categoryName,
         status: blog.status,
+        image: undefined,
       });
     } else {
       reset({
@@ -56,6 +58,7 @@ export function BlogForm({ isOpen, onClose, blog, user }: BlogFormProps) {
         content: '',
         categoryName: '',
         status: 'Draft',
+        image: undefined,
       });
     }
   }, [blog, reset]);
@@ -70,12 +73,37 @@ export function BlogForm({ isOpen, onClose, blog, user }: BlogFormProps) {
       return;
     }
 
+    let imageUrl: string | undefined | null = blog?.imageUrl;
+
+    if (data.image && data.image.length > 0) {
+      const file = data.image[0];
+      try {
+        imageUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = (error) => reject(error);
+        });
+      } catch (error) {
+        console.error('Error processing image:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Image Error',
+          description: 'Could not process the image file.',
+        });
+        return;
+      }
+    }
+
     try {
+      const { image, ...blogData } = data;
+
       if (blog) {
         // Update existing blog
         const blogRef = doc(firestore, 'blogs', blog.id);
         await updateDoc(blogRef, {
-          ...data,
+          ...blogData,
+          imageUrl: imageUrl,
           updatedAt: serverTimestamp(),
         });
         logActivity(firestore, user, {
@@ -94,7 +122,8 @@ export function BlogForm({ isOpen, onClose, blog, user }: BlogFormProps) {
         // Create new blog
         const blogsCollection = collection(firestore, 'blogs');
         await addDoc(blogsCollection, {
-          ...data,
+          ...blogData,
+          imageUrl: imageUrl,
           authorId: user.uid,
           authorName: user.displayName || user.email,
           createdAt: serverTimestamp(),
@@ -139,6 +168,11 @@ export function BlogForm({ isOpen, onClose, blog, user }: BlogFormProps) {
               <Label htmlFor="title">Title</Label>
               <Input id="title" {...register('title')} />
               {errors.title && <p className="text-destructive text-sm">{errors.title.message}</p>}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="image">Featured Image</Label>
+              <Input id="image" type="file" {...register('image')} accept="image/*" />
+              {errors.image && <p className="text-destructive text-sm">{(errors.image as any).message}</p>}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="content">Content</Label>

@@ -13,6 +13,7 @@ interface Blog {
   authorName: string;
   categoryName: string;
   createdAt?: Timestamp;
+  imageUrl?: string;
 }
 
 // Server-side function to fetch a single blog post
@@ -38,6 +39,7 @@ async function getPost(id: string): Promise<Blog | null> {
     authorName: data.authorName,
     categoryName: data.categoryName,
     createdAt: data.createdAt,
+    imageUrl: data.imageUrl || null,
   } as Blog;
 }
 
@@ -56,6 +58,7 @@ export async function generateMetadata(
 
   // Create a concise description for SEO and social sharing
   const description = post.content.substring(0, 160).replace(/\n/g, ' ').trim() + '...';
+  const ogImage = post.imageUrl || 'https://images.unsplash.com/photo-1548681528-6a5c45b66b42?w=1200&h=630';
 
   return {
     title: `${post.title} | PetVerse Blog`,
@@ -64,8 +67,12 @@ export async function generateMetadata(
       title: post.title,
       description: description,
       type: 'article',
-      // Assuming a generic image for now, this could be dynamic in a future step
-      images: ['/og-image.png'], 
+      images: [{
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: post.title,
+      }],
     },
   };
 }

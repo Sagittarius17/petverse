@@ -21,13 +21,23 @@ interface Blog {
     _seconds: number;
     _nanoseconds: number;
   };
+  imageUrl?: string;
 }
 
 export default function BlogPostContent({ post }: { post: Blog }) {
   const router = useRouter();
 
-  const imageId = `guide-${post.categoryName?.toLowerCase() || 'dog'}`;
-  const image = PlaceHolderImages.find(p => p.id === imageId) || PlaceHolderImages.find(p => p.id === 'guide-dog');
+  let image;
+  if (post.imageUrl) {
+    image = {
+      imageUrl: post.imageUrl,
+      description: post.title,
+      imageHint: post.categoryName.toLowerCase(),
+    };
+  } else {
+    const imageId = `guide-${post.categoryName?.toLowerCase() || 'dog'}`;
+    image = PlaceHolderImages.find(p => p.id === imageId) || PlaceHolderImages.find(p => p.id === 'guide-dog');
+  }
 
   const renderContent = (content: string) => {
     return content

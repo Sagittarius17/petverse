@@ -19,11 +19,21 @@ interface Blog {
   categoryName: string;
   status: 'Draft' | 'Published';
   createdAt?: Timestamp;
+  imageUrl?: string;
 }
 
 function BlogCard({ post }: { post: Blog }) {
-    const imageId = `guide-${post.categoryName?.toLowerCase() || 'dog'}`;
-    const image = PlaceHolderImages.find(p => p.id === imageId) || PlaceHolderImages.find(p => p.id === 'guide-dog');
+    let image;
+    if (post.imageUrl) {
+        image = {
+            imageUrl: post.imageUrl,
+            description: post.title,
+            imageHint: post.categoryName?.toLowerCase() || 'blog',
+        };
+    } else {
+        const imageId = `guide-${post.categoryName?.toLowerCase() || 'dog'}`;
+        image = PlaceHolderImages.find(p => p.id === imageId) || PlaceHolderImages.find(p => p.id === 'guide-dog');
+    }
 
     return (
         <Link href={`/blog/${post.id}`} className="group">

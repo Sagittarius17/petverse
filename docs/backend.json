@@ -201,6 +201,11 @@
             "type": "string",
             "enum": ["Draft", "Published"],
             "description": "The publication status of the blog post."
+        },
+        "imageUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the blog's feature image."
         }
       },
       "required": [

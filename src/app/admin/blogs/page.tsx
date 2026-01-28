@@ -1,6 +1,7 @@
 'use client';
 import { useState, useMemo, useCallback, memo } from 'react';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, FileText } from 'lucide-react';
+import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,6 +26,7 @@ export interface Blog {
   status: 'Draft' | 'Published';
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
+  imageUrl?: string;
 }
 
 const formatDate = (timestamp?: Timestamp) => {
@@ -38,6 +40,15 @@ const BlogRow = memo(function BlogRow({ post, onEdit, onDelete }: { post: Blog; 
 
   return (
     <TableRow className={cn(post.status === 'Draft' && 'bg-muted/50 text-muted-foreground')}>
+      <TableCell>
+        {post.imageUrl ? (
+          <Image src={post.imageUrl} alt={post.title} width={40} height={40} className="rounded-md object-cover aspect-square" />
+        ) : (
+          <div className="h-10 w-10 bg-muted rounded-md flex items-center justify-center">
+            <FileText className="h-5 w-5 text-muted-foreground" />
+          </div>
+        )}
+      </TableCell>
       <TableCell className="font-medium">{post.title}</TableCell>
       <TableCell>{post.authorName}</TableCell>
       <TableCell>{post.categoryName}</TableCell>
@@ -146,6 +157,7 @@ export default function AdminBlogsPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[60px]">Image</TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Author</TableHead>
                 <TableHead>Category</TableHead>
@@ -160,6 +172,7 @@ export default function AdminBlogsPage() {
               {isLoading ? (
                 Array.from({ length: 4 }).map((_, i) => (
                   <TableRow key={i}>
+                    <TableCell><Skeleton className="h-10 w-10 rounded-md" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-48" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-16" /></TableCell>
@@ -179,7 +192,7 @@ export default function AdminBlogsPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
+                  <TableCell colSpan={7} className="h-24 text-center">
                     No blog posts found.
                   </TableCell>
                 </TableRow>
