@@ -11,6 +11,7 @@ import { Package, Truck, Home, XCircle, ChevronLeft, Copy } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { useParams } from 'next/navigation';
+import { Badge } from '@/components/ui/badge';
 
 interface OrderItem {
   id: string;
