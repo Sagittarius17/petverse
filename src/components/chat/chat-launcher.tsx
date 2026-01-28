@@ -85,6 +85,7 @@ export default function ChatLauncher({ unreadMessages, unreadChats }: ChatLaunch
           className="rounded-full w-16 h-16 bg-gray-800 hover:bg-gray-700 text-white shadow-lg cursor-grab active:cursor-grabbing"
           onClick={handleClick}
           onMouseDown={handleMouseDown}
+          data-firebase-performance-ignore="true"
         >
           <MessageSquare className="h-8 w-8 pointer-events-none" />
         </Button>

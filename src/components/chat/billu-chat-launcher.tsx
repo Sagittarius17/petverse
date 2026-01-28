@@ -163,6 +163,7 @@ export default function BilluChatLauncher() {
             onClick={handleClick}
             onMouseDown={handleMouseDown}
             disabled={isGuestLoading}
+            data-firebase-performance-ignore="true"
           >
             {isGuestLoading ? (
                 <div className="relative flex h-8 w-8 items-center justify-center">
