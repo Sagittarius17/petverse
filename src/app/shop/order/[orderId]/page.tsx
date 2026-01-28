@@ -10,6 +10,7 @@ import { formatCurrency } from '@/lib/localization';
 import { Package, Truck, Home, XCircle, ChevronLeft, Copy } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import { useParams } from 'next/navigation';
 
 interface OrderItem {
   id: string;
@@ -45,15 +46,17 @@ const statusTimeline = [
     { status: 'Delivered', icon: Home, text: 'Order has been delivered' },
 ];
 
-export default function TrackOrderPage({ params }: { params: { orderId: string } }) {
+export default function TrackOrderPage() {
+    const params = useParams<{ orderId: string }>();
+    const orderId = params.orderId;
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
 
     const orderDocRef = useMemoFirebase(() => {
         if (!user || !firestore) return null;
-        return doc(firestore, 'users', user.uid, 'orders', params.orderId);
-    }, [user, firestore, params.orderId]);
+        return doc(firestore, 'users', user.uid, 'orders', orderId);
+    }, [user, firestore, orderId]);
 
     const { data: order, isLoading } = useDoc<Order>(orderDocRef);
 
