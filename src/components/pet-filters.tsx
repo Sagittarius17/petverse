@@ -7,12 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Search } from 'lucide-react';
+import { Search, MapPin } from 'lucide-react';
 import { petCategories } from '@/lib/data';
 
 interface PetFiltersProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
+  locationFilter: string;
+  setLocationFilter: (location: string) => void;
+  onUseLocation: () => void;
   categoryFilter: string[];
   setCategoryFilter: (categories: string[]) => void;
   genderFilter: string[];
@@ -24,6 +27,9 @@ interface PetFiltersProps {
 export default function PetFilters({
   searchTerm,
   setSearchTerm,
+  locationFilter,
+  setLocationFilter,
+  onUseLocation,
   categoryFilter,
   setCategoryFilter,
   genderFilter,
@@ -48,6 +54,7 @@ export default function PetFilters({
   
   const clearFilters = () => {
     setSearchTerm('');
+    setLocationFilter('');
     setCategoryFilter([]);
     setGenderFilter([]);
     setAgeRange([180]);
@@ -82,6 +89,24 @@ export default function PetFilters({
             className="w-full pl-10"
           />
        </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="location">Location</Label>
+        <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+                id="location"
+                placeholder="City, State"
+                value={locationFilter}
+                onChange={(e) => setLocationFilter(e.target.value)}
+                className="w-full pl-10 pr-10"
+            />
+            <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={onUseLocation} title="Find pets near me">
+                <MapPin className="h-4 w-4 text-primary" />
+                <span className="sr-only">Use my location</span>
+            </Button>
+        </div>
+      </div>
 
       <Card>
         <CardHeader>

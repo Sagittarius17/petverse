@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, SlidersHorizontal } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
 
 const PAGE_SIZE = 8;
 
@@ -52,7 +53,9 @@ speciesToCategoryMap.set('Fish', 'Fish');
 
 export default function AdoptPageClient() {
   const firestore = useFirestore();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const [locationFilter, setLocationFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
   const [genderFilter, setGenderFilter] = useState<string[]>([]);
   const [ageRange, setAgeRange] = useState<[number]>([180]); // Max age in months (15 years)
@@ -64,6 +67,40 @@ export default function AdoptPageClient() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+
+  const handleUseLocation = () => {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                // In a real app, you'd use a geocoding service to convert coords to a city
+                // e.g., getCityFromCoords(position.coords.latitude, position.coords.longitude)
+                setLocationFilter("San Francisco, CA");
+                toast({
+                    title: "Location Set (Demo)",
+                    description: "Showing pets in San Francisco, CA as an example of nearby search."
+                });
+            },
+            (error) => {
+                let description = 'Could not get your location.';
+                if (error.code === 1) {
+                    description = 'Please allow location access in your browser settings.';
+                }
+                toast({
+                    variant: 'destructive',
+                    title: 'Location Error',
+                    description: description
+                });
+            }
+        );
+    } else {
+        toast({
+            variant: 'destructive',
+            title: 'Location Not Supported',
+            description: 'Your browser does not support geolocation.'
+        });
+    }
+  };
+
 
   const fetchPets = useCallback(async (lastDoc: DocumentSnapshot<DocumentData> | null) => {
     if (!firestore) return;
@@ -140,10 +177,11 @@ export default function AdoptPageClient() {
       const matchesGender = genderFilter.length === 0 || genderFilter.includes(pet.gender);
       const petAgeInMonths = getAgeInMonths(pet.age);
       const matchesAge = petAgeInMonths <= ageRange[0];
+      const matchesLocation = !locationFilter || (pet.location && pet.location.toLowerCase().includes(locationFilter.toLowerCase()));
       
-      return matchesSearch && matchesCategory && matchesGender && matchesAge;
+      return matchesSearch && matchesLocation && matchesCategory && matchesGender && matchesAge;
     });
-  }, [allPets, searchTerm, categoryFilter, genderFilter, ageRange]);
+  }, [allPets, searchTerm, locationFilter, categoryFilter, genderFilter, ageRange]);
   
 
   if (isLoading) {
@@ -151,6 +189,7 @@ export default function AdoptPageClient() {
         <div className="container mx-auto px-4 py-4 md:py-8">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-8">
                 <div className="hidden lg:block lg:col-span-1 space-y-4">
+                    <Skeleton className="h-10 w-full" />
                     <Skeleton className="h-10 w-full" />
                     <Skeleton className="h-32 w-full" />
                     <Skeleton className="h-24 w-full" />
@@ -200,6 +239,9 @@ export default function AdoptPageClient() {
                     <PetFilters
                         searchTerm={searchTerm}
                         setSearchTerm={setSearchTerm}
+                        locationFilter={locationFilter}
+                        setLocationFilter={setLocationFilter}
+                        onUseLocation={handleUseLocation}
                         categoryFilter={categoryFilter}
                         setCategoryFilter={setCategoryFilter}
                         genderFilter={genderFilter}
@@ -218,6 +260,9 @@ export default function AdoptPageClient() {
           <PetFilters
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
+            locationFilter={locationFilter}
+            setLocationFilter={setLocationFilter}
+            onUseLocation={handleUseLocation}
             categoryFilter={categoryFilter}
             setCategoryFilter={setCategoryFilter}
             genderFilter={genderFilter}
