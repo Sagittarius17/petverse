@@ -13,6 +13,7 @@ import { Loader2, SlidersHorizontal } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
+import { getDistance } from '@/lib/utils';
 
 const PAGE_SIZE = 8;
 
@@ -50,6 +51,25 @@ speciesToCategoryMap.set('Bird', 'Birds');
 speciesToCategoryMap.set('Lizard', 'Reptiles');
 speciesToCategoryMap.set('Fish', 'Fish');
 
+// This is a mock function for demonstration purposes to avoid API keys and costs.
+// In a real app, you would use a proper geocoding service.
+const mockGeocode = (location: string): { lat: number; lon: number } | null => {
+  if (!location) return null;
+  let hash = 0;
+  for (let i = 0; i < location.length; i++) {
+    const char = location.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash |= 0; // Convert to 32bit integer
+  }
+  // Base coordinates (center of the US)
+  const baseLat = 39.8283;
+  const baseLon = -98.5795;
+  // Generate deterministic "random" coordinates based on the location hash
+  const lat = baseLat + (hash % 1000) / 50; // Spread over ~20 degrees
+  const lon = baseLon + ((hash >> 16) % 1000) / 25; // Spread over ~40 degrees
+  return { lat, lon };
+};
+
 
 export default function AdoptPageClient() {
   const firestore = useFirestore();
@@ -59,6 +79,7 @@ export default function AdoptPageClient() {
   const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
   const [genderFilter, setGenderFilter] = useState<string[]>([]);
   const [ageRange, setAgeRange] = useState<[number]>([180]); // Max age in months (15 years)
+  const [distanceRange, setDistanceRange] = useState<[number]>([50]); // Max distance in km
 
   const [allPets, setAllPets] = useState<Pet[]>([]);
   const [userProfilesMap, setUserProfilesMap] = useState<Map<string, UserProfile>>(new Map());
@@ -187,6 +208,8 @@ export default function AdoptPageClient() {
 
 
   const filteredPets = useMemo(() => {
+    const userCoords = locationFilter ? mockGeocode(locationFilter) : null;
+
     return allPets.filter(pet => {
       const matchesSearch =
         pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -196,11 +219,25 @@ export default function AdoptPageClient() {
       const matchesGender = genderFilter.length === 0 || genderFilter.includes(pet.gender);
       const petAgeInMonths = getAgeInMonths(pet.age);
       const matchesAge = petAgeInMonths <= ageRange[0];
-      const matchesLocation = !locationFilter || (pet.location && pet.location.toLowerCase().includes(locationFilter.toLowerCase()));
       
-      return matchesSearch && matchesLocation && matchesCategory && matchesGender && matchesAge;
+      let matchesLocation = true;
+      if (locationFilter && userCoords) {
+        if (pet.location) {
+          const petCoords = mockGeocode(pet.location);
+          if (petCoords) {
+            const distance = getDistance(userCoords.lat, userCoords.lon, petCoords.lat, petCoords.lon);
+            matchesLocation = distance <= distanceRange[0];
+          } else {
+            matchesLocation = false;
+          }
+        } else {
+            matchesLocation = false;
+        }
+      }
+      
+      return matchesSearch && matchesCategory && matchesGender && matchesAge && matchesLocation;
     });
-  }, [allPets, searchTerm, locationFilter, categoryFilter, genderFilter, ageRange]);
+  }, [allPets, searchTerm, locationFilter, categoryFilter, genderFilter, ageRange, distanceRange]);
   
 
   if (isLoading) {
@@ -267,6 +304,8 @@ export default function AdoptPageClient() {
                         setGenderFilter={setGenderFilter}
                         ageRange={ageRange}
                         setAgeRange={setAgeRange}
+                        distanceRange={distanceRange}
+                        setDistanceRange={setDistanceRange}
                     />
                 </div>
             </ScrollArea>
@@ -288,6 +327,8 @@ export default function AdoptPageClient() {
             setGenderFilter={setGenderFilter}
             ageRange={ageRange}
             setAgeRange={setAgeRange}
+            distanceRange={distanceRange}
+            setDistanceRange={setDistanceRange}
           />
         </div>
         <div className="lg:col-span-3">

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +21,8 @@ interface PetFiltersProps {
   setGenderFilter: (genders: string[]) => void;
   ageRange: [number];
   setAgeRange: (ages: [number]) => void;
+  distanceRange: [number];
+  setDistanceRange: (distance: [number]) => void;
 }
 
 export default function PetFilters({
@@ -36,6 +37,8 @@ export default function PetFilters({
   setGenderFilter,
   ageRange,
   setAgeRange,
+  distanceRange,
+  setDistanceRange,
 }: PetFiltersProps) {
 
   const categories = [...petCategories.map(c => c.category), 'Other'];
@@ -58,6 +61,7 @@ export default function PetFilters({
     setCategoryFilter([]);
     setGenderFilter([]);
     setAgeRange([180]);
+    setDistanceRange([50]);
   };
 
   const formatAgeLabel = (months: number): string => {
@@ -102,11 +106,30 @@ export default function PetFilters({
                 className="w-full pl-10 pr-10"
             />
             <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" onClick={onUseLocation} title="Find pets near me">
-                <MapPin className="h-4 w-4" />
+                <MapPin />
                 <span className="sr-only">Use my location</span>
             </Button>
         </div>
       </div>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Distance</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Slider
+            min={0}
+            max={50}
+            step={5}
+            value={distanceRange}
+            onValueChange={(value) => setDistanceRange(value as [number])}
+            disabled={!locationFilter}
+          />
+          <div className="mt-2 text-sm text-muted-foreground">
+            Up to {distanceRange[0]} km away
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
