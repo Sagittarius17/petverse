@@ -61,12 +61,12 @@ const mockGeocode = (location: string): { lat: number; lon: number } | null => {
     hash = (hash << 5) - hash + char;
     hash |= 0; // Convert to 32bit integer
   }
-  // Base coordinates (center of the US)
-  const baseLat = 39.8283;
-  const baseLon = -98.5795;
+  // Base coordinates (center of India)
+  const baseLat = 20.5937;
+  const baseLon = 78.9629;
   // Generate deterministic "random" coordinates based on the location hash
-  const lat = baseLat + (hash % 1000) / 50; // Spread over ~20 degrees
-  const lon = baseLon + ((hash >> 16) % 1000) / 25; // Spread over ~40 degrees
+  const lat = baseLat + (hash % 1000) / 250; // Spread over ~4 degrees latitude (~444km)
+  const lon = baseLon + ((hash >> 16) % 1000) / 250; // Spread over ~4 degrees longitude
   return { lat, lon };
 };
 
