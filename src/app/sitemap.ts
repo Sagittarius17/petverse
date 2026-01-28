@@ -22,9 +22,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/login',
     '/lost-and-found',
     '/profile',
+    '/privacy-policy',
     '/register',
     '/shop',
     '/shop/products',
+    '/terms-of-service',
   ].map((route) => ({
     url: `${URL}${route}`,
     lastModified: new Date(),

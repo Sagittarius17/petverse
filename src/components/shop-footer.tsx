@@ -51,11 +51,15 @@ export default function ShopFooter() {
 
         </div>
 
-        <div className="mt-8 border-t pt-8 flex flex-col sm:flex-row justify-between items-center">
-          <p className="text-sm text-muted-foreground order-2 sm:order-1 mt-4 sm:mt-0">
+        <div className="mt-8 border-t pt-8 flex flex-col sm:flex-row justify-between items-center gap-y-4">
+          <p className="text-sm text-muted-foreground order-3 sm:order-1">
             &copy; {new Date().getFullYear()} PetVerse. All rights reserved.
           </p>
-          <div className="flex space-x-4 order-1 sm:order-2">
+          <div className="flex gap-4 sm:gap-6 order-2 sm:order-2">
+            <Link href="/privacy-policy" className="text-sm text-muted-foreground hover:text-primary">Privacy Policy</Link>
+            <Link href="/terms-of-service" className="text-sm text-muted-foreground hover:text-primary">Terms of Service</Link>
+          </div>
+          <div className="flex space-x-4 order-1 sm:order-3">
               <Link href="#" className="text-muted-foreground hover:text-primary"><Twitter className="h-5 w-5" /></Link>
               <Link href="#" className="text-muted-foreground hover:text-primary"><Facebook className="h-5 w-5" /></Link>
               <Link href="#" className="text-muted-foreground hover:text-primary"><Instagram className="h-5 w-5" /></Link>
