@@ -2,13 +2,11 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Play, Pause, PawPrint, Mic, Headphones } from 'lucide-react';
+import { Play, Pause, Headphones, Mic } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useFirestore, updateDocumentNonBlocking, useMemoFirebase } from '@/firebase';
+import { useFirestore, updateDocumentNonBlocking } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useChatStore } from '@/lib/chat-store';
-import { useDoc } from '@/firebase';
 
 // Define Message interface locally as it's passed down
 interface Message {
@@ -164,23 +162,6 @@ const Waveform = ({
   );
 };
 
-
-function SenderAvatar({ senderId }: { senderId: string }) {
-    const firestore = useFirestore();
-    const userDocRef = useMemoFirebase(
-      () => (firestore ? doc(firestore, 'users', senderId) : null),
-      [firestore, senderId]
-    );
-    const { data: userProfile } = useDoc<{ profilePicture?: string, displayName?: string }>(userDocRef);
-  
-    return (
-        <Avatar className="h-8 w-8">
-            <AvatarImage src={userProfile?.profilePicture} />
-            <AvatarFallback><PawPrint className="h-4 w-4 text-muted-foreground" /></AvatarFallback>
-        </Avatar>
-    );
-}
-
 // Main Player Component
 interface VoiceNotePlayerProps {
   message: Message;
@@ -326,10 +307,10 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
           onPointerDown={(e) => e.stopPropagation()}
         >
           {isLoading ? ( 
-            <div className="relative flex h-5 w-5 items-center justify-center">
-              <div className="absolute h-full w-full animate-spin rounded-full border-2 border-current border-t-transparent" />
-              <PawPrint className="h-3 w-3 text-current" />
-            </div>
+            <svg className="animate-spin h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
            ) : isPlaying ? ( <Pause className="h-5 w-5 fill-current" /> ) : ( <Play className="h-5 w-5 fill-current ml-0.5" /> )}
         </div>
         <div className="flex-1 min-w-0">
@@ -339,7 +320,6 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
                 onSeek={handleSeek}
             />
         </div>
-        {!isCurrentUser && <SenderAvatar senderId={message.senderId} />}
       </div>
       <div className="flex justify-between items-center px-1">
         <span className={cn("text-xs font-mono tabular-nums", isCurrentUser ? 'text-gray-300' : 'text-muted-foreground')}>

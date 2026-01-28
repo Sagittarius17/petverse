@@ -70,34 +70,53 @@ export default function AdoptPageClient() {
 
   const handleUseLocation = () => {
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                // In a real app, you'd use a geocoding service to convert coords to a city
-                // e.g., getCityFromCoords(position.coords.latitude, position.coords.longitude)
-                setLocationFilter("San Francisco, CA");
-                toast({
-                    title: "Location Set (Demo)",
-                    description: "Showing pets in San Francisco, CA as an example of nearby search."
-                });
-            },
-            (error) => {
-                let description = 'Could not get your location.';
-                if (error.code === 1) {
-                    description = 'Please allow location access in your browser settings.';
-                }
-                toast({
-                    variant: 'destructive',
-                    title: 'Location Error',
-                    description: description
-                });
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            // Use OpenStreetMap's free Nominatim reverse geocoding service
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+            const data = await response.json();
+            const city = data.address.city || data.address.town || data.address.village;
+            const state = data.address.state;
+
+            if (city && state) {
+              const locationString = `${city}, ${state}`;
+              setLocationFilter(locationString);
+              toast({
+                title: "Location Set!",
+                description: `Now showing pets in ${locationString}.`,
+              });
+            } else {
+              throw new Error("Could not determine city and state from your location.");
             }
-        );
-    } else {
-        toast({
+          } catch (error) {
+            console.error("Geocoding error:", error);
+            toast({
+              variant: 'destructive',
+              title: 'Geocoding Error',
+              description: "Could not convert your location to a city. Please enter it manually."
+            });
+          }
+        },
+        (error) => {
+          let description = 'Could not get your location.';
+          if (error.code === 1) {
+            description = 'Please allow location access in your browser settings.';
+          }
+          toast({
             variant: 'destructive',
-            title: 'Location Not Supported',
-            description: 'Your browser does not support geolocation.'
-        });
+            title: 'Location Error',
+            description: description
+          });
+        }
+      );
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Location Not Supported',
+        description: 'Your browser does not support geolocation.'
+      });
     }
   };
 
