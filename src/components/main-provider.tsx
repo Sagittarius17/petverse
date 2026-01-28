@@ -41,7 +41,7 @@ export default function MainProvider({ children }: { children: React.ReactNode }
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
-            themes={['light', 'dark', 'system', 'dark-forest', 'light-rose']}
+            themes={['light', 'dark', 'system']}
         >
             <FirebaseClientProvider>
                 <MainLayout>

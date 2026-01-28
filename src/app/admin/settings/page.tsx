@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTheme } from 'next-themes';
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc, getDoc, writeBatch, updateDoc, DocumentData } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
@@ -15,9 +14,8 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
-import { Sun, Moon, Trees, Flower, Monitor, Loader2, Timer, Database } from 'lucide-react';
+import { Loader2, Timer, Database } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { differenceInSeconds, formatDuration, intervalToDuration } from 'date-fns';
@@ -103,7 +101,6 @@ function AdminCountdown({ settings }: { settings: MaintenanceSettings | null }) 
 
 
 export default function AdminSettingsPage() {
-  const { theme, setTheme } = useTheme();
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const { toast } = useToast();
@@ -305,39 +302,6 @@ export default function AdminSettingsPage() {
                 </Button>
             </CardFooter>
         </form>
-      </Card>
-
-      <Card className="flex flex-col lg:col-span-2">
-        <CardHeader>
-          <CardTitle>Appearance</CardTitle>
-          <CardDescription>Customize the look and feel of the application.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex-grow">
-          <RadioGroup
-            value={theme}
-            onValueChange={setTheme}
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"
-          >
-            {[
-              { value: 'light', label: 'Light', icon: Sun },
-              { value: 'dark', label: 'Dark', icon: Moon },
-              { value: 'dark-forest', label: 'Forest', icon: Trees },
-              { value: 'light-rose', label: 'Rose', icon: Flower },
-              { value: 'system', label: 'System', icon: Monitor },
-            ].map(({ value, label, icon: Icon }) => (
-              <div key={value}>
-                <RadioGroupItem value={value} id={value} className="peer sr-only" />
-                <Label
-                  htmlFor={value}
-                  className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer h-24"
-                >
-                  <Icon className="mb-2 h-6 w-6" />
-                  {label}
-                </Label>
-              </div>
-            ))}
-          </RadioGroup>
-        </CardContent>
       </Card>
 
       <Card className="flex flex-col lg:col-span-2">
