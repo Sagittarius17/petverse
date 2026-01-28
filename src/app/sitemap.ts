@@ -34,23 +34,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route === '/' ? 1 : 0.8,
   }));
 
-  // 2. Dynamic blog posts from Firestore
-  let blogPosts: MetadataRoute.Sitemap = [];
-  try {
-    const blogsSnapshot = await db.collection('blogs').where('status', '==', 'Published').get();
-    blogPosts = blogsSnapshot.docs.map((doc) => ({
-      url: `${URL}/blog/${doc.id}`,
-      lastModified: doc.data().updatedAt?.toDate() || new Date(),
-      changeFrequency: 'weekly' as 'weekly',
-      priority: 0.7,
-    }));
-  } catch (error) {
-    console.error("Error fetching blog posts for sitemap, returning empty. This might happen during initial setup.", error);
-    // Return empty array on error so the build doesn't fail
-  }
-  
+  // Blog posts are now part of the main /blog page, so we don't need to list them individually.
+  // This helps with SEO by not having dead links in the sitemap.
 
-  // 3. Dynamic care guides from static data
+  // 2. Dynamic care guides from static data
   const careGuides = allCareGuides.map((guide) => ({
     url: `${URL}/care/${guide.id}`,
     lastModified: new Date(),
@@ -58,7 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  // 4. Dynamic "Know Your Pet" pages from static data
+  // 3. Dynamic "Know Your Pet" pages from static data
   const knowYourPetPages = initialPetCategories.flatMap((category) =>
     category.species.map((species) => ({
       url: `${URL}/know-your-pet/${encodeURIComponent(category.category)}/${encodeURIComponent(species.name)}`,
@@ -68,5 +55,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   );
 
-  return [...staticPages, ...blogPosts, ...careGuides, ...knowYourPetPages];
+  return [...staticPages, ...careGuides, ...knowYourPetPages];
 }
