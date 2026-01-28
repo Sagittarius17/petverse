@@ -102,9 +102,11 @@ export default function AddressPage() {
                         <h1 className="text-3xl font-bold font-headline">My Addresses</h1>
                         <p className="text-muted-foreground mt-2">Manage your saved shipping addresses.</p>
                     </div>
-                    <Button onClick={() => setIsFormOpen(true)} disabled={!!userProfile?.address}>
-                        <PlusCircle className="mr-2 h-4 w-4" /> Add New Address
-                    </Button>
+                    {!userProfile?.address && !isLoading && (
+                        <Button onClick={() => setIsFormOpen(true)}>
+                            <PlusCircle className="mr-2 h-4 w-4" /> Add New Address
+                        </Button>
+                    )}
                 </div>
 
                 {isLoading ? (
