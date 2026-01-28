@@ -37,6 +37,7 @@ export interface Pet {
   breed: string;
   age: string;
   gender: 'Male' | 'Female';
+  location?: string;
   imageId: string;
   description: string;
   isAdoptable?: boolean;

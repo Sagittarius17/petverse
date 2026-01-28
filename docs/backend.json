@@ -114,6 +114,10 @@
           "type": "string",
           "description": "The gender of the pet."
         },
+        "location": {
+            "type": "string",
+            "description": "The city and state where the pet is located."
+        },
         "description": {
           "type": "string",
           "description": "A detailed description of the pet."

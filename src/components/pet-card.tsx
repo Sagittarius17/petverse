@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Pet, UserProfile } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Eye, AtSign } from 'lucide-react';
+import { Eye, AtSign, MapPin } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -88,7 +88,13 @@ export default function PetCard({ pet, onPetSelect, actions, owner }: PetCardPro
                 {adoptionStatusText()}
             </Badge>
           </div>
-          <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            {pet.location && (
+                <Badge variant="outline" className="flex items-center gap-1.5">
+                    <MapPin className="h-3 w-3" />
+                    {pet.location}
+                </Badge>
+            )}
             <Badge variant="secondary">{pet.breed}</Badge>
             <Badge variant="secondary">{pet.age}</Badge>
             <Badge variant="secondary">{pet.gender}</Badge>

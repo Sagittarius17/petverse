@@ -24,6 +24,7 @@ const petSchema = z.object({
   ageYears: z.number().min(0).optional(),
   ageMonths: z.number().min(0).max(11).optional(),
   gender: z.enum(['Male', 'Female']),
+  location: z.string().min(2, 'Location is required.'),
   description: z.string().min(10, 'Description must be at least 10 characters.'),
   petImage: z.any().optional(),
 }).refine(data => data.ageYears !== undefined || data.ageMonths !== undefined, {
@@ -52,6 +53,7 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
       species: 'Dog',
       breed: '',
       gender: 'Male',
+      location: '',
       description: '',
     },
   });
@@ -99,6 +101,7 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
                 ageYears: years,
                 ageMonths: months,
                 gender: pet.gender,
+                location: pet.location || '',
                 description: pet.description,
             });
         } else {
@@ -109,6 +112,7 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
                 ageYears: 0,
                 ageMonths: 0,
                 gender: 'Male',
+                location: '',
                 description: '',
                 petImage: undefined,
             });
@@ -203,10 +207,17 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-6 py-6">
-            <div className="space-y-2">
-                <Label htmlFor="name">Pet's Name</Label>
-                <Input id="name" {...register('name')} />
-                {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                    <Label htmlFor="name">Pet's Name</Label>
+                    <Input id="name" {...register('name')} />
+                    {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="location">Location</Label>
+                    <Input id="location" {...register('location')} placeholder="e.g. San Francisco, CA"/>
+                    {errors.location && <p className="text-sm text-destructive">{errors.location.message}</p>}
+                </div>
             </div>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                  <div className="space-y-2">
