@@ -398,18 +398,24 @@ export default function AdminSettingsPage() {
           <CardTitle>Notifications</CardTitle>
           <CardDescription>Configure when and how you receive notifications.</CardDescription>
         </CardHeader>
-        <CardContent className="flex-grow grid gap-6">
-          <div className="flex items-center space-x-2">
-            <Switch id="new-user-noti" defaultChecked showOnOff />
-            <Label htmlFor="new-user-noti" className="text-sm">
-              Email on new user registration
+        <CardContent className="flex-grow grid gap-4">
+          <div className="flex items-center justify-between space-x-2 rounded-lg border p-4">
+            <Label htmlFor="new-user-noti" className="flex flex-col space-y-1">
+                <span>New User Registration</span>
+                <span className="font-normal leading-snug text-muted-foreground">
+                Receive an email when a new user signs up.
+                </span>
             </Label>
+            <Switch id="new-user-noti" defaultChecked />
           </div>
-          <div className="flex items-center space-x-2">
-            <Switch id="adoption-noti" defaultChecked showOnOff />
-            <Label htmlFor="adoption-noti" className="text-sm">
-              Email on successful adoption
+          <div className="flex items-center justify-between space-x-2 rounded-lg border p-4">
+            <Label htmlFor="adoption-noti" className="flex flex-col space-y-1">
+                <span>Successful Adoption</span>
+                <span className="font-normal leading-snug text-muted-foreground">
+                Get an email when a pet is marked as adopted.
+                </span>
             </Label>
+            <Switch id="adoption-noti" defaultChecked />
           </div>
         </CardContent>
         <CardFooter className="border-t px-6 py-4">
@@ -418,7 +424,7 @@ export default function AdminSettingsPage() {
       </Card>
       
       {isPrivilegedAdmin && (
-        <Card className="flex flex-col lg:col-span-3">
+        <Card className="flex flex-col lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Database className="h-5 w-5" />
