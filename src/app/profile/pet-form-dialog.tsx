@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useMemo } from 'react';
@@ -13,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, MapPin } from 'lucide-react';
 import type { Pet } from '@/lib/data';
 import { initialPetCategories } from '@/lib/initial-pet-data';
 
@@ -120,6 +121,38 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
     }
   }, [pet, isOpen, isEditMode, reset]);
 
+  const handleUseLocation = () => {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                // In a real app, you'd use a geocoding service to convert coords to a city
+                setValue('location', "San Francisco, CA", { shouldValidate: true });
+                toast({
+                    title: "Location Set (Demo)",
+                    description: "Set to San Francisco, CA as an example."
+                });
+            },
+            (error) => {
+                let description = 'Could not get your location.';
+                if (error.code === 1) {
+                    description = 'Please allow location access in your browser settings.';
+                }
+                toast({
+                    variant: 'destructive',
+                    title: 'Location Error',
+                    description: description
+                });
+            }
+        );
+    } else {
+        toast({
+            variant: 'destructive',
+            title: 'Location Not Supported',
+            description: 'Your browser does not support geolocation.'
+        });
+    }
+  };
+
 
   const onSubmit = async (data: PetFormData) => {
     if (!firestore || !user) {
@@ -215,7 +248,14 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="location">Location</Label>
-                    <Input id="location" {...register('location')} placeholder="e.g. San Francisco, CA"/>
+                     <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input id="location" {...register('location')} placeholder="e.g. San Francisco, CA" className="pl-10" />
+                        <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" onClick={handleUseLocation} title="Use my current location">
+                            <MapPin className="h-4 w-4 text-primary" />
+                            <span className="sr-only">Use my location</span>
+                        </Button>
+                    </div>
                     {errors.location && <p className="text-sm text-destructive">{errors.location.message}</p>}
                 </div>
             </div>

@@ -101,7 +101,7 @@ export default function PetFilters({
                 onChange={(e) => setLocationFilter(e.target.value)}
                 className="w-full pl-10 pr-10"
             />
-            <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={onUseLocation} title="Find pets near me">
+            <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" onClick={onUseLocation} title="Find pets near me">
                 <MapPin className="h-4 w-4 text-primary" />
                 <span className="sr-only">Use my location</span>
             </Button>

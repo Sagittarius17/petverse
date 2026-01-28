@@ -12,7 +12,7 @@ import { handleLostPetReport } from '@/app/lost-and-found/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Send } from 'lucide-react';
+import { Loader2, MapPin, Send } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 
@@ -47,6 +47,38 @@ export default function LostPetForm() {
       form.setValue('petImage', Array.from(files));
       const newPreviews = Array.from(files).map(file => URL.createObjectURL(file));
       setImagePreviews(newPreviews);
+    }
+  };
+
+  const handleUseLocation = () => {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                // In a real app, you'd use a geocoding service to convert coords to a city
+                form.setValue('lastSeenLocation', "San Francisco, CA", { shouldValidate: true });
+                toast({
+                    title: "Location Set (Demo)",
+                    description: "Set to San Francisco, CA as an example."
+                });
+            },
+            (error) => {
+                let description = 'Could not get your location.';
+                if (error.code === 1) {
+                    description = 'Please allow location access in your browser settings.';
+                }
+                toast({
+                    variant: 'destructive',
+                    title: 'Location Error',
+                    description: description
+                });
+            }
+        );
+    } else {
+        toast({
+            variant: 'destructive',
+            title: 'Location Not Supported',
+            description: 'Your browser does not support geolocation.'
+        });
     }
   };
 
@@ -154,7 +186,14 @@ export default function LostPetForm() {
             </div>
             <div>
               <Label htmlFor="lastSeenLocation">Location (Lost or Found)</Label>
-              <Input id="lastSeenLocation" {...form.register('lastSeenLocation')} />
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input id="lastSeenLocation" {...form.register('lastSeenLocation')} className="pl-10" />
+                <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" onClick={handleUseLocation} title="Use my current location">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    <span className="sr-only">Use my location</span>
+                </Button>
+              </div>
               {form.formState.errors.lastSeenLocation && <p className="text-destructive text-sm mt-1">{form.formState.errors.lastSeenLocation.message}</p>}
             </div>
           </div>
