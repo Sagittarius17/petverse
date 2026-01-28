@@ -406,7 +406,7 @@ export default function AdminSettingsPage() {
                 Receive an email when a new user signs up.
                 </span>
             </Label>
-            <Switch id="new-user-noti" defaultChecked />
+            <Switch id="new-user-noti" defaultChecked showOnOff />
           </div>
           <div className="flex items-center justify-between space-x-2 rounded-lg border p-4">
             <Label htmlFor="adoption-noti" className="flex flex-col space-y-1">
@@ -415,7 +415,7 @@ export default function AdminSettingsPage() {
                 Get an email when a pet is marked as adopted.
                 </span>
             </Label>
-            <Switch id="adoption-noti" defaultChecked />
+            <Switch id="adoption-noti" defaultChecked showOnOff />
           </div>
         </CardContent>
         <CardFooter className="border-t px-6 py-4">
@@ -444,6 +444,7 @@ export default function AdminSettingsPage() {
                 id="firestore-observer-switch"
                 checked={isObserverEnabled}
                 onCheckedChange={setIsObserverEnabled}
+                showOnOff
               />
             </div>
           </CardContent>
