@@ -289,8 +289,8 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
       className={cn(
         "flex flex-col p-2 w-full max-w-[280px] rounded-2xl",
         isCurrentUser 
-          ? 'bg-gray-800 text-gray-50 rounded-br-none' 
-          : 'bg-background border rounded-bl-none',
+          ? 'bg-primary text-primary-foreground rounded-br-none' 
+          : 'bg-secondary text-secondary-foreground rounded-bl-none',
         isHighlighted && "animate-highlight"
       )}
     >

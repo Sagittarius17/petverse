@@ -205,8 +205,8 @@ function MessageBubble({ message, isCurrentUser, activeConversationId, currentUs
               className={cn(
                 'max-w-xs md:max-w-md rounded-2xl p-1',
                 isCurrentUser
-                  ? 'bg-gray-800 text-gray-50 rounded-br-none'
-                  : 'bg-background border rounded-bl-none',
+                  ? 'bg-primary text-primary-foreground rounded-br-none'
+                  : 'bg-secondary text-secondary-foreground rounded-bl-none',
                 isHighlighted && "animate-highlight"
               )}
             >
