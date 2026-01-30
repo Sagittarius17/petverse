@@ -9,6 +9,7 @@ import Chat from '@/components/chat/chat';
 import BilluChatLauncher from '@/components/chat/billu-chat-launcher';
 import ConditionalFirestoreObserver from '@/components/dev/ConditionalFirestoreObserver';
 import NotificationManager from '@/components/NotificationManager';
+import CookieConsentBanner from './cookie-consent-banner';
 
 
 function ChatController() {
@@ -50,6 +51,7 @@ export default function MainProvider({ children }: { children: React.ReactNode }
                 <ChatController />
                 <Toaster />
                 <NotificationManager />
+                <CookieConsentBanner />
                 {process.env.NODE_ENV === 'development' && <ConditionalFirestoreObserver />}
             </FirebaseClientProvider>
         </ThemeProvider>
