@@ -42,40 +42,39 @@ export default function ClientHomePage() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative w-full bg-primary/10 py-12 md:py-24">
-        <div className="container mx-auto grid items-center gap-6 px-4 md:px-6 lg:grid-cols-2 lg:gap-10">
-          <div className="space-y-4 text-center lg:text-left">
-            <h1 className="font-headline text-3xl font-bold tracking-tighter text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
+      <section className="relative w-full min-h-screen flex items-center justify-center text-center text-white">
+        <div className="absolute inset-0 z-0">
+          {heroImage && (
+            <Image
+              src={heroImage.imageUrl}
+              alt={heroImage.description}
+              fill
+              style={{ objectFit: 'cover' }}
+              data-ai-hint={heroImage.imageHint}
+              priority
+            />
+          )}
+          <div className="absolute inset-0 bg-black/50 z-10"></div>
+        </div>
+        <div className="relative z-20 container mx-auto flex flex-col items-center justify-center gap-4 px-4 md:px-6">
+            <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
               Welcome to PetVerse
             </h1>
-            <p className="max-w-[600px] text-muted-foreground md:text-xl lg:mx-0">
+            <p className="max-w-[600px] text-lg md:text-xl">
               Your one-stop destination for pet adoption, care, and community. Find your new best friend today!
             </p>
-            <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center lg:justify-start">
+            <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center">
               <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
                 <Link href="/adopt">
                   Find a Pet <PawPrint className="ml-2" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg">
+              <Button asChild variant="outline" size="lg" className="bg-transparent border-white text-white hover:bg-white hover:text-black">
                 <Link href="/care">
                   Learn Pet Care <ArrowRight className="ml-2" />
                 </Link>
               </Button>
             </div>
-          </div>
-          <div className="relative h-64 w-full overflow-hidden rounded-xl shadow-2xl md:h-96">
-            {heroImage && (
-                <Image
-                  src={heroImage.imageUrl}
-                  alt={heroImage.description}
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  data-ai-hint={heroImage.imageHint}
-                  priority
-                />
-              )}
-          </div>
         </div>
       </section>
 
