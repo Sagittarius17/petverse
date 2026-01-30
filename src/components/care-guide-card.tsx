@@ -1,3 +1,4 @@
+import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +11,7 @@ interface CareGuideCardProps {
   guide: CareGuide;
 }
 
-export default function CareGuideCard({ guide }: CareGuideCardProps) {
+const CareGuideCard = React.memo(function CareGuideCard({ guide }: CareGuideCardProps) {
   const image = PlaceHolderImages.find(p => p.id === guide.imageId);
 
   return (
@@ -40,4 +41,6 @@ export default function CareGuideCard({ guide }: CareGuideCardProps) {
       </Card>
     </Link>
   );
-}
+});
+
+export default CareGuideCard;

@@ -63,7 +63,7 @@ Calls to Genkit AI flows involve external network requests to the AI model's API
 ## 5. General Frontend Performance
 
 -   **Bundle Size:** Keep an eye on your JavaScript bundle size. Avoid adding large libraries unless absolutely necessary. Use a tool like `@next/bundle-analyzer` to inspect what's contributing to your bundle size.
--   **Memoization (Implemented):** To improve rendering performance, `React.memo` has been applied to several list-item components across the application, including the chat's `MessageBubble` and various tables in the admin panel (`UserRow`, `BlogRow`, `PetRow`, `ActivityItem`). This prevents the entire list from re-rendering when only a single item changes, making the UI more responsive.
+-   **Memoization (Implemented):** To improve rendering performance, `React.memo` has been applied to several list-item components across the application, including the chat's `MessageBubble`, various admin panel tables (`UserRow`, `BlogRow`, `PetRow`, `ActivityItem`), and primary content cards (`PetCard`, `CareGuideCard`, `ProductCard`, `LostPetReportCard`, and `FavoriteBreedCard`). This prevents entire lists from re-rendering when only a single item changes, making the UI more responsive. For this optimization to be effective, event handlers passed as props (like `onSelect`) should be wrapped in `useCallback` where necessary.
 -   **Code Splitting:** Next.js App Router does automatic code splitting by route. Continue to leverage this by keeping page-specific components within their respective page directories.
 
 ## 6. Build & Monitoring Performance

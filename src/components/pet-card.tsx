@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +19,7 @@ interface PetCardProps {
   owner?: UserProfile;
 }
 
-export default function PetCard({ pet, onPetSelect, actions, owner }: PetCardProps) {
+const PetCard = memo(function PetCard({ pet, onPetSelect, actions, owner }: PetCardProps) {
     const image = useMemo(() => {
         if (pet.imageId?.startsWith('data:image')) {
             return {
@@ -116,4 +116,6 @@ export default function PetCard({ pet, onPetSelect, actions, owner }: PetCardPro
       </CardFooter>
     </Card>
   );
-}
+});
+
+export default PetCard;

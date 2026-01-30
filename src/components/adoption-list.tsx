@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import type { Pet, UserProfile } from '@/lib/data';
 import PetCard from './pet-card';
 import { PawPrint } from 'lucide-react';
@@ -14,13 +14,13 @@ interface AdoptionListProps {
 export default function AdoptionList({ pets, userProfiles }: AdoptionListProps) {
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
 
-  const handlePetSelect = (pet: Pet) => {
+  const handlePetSelect = useCallback((pet: Pet) => {
     setSelectedPet(pet);
-  };
+  }, []);
 
-  const handleCloseDialog = () => {
+  const handleCloseDialog = useCallback(() => {
     setSelectedPet(null);
-  };
+  }, []);
 
   return (
     <>

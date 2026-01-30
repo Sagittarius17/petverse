@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,7 @@ interface LostPetReportCardProps {
   report: LostPetReport;
 }
 
-export default function LostPetReportCard({ report }: LostPetReportCardProps) {
+const LostPetReportCard = React.memo(function LostPetReportCard({ report }: LostPetReportCardProps) {
   return (
     <Card className="overflow-hidden">
       <div className="grid grid-cols-1 md:grid-cols-3">
@@ -64,4 +65,6 @@ export default function LostPetReportCard({ report }: LostPetReportCardProps) {
       </div>
     </Card>
   );
-}
+});
+
+export default LostPetReportCard;

@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -15,7 +16,7 @@ interface ProductCardProps {
   product: Product;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+const ProductCard = React.memo(function ProductCard({ product }: ProductCardProps) {
   const router = useRouter();
   const image = PlaceHolderImages.find(p => p.id === product.imageId);
   const { addToCart, toggleWishlist, isWishlisted } = useCartStore();
@@ -81,4 +82,6 @@ export default function ProductCard({ product }: ProductCardProps) {
       </CardFooter>
     </Card>
   );
-}
+});
+
+export default ProductCard;

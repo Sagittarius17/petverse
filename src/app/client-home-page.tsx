@@ -1,6 +1,6 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, PawPrint } from 'lucide-react';
@@ -31,13 +31,13 @@ export default function ClientHomePage() {
 
   const { data: featuredPets, isLoading: petsLoading } = useCollection<Pet>(petsQuery);
 
-  const handlePetSelect = (pet: Pet) => {
+  const handlePetSelect = useCallback((pet: Pet) => {
     setSelectedPet(pet);
-  };
+  }, []);
 
-  const handleCloseDialog = () => {
+  const handleCloseDialog = useCallback(() => {
     setSelectedPet(null);
-  };
+  }, []);
 
   return (
     <div className="flex flex-col">
