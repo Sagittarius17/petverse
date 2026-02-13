@@ -1,6 +1,6 @@
 
 import Link from 'next/link';
-import { PawPrint, Twitter, Facebook, Instagram } from 'lucide-react';
+import { PawPrint, X, Facebook, Instagram } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -57,7 +57,7 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} PetVerse. All rights reserved.
           </p>
           <div className="flex space-x-4 order-1 sm:order-2">
-              <Link href="#" className="text-muted-foreground hover:text-primary"><Twitter className="h-5 w-5" /></Link>
+              <Link href="#" className="text-muted-foreground hover:text-primary"><X className="h-5 w-5" /></Link>
               <Link href="#" className="text-muted-foreground hover:text-primary"><Facebook className="h-5 w-5" /></Link>
               <Link href="#" className="text-muted-foreground hover:text-primary"><Instagram className="h-5 w-5" /></Link>
           </div>
