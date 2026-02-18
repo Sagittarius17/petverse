@@ -106,6 +106,7 @@ export default function RegisterPage() {
   };
 
   const handleAuthError = (error: any) => {
+    console.error("Registration Error: ", error);
     let description = "An unexpected error occurred. Please try again.";
     if (error instanceof FirebaseError) {
       switch (error.code) {

@@ -134,6 +134,7 @@ export default function LoginPage() {
   };
   
   const handleAuthError = (error: any) => {
+      console.error("Authentication Error: ", error);
       let description = "An unexpected error occurred. Please try again.";
       if (error instanceof FirebaseError) {
         switch (error.code) {
