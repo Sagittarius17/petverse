@@ -13,14 +13,15 @@ interface FavoriteBreedCardProps {
 
 const FavoriteBreedCard = React.memo(function FavoriteBreedCard({ breed, onSelect }: FavoriteBreedCardProps) {
   const imageId = breed.imageIds && breed.imageIds.length > 0 ? breed.imageIds[0] : 'dog-1';
-  const image = PlaceHolderImages.find((p) => p.id === imageId) || { imageUrl: imageId.startsWith('data:') ? imageId : '', imageHint: breed.name };
+  const image = PlaceHolderImages.find((p) => p.id === imageId) ||
+    { imageUrl: (imageId.startsWith('data:') || imageId.startsWith('http')) ? imageId : '', imageHint: breed.name };
 
   return (
     <Card
-      className="flex flex-col overflow-hidden transition-all hover:shadow-lg cursor-pointer"
+      className="flex flex-col overflow-hidden transition-all hover:shadow-lg cursor-pointer h-full"
       onClick={() => onSelect(breed)}
     >
-      <CardHeader className="relative h-40 w-full p-0">
+      <CardHeader className="relative h-48 w-full p-0">
         {image.imageUrl ? (
           <Image
             src={image.imageUrl}
@@ -31,7 +32,7 @@ const FavoriteBreedCard = React.memo(function FavoriteBreedCard({ breed, onSelec
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-secondary">
-              <p className="text-xs text-muted-foreground">No Image</p>
+            <p className="text-xs text-muted-foreground">No Image</p>
           </div>
         )}
       </CardHeader>

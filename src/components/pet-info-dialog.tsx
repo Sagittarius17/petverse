@@ -55,33 +55,38 @@ export default function PetInfoDialog({ pet, isOpen, onClose }: PetInfoDialogPro
       <DialogContent className="max-w-4xl p-0 overflow-hidden">
         <div className="flex flex-col md:flex-row h-full max-h-[90vh]">
           {/* Left Side: Animal Photo Carousel */}
-          <div className="relative w-full md:w-1/2 h-64 md:h-auto overflow-hidden bg-secondary">
+          <div className="relative w-full md:w-1/2 min-h-[300px] md:h-auto overflow-hidden bg-secondary">
             {images.length > 0 ? (
-              <Carousel className="w-full h-full">
-                <CarouselContent>
+              <Carousel className="w-full h-full" opts={{ loop: true }}>
+                <CarouselContent className="h-full">
                   {images.map((image, index) => (
-                    <CarouselItem key={index}>
-                      <div className="relative w-full h-64 md:h-[500px]">
+                    <CarouselItem key={index} className="h-full">
+                      <div className="relative w-full h-64 md:h-full">
                         {image && (
                           <Image
                             src={image.imageUrl}
-                            alt={image.description}
+                            alt={image.description || pet.name}
                             fill
                             className="object-cover"
                             data-ai-hint={image.imageHint}
+                            priority={index === 0}
                           />
                         )}
                       </div>
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="left-4" />
-                <CarouselNext className="right-4" />
+                {images.length > 1 && (
+                  <>
+                    <CarouselPrevious className="left-4 opacity-70 hover:opacity-100 transition-opacity" />
+                    <CarouselNext className="right-4 opacity-70 hover:opacity-100 transition-opacity" />
+                  </>
+                )}
               </Carousel>
             ) : (
-               <div className="flex items-center justify-center h-full">
-                    <p className="text-muted-foreground">No image available</p>
-                </div>
+              <div className="flex items-center justify-center h-full">
+                <p className="text-muted-foreground">No image available</p>
+              </div>
             )}
           </div>
 

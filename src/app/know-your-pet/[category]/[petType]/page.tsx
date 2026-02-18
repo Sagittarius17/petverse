@@ -35,7 +35,7 @@ function BreedCard({ breed, onSelect, speciesName, speciesImageId }: BreedCardPr
     () => (user && firestore ? collection(firestore, `users/${user.uid}/favoriteBreeds`) : null),
     [user, firestore]
   );
-  
+
   const { data: favorites } = useCollection(favoriteBreedsCollectionRef);
 
   const isFavorited = useMemo(() => favorites?.some(fav => fav.id === breedId), [favorites, breedId]);
@@ -50,7 +50,7 @@ function BreedCard({ breed, onSelect, speciesName, speciesImageId }: BreedCardPr
       });
       return;
     }
-    
+
     const favoriteDocRef = doc(firestore, `users/${user.uid}/favoriteBreeds`, breedId);
 
     if (isFavorited) {
@@ -67,18 +67,25 @@ function BreedCard({ breed, onSelect, speciesName, speciesImageId }: BreedCardPr
       });
     }
   };
-  
+
   const imageId = breed.imageIds && breed.imageIds.length > 0 ? breed.imageIds[0] : speciesImageId;
-  const image = PlaceHolderImages.find((p) => p.id === imageId) || PlaceHolderImages.find(p => p.id === speciesImageId) || { imageUrl: imageId.startsWith('data:') ? imageId : '', imageHint: breed.name };
+  const image = PlaceHolderImages.find((p) => p.id === imageId) ||
+    PlaceHolderImages.find(p => p.id === speciesImageId) ||
+  {
+    imageUrl: (imageId.startsWith('data:') || imageId.startsWith('http')) ? imageId : '',
+    imageHint: breed.name,
+    id: imageId,
+    description: `Image for ${breed.name}`
+  };
 
 
   return (
     <Card
-      className="flex flex-col overflow-hidden transition-all hover:shadow-lg cursor-pointer group"
+      className="flex flex-col overflow-hidden transition-all hover:shadow-lg cursor-pointer group h-full"
       onClick={() => onSelect(breed)}
     >
-      <CardHeader className="relative h-40 w-full p-0">
-         {image.imageUrl ? (
+      <CardHeader className="relative h-48 w-full p-0">
+        {image.imageUrl ? (
           <Image
             src={image.imageUrl}
             alt={breed.name}
@@ -89,7 +96,7 @@ function BreedCard({ breed, onSelect, speciesName, speciesImageId }: BreedCardPr
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-secondary">
-              <p className="text-xs text-muted-foreground">No Image</p>
+            <p className="text-xs text-muted-foreground">No Image</p>
           </div>
         )}
         {user && (
@@ -136,7 +143,7 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
       setLoading(true);
       try {
         const speciesData = await getSpeciesData(categoryName, petTypeName);
-        
+
         if (speciesData) {
           setCurrentSpecies(speciesData);
           setAllBreeds(speciesData.breeds || []);
@@ -156,10 +163,10 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
 
   const handleBreedFound = (newBreed: PetBreed) => {
     setAllBreeds(prevBreeds => {
-        if (prevBreeds.some(b => b.name.toLowerCase() === newBreed.name.toLowerCase())) {
-            return prevBreeds;
-        }
-        return [newBreed, ...prevBreeds];
+      if (prevBreeds.some(b => b.name.toLowerCase() === newBreed.name.toLowerCase())) {
+        return prevBreeds;
+      }
+      return [newBreed, ...prevBreeds];
     });
     setSelectedPet(newBreed);
     setLocalSearchTerm('');
@@ -194,12 +201,12 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
     <>
       <div className="container mx-auto px-4 py-8 relative">
         {loading && (
-            <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-20">
-                <div className="relative flex h-24 w-24 items-center justify-center">
-                    <div className="absolute h-full w-full animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-                    <PawPrint className="h-10 w-10 text-primary" />
-                </div>
+          <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-20">
+            <div className="relative flex h-24 w-24 items-center justify-center">
+              <div className="absolute h-full w-full animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+              <PawPrint className="h-10 w-10 text-primary" />
             </div>
+          </div>
         )}
         <Button variant="ghost" onClick={() => router.back()} className="mb-4 pl-0">
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -211,10 +218,10 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
         </div>
 
         <div className="mb-8 max-w-2xl mx-auto">
-          <BreedSearch 
-            speciesName={currentSpecies?.name || ''} 
+          <BreedSearch
+            speciesName={currentSpecies?.name || ''}
             categoryName={categoryName}
-            onBreedFound={handleBreedFound} 
+            onBreedFound={handleBreedFound}
             searchTerm={localSearchTerm}
             setSearchTerm={setLocalSearchTerm}
             placeholder={`Search or type a new ${currentSpecies?.name.toLowerCase()} breed for AI to find...`}
@@ -226,19 +233,19 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
           {filteredBreeds.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {filteredBreeds.map((breed) => (
-                  <BreedCard 
-                    key={breed.name} 
-                    breed={breed} 
-                    onSelect={setSelectedPet}
-                    speciesName={currentSpecies?.name || ''} 
-                    speciesImageId={currentSpecies?.imageId || ''}
-                  />
+                <BreedCard
+                  key={breed.name}
+                  breed={breed}
+                  onSelect={setSelectedPet}
+                  speciesName={currentSpecies?.name || ''}
+                  speciesImageId={currentSpecies?.imageId || ''}
+                />
               ))}
             </div>
           ) : (
             !loading && <div className="text-center py-16 text-muted-foreground">
-                <p>No breeds found matching &quot;{localSearchTerm}&quot;.</p>
-                <p className="text-sm mt-2">If you type a new breed name, our AI will try to discover it for you!</p>
+              <p>No breeds found matching &quot;{localSearchTerm}&quot;.</p>
+              <p className="text-sm mt-2">If you type a new breed name, our AI will try to discover it for you!</p>
             </div>
           )}
         </section>

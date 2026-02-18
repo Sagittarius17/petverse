@@ -9,12 +9,12 @@ import type { PetBreed } from '@/lib/data';
 import { useDebounce } from '@/hooks/use-debounce';
 
 const loadingMessages = [
-    "Asking the pet experts...",
-    "Sniffing around the web for info...",
-    "Sketching some cute pictures...",
-    "Fetching the details...",
-    "Unleashing new breed knowledge...",
-    "Collaring the information...",
+  "Searching the web for info...",
+  "Curating breed details...",
+  "Fetching the information...",
+  "Looking through our pet records...",
+  "Uncovering breed knowledge...",
+  "Consulting the pet encyclopedias...",
 ];
 
 interface BreedSearchProps {
@@ -27,12 +27,12 @@ interface BreedSearchProps {
   existingBreeds: PetBreed[];
 }
 
-export default function BreedSearch({ 
-  speciesName, 
-  categoryName, 
-  onBreedFound, 
-  searchTerm, 
-  setSearchTerm, 
+export default function BreedSearch({
+  speciesName,
+  categoryName,
+  onBreedFound,
+  searchTerm,
+  setSearchTerm,
   placeholder,
   existingBreeds
 }: BreedSearchProps) {
@@ -65,11 +65,11 @@ export default function BreedSearch({
 
     const performAiSearch = async () => {
       const term = debouncedSearchTerm.trim();
-      
+
       if (term.length < 3) {
         return;
       }
-      
+
       const breedExists = existingBreeds.some(b => b.name.toLowerCase() === term.toLowerCase());
       if (breedExists) {
         return;
@@ -84,11 +84,11 @@ export default function BreedSearch({
         };
 
         const newBreedInfo = await fetchBreedInfo(input);
-        
+
         if (!signal.aborted) {
           onBreedFound(newBreedInfo);
           toast({
-            title: 'AI Discovery!',
+            title: 'New Breed Discovered!',
             description: `Found and saved info for ${newBreedInfo.name}.`,
           });
         }
@@ -98,11 +98,11 @@ export default function BreedSearch({
           console.log("Search aborted");
           return;
         }
-        
+
         if (!error.message.includes('not a recognized breed')) {
           toast({
             variant: 'destructive',
-            title: 'AI Search Failed',
+            title: 'Search Failed',
             description: error.message || 'An unknown error occurred.',
           });
         }
@@ -133,17 +133,17 @@ export default function BreedSearch({
           className="w-full pl-10 pr-10"
         />
         {isSearching && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <div className="relative flex h-5 w-5 items-center justify-center">
-                    <div className="absolute h-full w-full animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                    <PawPrint className="h-3 w-3 text-primary" />
-                </div>
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <div className="relative flex h-5 w-5 items-center justify-center">
+              <div className="absolute h-full w-full animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+              <PawPrint className="h-3 w-3 text-primary" />
             </div>
+          </div>
         )}
       </div>
       {isSearching && (
         <div className="flex items-center justify-center gap-2 h-5">
-            <p className="text-sm text-muted-foreground animate-in fade-in duration-500">{loadingText}</p>
+          <p className="text-sm text-muted-foreground animate-in fade-in duration-500">{loadingText}</p>
         </div>
       )}
     </div>

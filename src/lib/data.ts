@@ -25,9 +25,9 @@ export const FetchBreedInfoOutputSchema = z.object({
 });
 
 export const PetBreedWithImagesSchema = FetchBreedInfoOutputSchema.extend({
-    imageIds: z.array(z.string()).describe("An array of generated image data URIs."),
-    speciesName: z.string().optional(),
-    categoryName: z.string().optional(),
+  imageIds: z.array(z.string()).describe("An array of generated image data URIs."),
+  speciesName: z.string().optional(),
+  categoryName: z.string().optional(),
 });
 
 export interface Pet {
@@ -50,16 +50,16 @@ export interface Pet {
 }
 
 export interface UserProfile {
-    id: string;
-    username: string;
-    email: string;
-    displayName?: string;
-    profilePicture?: string;
-    firstName?: string;
-    lastName?: string;
-    createdAt?: Timestamp;
-    role?: 'User' | 'Admin' | 'Superuser' | 'Superadmin';
-    status?: 'Active' | 'Inactive';
+  id: string;
+  username: string;
+  email: string;
+  displayName?: string;
+  profilePicture?: string;
+  firstName?: string;
+  lastName?: string;
+  createdAt?: Timestamp;
+  role?: 'User' | 'Admin' | 'Superuser' | 'Superadmin';
+  status?: 'Active' | 'Inactive';
 }
 
 export interface CareGuide {
@@ -72,7 +72,7 @@ export interface CareGuide {
 }
 
 export interface LostPetReport {
-  id:string;
+  id: string;
   ownerName: string;
   contactEmail: string;
   petName: string;
@@ -84,22 +84,36 @@ export interface LostPetReport {
   userId?: string;
 }
 
+export interface UserReport {
+  id: string;
+  reporterId: string;
+  reporterName: string;
+  targetId: string; // ID of the reported pet, post, or user
+  targetType: 'Pet' | 'Report' | 'Blog' | 'User';
+  reason: 'Abuse' | 'Inappropriate Content' | 'Spam' | 'Other' | 'Resolved Information';
+  description: string;
+  status: 'Pending' | 'In Review' | 'Resolved' | 'Dismissed';
+  createdAt: Timestamp;
+  resolvedAt?: Timestamp;
+  resolvedBy?: string; // Admin User ID
+}
+
 export interface OrderItem {
-    id: string;
-    name: string;
-    quantity: number;
-    price: number;
+  id: string;
+  name: string;
+  quantity: number;
+  price: number;
 }
 
 export interface Order {
-    id: string;
-    userId: string;
-    items: OrderItem[];
-    subtotal: number;
-    paymentMethod: string;
-    razorpayPaymentId: string;
-    status: 'Placed' | 'Shipped' | 'Delivered' | 'Cancelled';
-    orderDate: Timestamp;
+  id: string;
+  userId: string;
+  items: OrderItem[];
+  subtotal: number;
+  paymentMethod: string;
+  razorpayPaymentId: string;
+  status: 'Placed' | 'Shipped' | 'Delivered' | 'Cancelled';
+  orderDate: Timestamp;
 }
 
 
@@ -122,13 +136,13 @@ export const allPets: Pet[] = [
 ];
 
 export const allCareGuides: CareGuide[] = [
-    {
-      id: 'cg1',
-      title: 'Beginner\'s Guide to Dog Care',
-      petType: 'Dogs',
-      summary: 'Learn the basics of feeding, grooming, and training your new dog.',
-      imageId: 'guide-dog',
-      content: `
+  {
+    id: 'cg1',
+    title: 'Beginner\'s Guide to Dog Care',
+    petType: 'Dogs',
+    summary: 'Learn the basics of feeding, grooming, and training your new dog.',
+    imageId: 'guide-dog',
+    content: `
 ### Welcome to Dog Ownership!
 
 Bringing a new dog into your home is an exciting experience. To ensure your friend has a happy and healthy life, it\'s important to understand the basics of their care.
@@ -141,14 +155,14 @@ Regular grooming keeps your dog\'s coat and skin healthy. The frequency of groom
 
 #### Training and Socialization
 Training is essential for a well-behaved dog. Start with basic commands like "sit", "stay", and "come."`
-    },
-    {
-      id: 'cg2',
-      title: 'Caring for Your New Kitten',
-      petType: 'Cats',
-      summary: 'Essential tips for a happy and healthy kitten, from diet to playtime.',
-      imageId: 'guide-cat',
-      content: `
+  },
+  {
+    id: 'cg2',
+    title: 'Caring for Your New Kitten',
+    petType: 'Cats',
+    summary: 'Essential tips for a happy and healthy kitten, from diet to playtime.',
+    imageId: 'guide-cat',
+    content: `
 ### Kitten Care 101
 
 Kittens are playful and curious, and they require special care to grow into healthy adult cats.
@@ -161,14 +175,14 @@ Most kittens learn to use the litter box quickly. Show them the box, and they wi
 
 #### Socialization
 Expose your kitten to different people, sights, and sounds to help them become a well-adjusted adult cat.`
-    },
-    {
-      id: 'cg3',
-      title: 'Bird Keeping for Beginners',
-      petType: 'Birds',
-      summary: 'Discover the joys of bird ownership with our guide to basic care.',
-      imageId: 'guide-bird',
-      content: `
+  },
+  {
+    id: 'cg3',
+    title: 'Bird Keeping for Beginners',
+    petType: 'Birds',
+    summary: 'Discover the joys of bird ownership with our guide to basic care.',
+    imageId: 'guide-bird',
+    content: `
 ### Getting Started with Birds
 
 Birds can be wonderful companions. Here are a few tips for new bird owners.
@@ -181,17 +195,17 @@ A balanced diet for a bird includes pellets, fresh vegetables, and a small amoun
 
 #### Enrichment
 Birds are intelligent and need mental stimulation. Provide toys and opportunities for interaction to keep them happy.`
-    }
+  }
 ];
 
 export const featuredCareGuides: CareGuide[] = [
-    {
-      id: 'cg1',
-      title: 'Beginner\'s Guide to Dog Care',
-      petType: 'Dogs',
-      summary: 'Learn the basics of feeding, grooming, and training your new dog.',
-      imageId: 'guide-dog',
-      content: `
+  {
+    id: 'cg1',
+    title: 'Beginner\'s Guide to Dog Care',
+    petType: 'Dogs',
+    summary: 'Learn the basics of feeding, grooming, and training your new dog.',
+    imageId: 'guide-dog',
+    content: `
 ### Welcome to Dog Ownership!
 
 Bringing a new dog into your home is an exciting experience. To ensure your friend has a happy and healthy life, it\'s important to understand the basics of their care.
@@ -204,14 +218,14 @@ Regular grooming keeps your dog\'s coat and skin healthy. The frequency of groom
 
 #### Training and Socialization
 Training is essential for a well-behaved dog. Start with basic commands like "sit", "stay", and "come."`
-    },
-    {
-      id: 'cg2',
-      title: 'Caring for Your New Kitten',
-      petType: 'Cats',
-      summary: 'Essential tips for a happy and healthy kitten, from diet to playtime.',
-      imageId: 'guide-cat',
-      content: `
+  },
+  {
+    id: 'cg2',
+    title: 'Caring for Your New Kitten',
+    petType: 'Cats',
+    summary: 'Essential tips for a happy and healthy kitten, from diet to playtime.',
+    imageId: 'guide-cat',
+    content: `
 ### Kitten Care 101
 
 Kittens are playful and curious, and they require special care to grow into healthy adult cats.
@@ -224,14 +238,14 @@ Most kittens learn to use the litter box quickly. Show them the box, and they wi
 
 #### Socialization
 Expose your kitten to different people, sights, and sounds to help them become a well-adjusted adult cat.`
-    },
-    {
-      id: 'cg3',
-      title: 'Bird Keeping for Beginners',
-      petType: 'Birds',
-      summary: 'Discover the joys of bird ownership with our guide to basic care.',
-      imageId: 'guide-bird',
-      content: `
+  },
+  {
+    id: 'cg3',
+    title: 'Bird Keeping for Beginners',
+    petType: 'Birds',
+    summary: 'Discover the joys of bird ownership with our guide to basic care.',
+    imageId: 'guide-bird',
+    content: `
 ### Getting Started with Birds
 
 Birds can be wonderful companions. Here are a few tips for new bird owners.
@@ -244,5 +258,5 @@ A balanced diet for a bird includes pellets, fresh vegetables, and a small amoun
 
 #### Enrichment
 Birds are intelligent and need mental stimulation. Provide toys and opportunities for interaction to keep them happy.`
-    }
+  }
 ];

@@ -43,7 +43,7 @@ export default function KnowYourPetPage() {
                     className="flex flex-col overflow-hidden transition-all hover:shadow-lg cursor-pointer"
                     onClick={() => handlePetTypeClick(category.category, s.name)}
                   >
-                    <CardHeader className="relative h-32 sm:h-40 w-full p-0">
+                    <CardHeader className="relative h-48 w-full p-0">
                       {image && (
                         <Image
                           src={image.imageUrl}

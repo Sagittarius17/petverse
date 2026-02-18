@@ -9,7 +9,7 @@
     {
       "id": "billu-avatar",
       "description": "A cute, cartoonish cat avatar for Billu the chatbot.",
-      "imageUrl": "https://images.unsplash.com/photo-1596854407944-bf87f6fdd49e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjdXRlJTIwY2F0fGVufDB8fHx8MTc2Nzc0MDIyMnww&ixlib=rb-4.1.0&q=80&w=200",
+      "imageUrl": "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=200&auto=format&fit=crop",
       "imageHint": "cute cat"
     },
     {
@@ -93,19 +93,19 @@
     {
       "id": "dog-poodle-1",
       "description": "A small, fluffy Poodle.",
-      "imageUrl": "https://images.unsplash.com/photo-1583337130525-400439161743?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwZm9vZGxlJTIwZG9nfGVufDB8fHx8MTc2Nzc0MDIyNnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1598133894008-61f7fdb8cc3a?q=80&w=1080&auto=format&fit=crop",
       "imageHint": "poodle dog"
     },
     {
       "id": "dog-poodle-2",
       "description": "A standard poodle with a classic cut.",
-      "imageUrl": "https://images.unsplash.com/photo-1621235391039-445a435b52a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwZm9vZGxlJTIwZG9nfGVufDB8fHx8MTc2Nzc0MDIyNnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1591769225440-811ad7d62ca2?q=80&w=1080&auto=format&fit=crop",
       "imageHint": "poodle dog"
     },
     {
       "id": "dog-poodle-3",
       "description": "A toy poodle sitting on a chair.",
-      "imageUrl": "https://images.unsplash.com/photo-1568551061957-360d8c0f55c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwZm9vZGxlJTIwZG9nfGVufDB8fHx8MTc2Nzc0MDIyNnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=1080&auto=format&fit=crop",
       "imageHint": "poodle dog"
     },
     {
@@ -129,55 +129,55 @@
     {
       "id": "dog-beagle-1",
       "description": "A curious beagle in a park.",
-      "imageUrl": "https://images.unsplash.com/photo-1596791370092-2d1c9985a639?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxiZWFnbGUlMjBkb2d8ZW58MHx8fHwxNzY3NzQwMjI0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?q=80&w=1080&auto=format&fit=crop",
       "imageHint": "beagle dog"
     },
     {
       "id": "dog-beagle-2",
       "description": "A beagle puppy looking up.",
-      "imageUrl": "https://images.unsplash.com/photo-1619062069031-620250914936?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxiZWFnbGUlMjBkb2d8ZW58MHx8fHwxNzY3NzQwMjI0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1505628346881-b72b27e84530?q=80&w=1080&auto=format&fit=crop",
       "imageHint": "beagle dog"
     },
     {
       "id": "dog-beagle-3",
       "description": "An adult beagle sitting.",
-      "imageUrl": "https://images.unsplash.com/photo-1558280632-2a8d7d428c77?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxiZWFnbGUlMjBkb2d8ZW58MHx8fHwxNzY3NzQwMjI0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1631557348981-0f7f1d440787?q=80&w=1080&auto=format&fit=crop",
       "imageHint": "beagle dog"
     },
     {
       "id": "dog-bulldog-1",
       "description": "A bulldog sitting on the grass.",
-      "imageUrl": "https://images.unsplash.com/photo-1583337480131-3e573484552e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxidWxsZG9nJTIwZG9nfGVufDB8fHx8MTc2Nzc0MDIyM3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1517423440428-a5a00ad1e3e8?q=80&w=1080&auto=format&fit=crop",
       "imageHint": "bulldog dog"
     },
     {
       "id": "dog-bulldog-2",
       "description": "An English bulldog with a wrinkled face.",
-      "imageUrl": "https://images.unsplash.com/photo-1529929961910-6212b3222378?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxidWxsZG9nJTIwZG9nfGVufDB8fHx8MTc2Nzc0MDIyM3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=1080&auto=format&fit=crop",
       "imageHint": "bulldog dog"
     },
     {
       "id": "dog-bulldog-3",
       "description": "A French bulldog puppy.",
-      "imageUrl": "https://images.unsplash.com/photo-1583511655826-05700d52f4d9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxmcmVuY2glMjBidWxsZG9nfGVufDB8fHx8MTc2Nzc0MzE5NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1583511655826-05700d52f4d9?q=80&w=1080&auto=format&fit=crop",
       "imageHint": "bulldog dog"
     },
     {
       "id": "dog-pug-1",
       "description": "A pug with a wrinkled face.",
-      "imageUrl": "https://images.unsplash.com/photo-1587293041973-2ea13203f3a7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwdWclMjBkb2d8ZW58MHx8fHwxNzY3NzQwMjIyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=1080&auto=format&fit=crop",
       "imageHint": "pug dog"
     },
     {
       "id": "dog-pug-2",
       "description": "A pug wrapped in a blanket.",
-      "imageUrl": "https://images.unsplash.com/photo-1575425186775-b8de9a427e67?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwdWclMjBkb2d8ZW58MHx8fHwxNzY3NzQwMjIyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1523626797181-8c5ae80d40c2?q=80&w=1080&auto=format&fit=crop",
       "imageHint": "pug dog"
     },
     {
       "id": "dog-pug-3",
       "description": "A pug looking at the camera.",
-      "imageUrl": "https://images.unsplash.com/photo-1580559695536-a0081c37415a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwdWclMjBkb2d8ZW58MHx8fHwxNzY3NzQwMjIyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1517423568366-8b83523034fd?q=80&w=1080&auto=format&fit=crop",
       "imageHint": "pug dog"
     },
     {

@@ -1,16 +1,18 @@
 'use client';
 
-import { useMemo, memo } from 'react';
+import { useMemo, memo, useState } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Pet, UserProfile } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Eye, AtSign, MapPin } from 'lucide-react';
+import { Eye, AtSign, MapPin, AlertTriangle } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
+import ReportDialog from './report-dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 interface PetCardProps {
   pet: Pet;
@@ -20,16 +22,17 @@ interface PetCardProps {
 }
 
 const PetCard = memo(function PetCard({ pet, onPetSelect, actions, owner }: PetCardProps) {
-    const image = useMemo(() => {
-        if (pet.imageId?.startsWith('data:image')) {
-            return {
-                imageUrl: pet.imageId,
-                description: pet.name,
-                imageHint: pet.breed.toLowerCase(),
-            };
-        }
-        return PlaceHolderImages.find(p => p.id === pet.imageId);
-    }, [pet.imageId, pet.name, pet.breed]);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const image = useMemo(() => {
+    if (pet.imageId?.startsWith('data:image')) {
+      return {
+        imageUrl: pet.imageId,
+        description: pet.name,
+        imageHint: pet.breed.toLowerCase(),
+      };
+    }
+    return PlaceHolderImages.find(p => p.id === pet.imageId);
+  }, [pet.imageId, pet.name, pet.breed]);
 
   const isAvailable = pet.isAdoptable !== false;
 
@@ -40,12 +43,12 @@ const PetCard = memo(function PetCard({ pet, onPetSelect, actions, owner }: PetC
     }
     return 'Adopted';
   }
-  
+
   return (
-    <Card 
+    <Card
       className="flex flex-col overflow-hidden transition-all hover:shadow-lg group"
     >
-      <div 
+      <div
         className="flex-grow cursor-pointer"
         onClick={() => onPetSelect?.(pet)}
       >
@@ -61,39 +64,69 @@ const PetCard = memo(function PetCard({ pet, onPetSelect, actions, owner }: PetC
                 className="transition-transform duration-300 group-hover:scale-105"
               />
             ) : (
-                <div className="h-full w-full bg-secondary flex items-center justify-center">
-                    <p className="text-xs text-muted-foreground">No Image</p>
-                </div>
+              <div className="h-full w-full bg-secondary flex items-center justify-center">
+                <p className="text-xs text-muted-foreground">No Image</p>
+              </div>
             )}
           </div>
           {owner?.username && (
             <div className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
-                <AtSign className="h-3 w-3" />
-                <span className="font-semibold">{owner.username}</span>
+              <AtSign className="h-3 w-3" />
+              <span className="font-semibold">{owner.username}</span>
             </div>
           )}
-          <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
-            <Eye className="h-3 w-3" />
-            <span className="font-semibold">{pet.viewCount || 0}</span>
+          <div className="absolute top-2 right-2 flex items-center gap-1">
+            <div className="flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
+              <Eye className="h-3 w-3" />
+              <span className="font-semibold">{pet.viewCount || 0}</span>
+            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 rounded-full bg-black/50 hover:bg-destructive text-white border-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsReportOpen(true);
+                    }}
+                  >
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    <span className="sr-only">Report Pet</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p>Report Violation</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
+          <ReportDialog
+            isOpen={isReportOpen}
+            onClose={() => setIsReportOpen(false)}
+            targetId={pet.id}
+            targetType="Pet"
+            targetName={pet.name}
+          />
         </CardHeader>
-        <CardContent 
-            className="flex-grow p-4"
+        <CardContent
+          className="flex-grow p-4"
         >
           <div className="flex items-center justify-between mb-2">
             <CardTitle className="text-xl font-headline group-hover:underline">
               {pet.name}
             </CardTitle>
-             <Badge className={cn(!isAvailable ? "bg-success text-success-foreground hover:bg-success/90" : "bg-secondary text-secondary-foreground", "whitespace-nowrap")}>
-                {adoptionStatusText()}
+            <Badge className={cn(!isAvailable ? "bg-success text-success-foreground hover:bg-success/90" : "bg-secondary text-secondary-foreground", "whitespace-nowrap")}>
+              {adoptionStatusText()}
             </Badge>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             {pet.location && (
-                <Badge variant="outline" className="flex items-center gap-1.5">
-                    <MapPin className="h-3 w-3" />
-                    {pet.location}
-                </Badge>
+              <Badge variant="outline" className="flex items-center gap-1.5">
+                <MapPin className="h-3 w-3" />
+                {pet.location}
+              </Badge>
             )}
             <Badge variant="secondary">{pet.breed}</Badge>
             <Badge variant="secondary">{pet.age}</Badge>
@@ -102,9 +135,9 @@ const PetCard = memo(function PetCard({ pet, onPetSelect, actions, owner }: PetC
           <p className="mt-3 text-sm line-clamp-2">{pet.description}</p>
         </CardContent>
       </div>
-      <CardFooter 
+      <CardFooter
         className="p-4 pt-0"
-        onClick={(e) => {if(actions) { e.stopPropagation() }}}
+        onClick={(e) => { if (actions) { e.stopPropagation() } }}
       >
         {actions ? (
           <div className="w-full">{actions}</div>

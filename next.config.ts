@@ -1,10 +1,11 @@
-import type {NextConfig} from 'next';
+import type { NextConfig } from 'next';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: './.env.local' });
 
 const nextConfig: NextConfig = {
   /* config options here */
+  devIndicators: false,
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -31,6 +32,12 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'upload.wikimedia.org',
         port: '',
         pathname: '/**',
       },

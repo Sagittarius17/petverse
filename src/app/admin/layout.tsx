@@ -29,7 +29,8 @@ import {
   ListCollapse,
   Sun,
   Moon,
-  Monitor
+  Monitor,
+  AlertCircle
 } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -48,6 +49,7 @@ const menuItems = [
   { href: "/admin/pets", label: "Pets", icon: Dog },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/blogs", label: "Blogs", icon: FileText },
+  { href: "/admin/reports", label: "Reports", icon: AlertCircle },
 ];
 
 interface UserProfile {
@@ -57,21 +59,21 @@ interface UserProfile {
 }
 
 function AccessDeniedScreen() {
-    const router = useRouter();
-    return (
-        <div className="flex h-screen w-full flex-col items-center justify-center bg-background p-4 text-center">
-            <ShieldAlert className="h-16 w-16 text-destructive" />
-            <h1 className="mt-6 text-3xl font-bold font-headline text-foreground">
-                Access Denied
-            </h1>
-            <p className="mt-2 max-w-md text-lg text-muted-foreground">
-                You do not have the required permissions to view this page.
-            </p>
-            <Button onClick={() => router.push('/')} className="mt-6">
-                Return to Homepage
-            </Button>
-        </div>
-    );
+  const router = useRouter();
+  return (
+    <div className="flex h-screen w-full flex-col items-center justify-center bg-background p-4 text-center">
+      <ShieldAlert className="h-16 w-16 text-destructive" />
+      <h1 className="mt-6 text-3xl font-bold font-headline text-foreground">
+        Access Denied
+      </h1>
+      <p className="mt-2 max-w-md text-lg text-muted-foreground">
+        You do not have the required permissions to view this page.
+      </p>
+      <Button onClick={() => router.push('/')} className="mt-6">
+        Return to Homepage
+      </Button>
+    </div>
+  );
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -89,7 +91,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
 
   const isLoading = isAuthLoading || isProfileLoading;
-  
+
   const isAuthorized = !isLoading && user && userProfile && (userProfile.role === 'Admin' || userProfile.role === 'Superuser' || userProfile.role === 'Superadmin');
 
   useEffect(() => {
@@ -114,121 +116,121 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!isAuthorized) {
     return <AccessDeniedScreen />;
   }
-  
-  const avatarUrl = userProfile?.profilePicture || user?.photoURL;
+
+  const avatarUrl = userProfile?.profilePicture || user?.photoURL || undefined;
 
   return (
     <SidebarProvider>
       <div className="flex h-screen">
-          <Sidebar
-            collapsible="icon"
-            className="flex h-full flex-col border-r"
-          >
-            <SidebarHeader className="shrink-0">
-              <Link
-                href="/admin"
-                className="flex items-center gap-2 text-xl font-bold font-headline"
-              >
-                <PawPrint className="h-6 w-6 text-primary" />
-                <span className="group-data-[collapsible=icon]:hidden">
-                  PetVerse
-                </span>
-              </Link>
-            </SidebarHeader>
+        <Sidebar
+          collapsible="icon"
+          className="flex h-full flex-col border-r"
+        >
+          <SidebarHeader className="shrink-0">
+            <Link
+              href="/admin"
+              className="flex items-center gap-2 text-xl font-bold font-headline"
+            >
+              <PawPrint className="h-6 w-6 text-primary" />
+              <span className="group-data-[collapsible=icon]:hidden">
+                PetVerse
+              </span>
+            </Link>
+          </SidebarHeader>
 
-            <SidebarContent className="flex-1 overflow-y-auto">
-              <SidebarMenu>
-                {menuItems.map((item) => (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={item.href === '/admin' ? pathname === item.href : pathname.startsWith(item.href)}
-                      tooltip={{ children: item.label }}
-                    >
-                      <Link href={item.href}>
-                        <item.icon />
-                        <span>{item.label}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarContent>
-
-            <SidebarFooter className="shrink-0 border-t">
-              <div className="p-2 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:aspect-square">
-                  <div className="flex items-center gap-2 p-2 group-data-[collapsible=icon]:justify-center">
-                    <Avatar className="h-8 w-8">
-                        <AvatarImage src={avatarUrl} alt={userProfile?.username} />
-                        <AvatarFallback><PawPrint className="h-4 w-4 text-muted-foreground" /></AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 flex justify-between items-center group-data-[collapsible=icon]:hidden">
-                      <div className="flex flex-col text-sm">
-                          <span className="font-semibold text-foreground truncate">{userProfile?.username || user?.displayName || 'Admin'}</span>
-                          <span className="text-muted-foreground text-xs truncate">{user?.email}</span>
-                      </div>
-                      <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                                  <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                                  <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                                  <span className="sr-only">Toggle theme</span>
-                              </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => setTheme('light')}>
-                              <Sun className="mr-2 h-4 w-4" />
-                              <span>Light</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setTheme('dark')}>
-                              <Moon className="mr-2 h-4 w-4" />
-                              <span>Dark</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setTheme('system')}>
-                              <Monitor className="mr-2 h-4 w-4" />
-                              <span>System</span>
-                              </DropdownMenuItem>
-                          </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-              </div>
-              <SidebarSeparator />
-              <SidebarMenu>
-                <SidebarMenuItem>
+          <SidebarContent className="flex-1 overflow-y-auto">
+            <SidebarMenu>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     asChild
-                    tooltip={{ children: "Settings" }}
-                    isActive={pathname.startsWith("/admin/settings")}
+                    isActive={item.href === '/admin' ? pathname === item.href : pathname.startsWith(item.href)}
+                    tooltip={{ children: item.label }}
                   >
-                    <Link href="/admin/settings">
-                      <Settings />
-                      <span>{user?.displayName}</span>
+                    <Link href={item.href}>
+                      <item.icon />
+                      <span>{item.label}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarContent>
 
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip={{ children: "Logout" }}>
-                    <Link href="/">
-                      <LogOut />
-                      <span>Logout</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarFooter>
-          </Sidebar>
-
-          <main className="flex-1 overflow-y-auto">
-            <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between gap-x-4 border-b bg-background px-4 shadow-sm sm:px-6 md:hidden">
-                <SidebarTrigger />
-                <h1 className="text-lg font-semibold">Admin</h1>
-            </header>
-            <div className="p-4 sm:p-6 lg:p-8">
-              {children}
+          <SidebarFooter className="shrink-0 border-t">
+            <div className="p-2 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:aspect-square">
+              <div className="flex items-center gap-2 p-2 group-data-[collapsible=icon]:justify-center">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={avatarUrl} alt={userProfile?.username} />
+                  <AvatarFallback><PawPrint className="h-4 w-4 text-muted-foreground" /></AvatarFallback>
+                </Avatar>
+                <div className="flex-1 flex flex-col min-w-0 text-sm group-data-[collapsible=icon]:hidden">
+                  <span className="font-semibold text-foreground truncate">{userProfile?.username || user?.displayName || 'Admin'}</span>
+                  <span className="text-muted-foreground text-xs truncate leading-none">{user?.email}</span>
+                </div>
+              </div>
             </div>
-          </main>
+            <SidebarSeparator />
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <SidebarMenuButton tooltip={{ children: "Theme" }}>
+                      <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                      <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                      <span>Toggle Theme</span>
+                    </SidebarMenuButton>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setTheme('light')}>
+                      <Sun className="mr-2 h-4 w-4" />
+                      <span>Light</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme('dark')}>
+                      <Moon className="mr-2 h-4 w-4" />
+                      <span>Dark</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme('system')}>
+                      <Monitor className="mr-2 h-4 w-4" />
+                      <span>System</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip={{ children: "Settings" }}
+                  isActive={pathname.startsWith("/admin/settings")}
+                >
+                  <Link href="/admin/settings">
+                    <Settings />
+                    <span>{user?.displayName}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip={{ children: "Logout" }}>
+                  <Link href="/">
+                    <LogOut />
+                    <span>Logout</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarFooter>
+        </Sidebar>
+
+        <main className="flex-1 overflow-y-auto">
+          <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between gap-x-4 border-b bg-background px-4 shadow-sm sm:px-6 md:hidden">
+            <SidebarTrigger />
+            <h1 className="text-lg font-semibold">Admin</h1>
+          </header>
+          <div className="p-4 sm:p-6 lg:p-8">
+            {children}
+          </div>
+        </main>
       </div>
     </SidebarProvider>
   );
