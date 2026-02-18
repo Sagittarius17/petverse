@@ -7,12 +7,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PawPrint, Search } from "lucide-react";
 import type { LostPetReport } from '@/lib/data';
 import LostPetReportCard from '@/components/lost-pet-report-card';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, orderBy, getDocs, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function LostAndFoundPage() {
   const firestore = useFirestore();
+  const { user } = useUser();
   const reportsQuery = useMemoFirebase(
     () => firestore ? query(collection(firestore, 'lost_found_reports'), orderBy('reportDate', 'desc')) : null,
     [firestore]
@@ -24,13 +25,12 @@ export default function LostAndFoundPage() {
 
   useEffect(() => {
     const filterReportsByActiveUsers = async () => {
-      if (!allReports || !firestore) {
-        if (!isLoading) {
-            setIsFilteringUsers(false);
-            setActiveReports([]);
-        }
+      // If there are no reports, or the user is not authenticated, don't try to query user statuses.
+      if (!allReports || !firestore || !user) {
+        setActiveReports(allReports || []);
+        setIsFilteringUsers(false);
         return;
-      };
+      }
 
       setIsFilteringUsers(true);
       const userIds = [...new Set(allReports.map(report => report.userId).filter((id): id is string => !!id))];
@@ -70,7 +70,7 @@ export default function LostAndFoundPage() {
     if (!isLoading) {
         filterReportsByActiveUsers();
     }
-  }, [allReports, firestore, isLoading]);
+  }, [allReports, firestore, isLoading, user]);
 
   const finalIsLoading = isLoading || isFilteringUsers;
 
