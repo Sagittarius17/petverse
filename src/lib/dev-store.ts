@@ -3,6 +3,12 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
+const noopStorage = {
+  getItem: (name: string) => null,
+  setItem: (name: string, value: string) => { },
+  removeItem: (name: string) => { },
+};
+
 interface DevState {
   // Session counts
   reads: number;
@@ -41,7 +47,7 @@ export const useDevStore = create<DevState>()(
     }),
     {
       name: 'dev-settings-storage', // name of the item in storage
-      storage: createJSONStorage(() => localStorage), // use localStorage
+      storage: createJSONStorage(() => (typeof window !== 'undefined' ? localStorage : noopStorage)), // use localStorage
       // Persist totals and the enabled flag
       partialize: (state) => ({
         totalReads: state.totalReads,
@@ -54,4 +60,6 @@ export const useDevStore = create<DevState>()(
 
 // When the app first loads, reset the session counts to 0.
 // The persisted total counts will be rehydrated from localStorage automatically.
-useDevStore.getState().resetCounts();
+if (typeof window !== 'undefined') {
+  useDevStore.getState().resetCounts();
+}

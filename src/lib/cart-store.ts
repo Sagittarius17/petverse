@@ -6,11 +6,17 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { type Product } from './shop-data';
 import { toast } from '@/hooks/use-toast';
 
+const noopStorage = {
+  getItem: (name: string) => null,
+  setItem: (name: string, value: string) => { },
+  removeItem: (name: string) => { },
+};
+
 export interface CartItem extends Product {
   quantity: number;
 }
 
-export interface WishlistItem extends Product {}
+export interface WishlistItem extends Product { }
 
 interface CartState {
   items: CartItem[];
@@ -22,7 +28,7 @@ interface CartState {
   clearCart: () => void;
   totalItems: number;
   subtotal: number;
-  
+
   toggleWishlist: (product: Product) => void;
   isWishlisted: (productId: string) => boolean;
 
@@ -88,7 +94,7 @@ const useCartStore = create<CartState>()(
         }
         get()._updateTotals();
       },
-      
+
       clearCart: () => {
         set({ items: [] });
         get()._updateTotals();
@@ -100,7 +106,7 @@ const useCartStore = create<CartState>()(
           set((state) => ({
             wishlist: state.wishlist.filter((item) => item.id !== product.id),
           }));
-           toast({
+          toast({
             title: 'Removed from Wishlist',
             description: `${product.name} has been removed from your wishlist.`,
           });
@@ -132,7 +138,7 @@ const useCartStore = create<CartState>()(
     }),
     {
       name: 'petshop-storage',
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => (typeof window !== 'undefined' ? localStorage : noopStorage)),
       onRehydrateStorage: () => (state) => {
         if (state) {
           state._hydrate();
@@ -143,6 +149,8 @@ const useCartStore = create<CartState>()(
 );
 
 // Call _hydrate on initial load
-useCartStore.getState()._hydrate();
+if (typeof window !== 'undefined') {
+  useCartStore.getState()._hydrate();
+}
 
 export default useCartStore;

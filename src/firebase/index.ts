@@ -18,11 +18,15 @@ export function initializeFirebase() {
       // Attempt to initialize via Firebase App Hosting environment variables
       firebaseApp = initializeApp();
     } catch (e) {
-      // Only warn in production because it's normal to use the firebaseConfig to initialize
-      // during development
-      if (process.env.NODE_ENV === "production") {
-        console.warn('Automatic initialization failed. Falling back to firebase config object.', e);
+      // If automatic initialization fails, we fall back to the config object.
+      // During Vercel build, environment variables might be missing if not set in the build settings,
+      // but we still need to initialize the app for static generation if possible.
+      const hasConfig = Object.values(firebaseConfig).some(val => !!val);
+
+      if (!hasConfig && process.env.NODE_ENV === "production") {
+        console.warn('Firebase configuration missing during production build. static generation might fail if it depends on Firebase.');
       }
+
       firebaseApp = initializeApp(firebaseConfig);
     }
 
@@ -36,7 +40,7 @@ export function initializeFirebase() {
 export function getSdks(firebaseApp: FirebaseApp) {
   const firestore = getFirestore(firebaseApp);
   const database = getDatabase(firebaseApp);
-  
+
   return {
     firebaseApp,
     auth: getAuth(firebaseApp),
@@ -54,4 +58,3 @@ export * from './non-blocking-login';
 export * from './errors';
 export * from './error-emitter';
 
-    

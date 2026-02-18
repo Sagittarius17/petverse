@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { usePathname } from 'next/navigation';
 import AdoptionHeader from '@/components/adoption-header';
 import AdoptionFooter from '@/components/adoption-footer';
@@ -26,18 +26,18 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const isShopPage = pathname.startsWith('/shop');
 
   const firestore = useFirestore();
-  
+
   const settingsDocRef = useMemoFirebase(() => {
     return firestore ? doc(firestore, 'settings', 'maintenance') : null;
   }, [firestore]);
-  
+
   const { data: maintenanceSettings, isLoading } = useDoc<MaintenanceSettings>(settingsDocRef);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
-  
+
   // This effect runs on all clients and acts as the "cron job" to update the global state.
   useEffect(() => {
     if (!settingsDocRef || !maintenanceSettings) return;
@@ -45,44 +45,48 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     const now = new Date();
     const startTime = maintenanceSettings.maintenanceStartTime ? new Date(maintenanceSettings.maintenanceStartTime) : null;
     const endTime = maintenanceSettings.maintenanceEndTime ? new Date(maintenanceSettings.maintenanceEndTime) : null;
-    
+
     // If it's not currently in maintenance mode, but the start time has passed
     if (!maintenanceSettings.isMaintenanceMode && startTime && now >= startTime) {
-        setDoc(settingsDocRef, { isMaintenanceMode: true }, { merge: true });
+      setDoc(settingsDocRef, { isMaintenanceMode: true }, { merge: true });
     }
 
     // If it IS in maintenance mode, but the end time has passed
     if (maintenanceSettings.isMaintenanceMode && endTime && now >= endTime) {
-        setDoc(settingsDocRef, {
-            isMaintenanceMode: false,
-            maintenanceStartTime: null,
-            maintenanceEndTime: null,
-        }, { merge: true });
+      setDoc(settingsDocRef, {
+        isMaintenanceMode: false,
+        maintenanceStartTime: null,
+        maintenanceEndTime: null,
+      }, { merge: true });
     }
   }, [maintenanceSettings, settingsDocRef]);
-  
+
   const now = new Date();
-  
-  const isCurrentlyInMaintenance = maintenanceSettings?.isMaintenanceMode || 
+
+  const isCurrentlyInMaintenance = maintenanceSettings?.isMaintenanceMode ||
     (maintenanceSettings?.maintenanceStartTime ? new Date(maintenanceSettings.maintenanceStartTime) <= now : false);
 
-  const showBanner = !isCurrentlyInMaintenance && 
-    maintenanceSettings?.maintenanceStartTime && 
+  const showBanner = !isCurrentlyInMaintenance &&
+    maintenanceSettings?.maintenanceStartTime &&
     new Date(maintenanceSettings.maintenanceStartTime) > now;
-    
+
   if (!isClient || isLoading) {
     if (isAdminPage) {
       return <main className="flex-grow">{children}</main>;
     }
     return (
       <div className="flex min-h-screen flex-col">
-        {isShopPage ? <ShopHeader /> : <AdoptionHeader />}
+        {isShopPage ? (
+          <Suspense fallback={<div className="h-16 w-full border-b bg-background" />}>
+            <ShopHeader />
+          </Suspense>
+        ) : <AdoptionHeader />}
         <main className="flex-grow">{children}</main>
         {isShopPage ? <ShopFooter /> : <AdoptionFooter />}
       </div>
     );
   }
-  
+
   if (isCurrentlyInMaintenance && !isAdminPage) {
     return <MaintenancePage message={maintenanceSettings?.bannerMessage} maintenanceEndTime={maintenanceSettings?.maintenanceEndTime} />;
   }
@@ -93,7 +97,11 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <div className="flex min-h-screen flex-col">
-      {isShopPage ? <ShopHeader /> : <AdoptionHeader />}
+      {isShopPage ? (
+        <Suspense fallback={<div className="h-16 w-full border-b bg-background" />}>
+          <ShopHeader />
+        </Suspense>
+      ) : <AdoptionHeader />}
       {showBanner && maintenanceSettings?.maintenanceStartTime && (
         <MaintenanceBanner startTime={maintenanceSettings.maintenanceStartTime} message={maintenanceSettings.bannerMessage} />
       )}
