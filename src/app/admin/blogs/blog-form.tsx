@@ -15,6 +15,7 @@ import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/fi
 import type { Blog } from './page';
 import type { User } from 'firebase/auth';
 import { logActivity } from '@/lib/activity-log';
+import { compressImage } from '@/lib/compress-image';
 
 const blogSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters long'),
@@ -78,12 +79,7 @@ export function BlogForm({ isOpen, onClose, blog, user }: BlogFormProps) {
     if (data.image && data.image.length > 0) {
       const file = data.image[0];
       try {
-        imageUrl = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.readAsDataURL(file);
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = (error) => reject(error);
-        });
+        imageUrl = await compressImage(file, 1920, 1080, 0.85);
       } catch (error) {
         console.error('Error processing image:', error);
         toast({

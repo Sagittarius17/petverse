@@ -39,7 +39,7 @@ export const getSpeciesData = unstable_cache(
       const firestoreBreeds: PetBreed[] = breedsSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-      })) as PetBreed[];
+      })) as unknown as PetBreed[];
 
       // 3. Merge static and Firestore breeds, avoiding duplicates.
       const allBreeds = new Map<string, PetBreed>();

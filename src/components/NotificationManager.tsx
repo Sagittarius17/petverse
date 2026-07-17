@@ -15,7 +15,7 @@ export default function NotificationManager() {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const [permission, setPermission] = useState<NotificationPermission | 'loading'>('loading');
+  const [permission, setPermission] = useState<NotificationPermission | PermissionState | 'loading'>('loading');
   const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {

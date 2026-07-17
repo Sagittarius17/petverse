@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Trash2, PawPrint } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { compressAvatar } from '@/lib/compress-image';
 
 const profileSchema = z.object({
   displayName: z.string().min(2, 'Display name must be at least 2 characters.').max(50),
@@ -102,12 +103,7 @@ export function ProfileFormDialog({ user, userProfile, isOpen, onClose, onSucces
     } else if (data.pfp && data.pfp.length > 0) {
         const file = data.pfp[0];
         try {
-            newPhotoUrl = await new Promise<string>((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result as string);
-                reader.onerror = (error) => reject(error);
-            });
+            newPhotoUrl = await compressAvatar(file);
             photoUpdateType = 'upload';
         } catch (error) {
             toast({ variant: "destructive", title: "Image Upload Failed", description: "Could not process the image file." });

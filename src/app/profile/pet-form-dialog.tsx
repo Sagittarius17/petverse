@@ -18,6 +18,7 @@ import { Loader2, MapPin } from 'lucide-react';
 import type { Pet } from '@/lib/data';
 import { initialPetCategories } from '@/lib/initial-pet-data';
 import { LocationInput } from '@/components/ui/location-input';
+import { compressImage } from '@/lib/compress-image';
 
 const petSchema = z.object({
   name: z.string().min(2, 'Pet name must be at least 2 characters.'),
@@ -208,13 +209,7 @@ export function PetFormDialog({ pet, isOpen, onClose, onSuccess }: PetFormDialog
     if (data.petImage && data.petImage.length > 0) {
       const file = data.petImage[0];
       try {
-        const dataUri = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.readAsDataURL(file);
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = (error) => reject(error);
-        });
-        imageToStore = dataUri;
+        imageToStore = await compressImage(file, 1280, 1280, 0.85);
       } catch (error) {
         toast({ variant: "destructive", title: "Image Upload Failed", description: "Could not process image file." });
         return;

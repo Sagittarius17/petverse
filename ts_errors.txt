@@ -1,0 +1,38 @@
+
+> nextn@0.1.0 typecheck
+> tsc --noEmit
+
+src/app/know-your-pet/[category]/[petType]/actions.ts(39,43): error TS2352: Conversion of type '{ id: string; }[]' to type '{ name: string; description: string; imageIds: string[]; careDetails: { content: string; title: string; }[]; }[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ id: string; }' is missing the following properties from type '{ name: string; description: string; imageIds: string[]; careDetails: { content: string; title: string; }[]; }': name, description, imageIds, careDetails
+src/app/profile/page.tsx(259,34): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/app/shop/checkout/page.tsx(296,39): error TS2345: Argument of type 'DocumentReference<DocumentData, DocumentData>' is not assignable to parameter of type 'CollectionReference<DocumentData, DocumentData>'.
+  Types of property 'type' are incompatible.
+    Type '"document"' is not assignable to type '"collection"'.
+src/app/shop/checkout/page.tsx(296,51): error TS2339: Property 'get' does not exist on type 'DocumentReference<DocumentData, DocumentData>'.
+src/components/NotificationManager.tsx(25,23): error TS2345: Argument of type 'PermissionState' is not assignable to parameter of type 'SetStateAction<"loading" | NotificationPermission>'.
+  Type '"prompt"' is not assignable to type 'SetStateAction<"loading" | NotificationPermission>'.
+src/components/NotificationManager.tsx(27,25): error TS2345: Argument of type 'PermissionState' is not assignable to parameter of type 'SetStateAction<"loading" | NotificationPermission>'.
+  Type '"prompt"' is not assignable to type 'SetStateAction<"loading" | NotificationPermission>'.
+src/components/adoption-header.tsx(203,34): error TS2322: Type 'string | null | undefined' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/components/adoption-header.tsx(275,30): error TS2322: Type 'string | null | undefined' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/components/chat/chat-panel.tsx(424,13): error TS2322: Type '{ senderId: string; timestamp: FieldValue; isRead: false; }' is not assignable to type 'Partial<Message> & { senderId: string; timestamp: any; }'.
+  Type '{ senderId: string; timestamp: FieldValue; isRead: false; }' is not assignable to type 'Partial<Message>'.
+    Types of property 'timestamp' are incompatible.
+      Type 'FieldValue' is missing the following properties from type 'Timestamp': seconds, nanoseconds, toDate, toMillis, toJSON
+src/components/dev/FirestoreObserver.tsx(109,65): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ top: number; left: number; bottom: number; right: number; }'.
+  No index signature with a parameter of type 'string' was found on type '{ top: number; left: number; bottom: number; right: number; }'.
+src/components/dev/FirestoreObserver.tsx(109,80): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ top: number; left: number; bottom: number; right: number; }'.
+  No index signature with a parameter of type 'string' was found on type '{ top: number; left: number; bottom: number; right: number; }'.
+src/components/shop-header.tsx(162,34): error TS2322: Type 'string | null | undefined' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/components/shop-header.tsx(255,30): error TS2322: Type 'string | null | undefined' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/components/theme-provider.tsx(5,41): error TS2307: Cannot find module 'next-themes/dist/types' or its corresponding type declarations.
+src/components/ui/calendar.tsx(5,27): error TS2307: Cannot find module 'react-day-picker' or its corresponding type declarations.
+src/components/ui/calendar.tsx(57,22): error TS7031: Binding element 'className' implicitly has an 'any' type.
+src/components/ui/calendar.tsx(60,23): error TS7031: Binding element 'className' implicitly has an 'any' type.
+src/components/ui/location-input.tsx(5,22): error TS2305: Module '"@/components/ui/input"' has no exported member 'InputProps'.
+src/firebase/provider.tsx(7,10): error TS2724: '"firebase/performance"' has no exported member named 'Performance'. Did you mean 'getPerformance'?

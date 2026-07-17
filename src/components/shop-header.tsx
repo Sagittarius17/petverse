@@ -104,7 +104,7 @@ export default function ShopHeader() {
     setIsMenuOpen(false);
   };
 
-  const avatarUrl = userProfile?.profilePicture || user?.photoURL;
+  const avatarUrl = userProfile?.profilePicture || user?.photoURL || undefined;
 
   return (
     <>

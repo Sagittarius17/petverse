@@ -208,7 +208,7 @@ export default function PetSpeciesPage({ params }: PetSpeciesPageProps) {
             </div>
           </div>
         )}
-        <Button variant="ghost" onClick={() => router.back()} className="mb-4 pl-0">
+        <Button variant="ghost" onClick={() => router.back()} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Go Back
         </Button>

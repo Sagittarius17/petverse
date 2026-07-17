@@ -32,9 +32,9 @@ interface Message {
 }
 
 interface OtherParticipant {
-    id: string;
-    displayName: string;
-    photoURL?: string;
+  id: string;
+  displayName: string;
+  photoURL?: string;
 }
 
 interface MessageBubbleProps {
@@ -58,33 +58,33 @@ interface ReplyPreviewProps {
 }
 
 function ReplyPreview({ replyTo, currentUser, otherParticipant, onReplyClick }: ReplyPreviewProps) {
-    const senderName = replyTo.senderId === currentUser.uid ? 'You' : otherParticipant?.displayName || 'User';
-    
-    return (
-        <button
-            type="button"
-            onClick={() => onReplyClick(replyTo.messageId)}
-            onPointerDown={(e) => e.stopPropagation()} // Stop propagation to prevent swipe-to-reply
-            className="bg-black/10 dark:bg-white/10 p-2 rounded-t-xl mb-2 border-l-2 border-green-500 w-full text-left transition-colors hover:bg-black/20 dark:hover:bg-white/20"
-        >
-            <p className="font-semibold text-xs text-green-600">{senderName}</p>
-            {replyTo.mediaType === 'image' && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground italic">
-                    <ImageIcon className="h-3 w-3" />
-                    <span>Photo</span>
-                </div>
-            )}
-            {replyTo.mediaType === 'audio' && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground italic">
-                    <MicIcon className="h-3 w-3" />
-                    <span>Voice message</span>
-                </div>
-            )}
-            {replyTo.text && (
-                <p className="text-sm text-muted-foreground truncate">{replyTo.text}</p>
-            )}
-        </button>
-    );
+  const senderName = replyTo.senderId === currentUser.uid ? 'You' : otherParticipant?.displayName || 'User';
+
+  return (
+    <button
+      type="button"
+      onClick={() => onReplyClick(replyTo.messageId)}
+      onPointerDown={(e) => e.stopPropagation()} // Stop propagation to prevent swipe-to-reply
+      className="bg-black/10 dark:bg-white/10 p-2 rounded-t-xl mb-2 border-l-2 border-green-500 w-full text-left transition-colors hover:bg-black/20 dark:hover:bg-white/20"
+    >
+      <p className="font-semibold text-xs text-green-600">{senderName}</p>
+      {replyTo.mediaType === 'image' && (
+        <div className="flex items-center gap-1 text-xs text-muted-foreground italic">
+          <ImageIcon className="h-3 w-3" />
+          <span>Photo</span>
+        </div>
+      )}
+      {replyTo.mediaType === 'audio' && (
+        <div className="flex items-center gap-1 text-xs text-muted-foreground italic">
+          <MicIcon className="h-3 w-3" />
+          <span>Voice message</span>
+        </div>
+      )}
+      {replyTo.text && (
+        <p className="text-sm text-muted-foreground truncate">{replyTo.text}</p>
+      )}
+    </button>
+  );
 }
 
 function MessageBubble({ message, isCurrentUser, activeConversationId, currentUser, otherParticipant, highlightedMessageId, onReplyClick }: MessageBubbleProps) {
@@ -104,8 +104,8 @@ function MessageBubble({ message, isCurrentUser, activeConversationId, currentUs
     setIsDragging(true);
     dragStartRef.current = e.clientX;
     wrapperRef.current?.setPointerCapture(e.pointerId);
-    if(wrapperRef.current) {
-        wrapperRef.current.style.transition = 'none';
+    if (wrapperRef.current) {
+      wrapperRef.current.style.transition = 'none';
     }
   };
 
@@ -122,12 +122,12 @@ function MessageBubble({ message, isCurrentUser, activeConversationId, currentUs
     const limitedDelta = Math.sign(deltaX) * Math.min(Math.abs(deltaX), SWIPE_MAX_TRANSLATE);
     setTranslateX(limitedDelta);
   };
-  
+
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
     setIsDragging(false);
     wrapperRef.current?.releasePointerCapture(e.pointerId);
-    if(wrapperRef.current) {
+    if (wrapperRef.current) {
       wrapperRef.current.style.transition = 'transform 0.2s ease-out';
     }
 
@@ -141,35 +141,39 @@ function MessageBubble({ message, isCurrentUser, activeConversationId, currentUs
       };
       setReplyingTo(replyInfo);
     }
-    
+
     setTranslateX(0);
   };
-  
+
   const handlePointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
     setIsDragging(false);
     wrapperRef.current?.releasePointerCapture(e.pointerId);
-    if(wrapperRef.current) {
-        wrapperRef.current.style.transition = 'transform 0.2s ease-out';
+    if (wrapperRef.current) {
+      wrapperRef.current.style.transition = 'transform 0.2s ease-out';
     }
     setTranslateX(0);
   }
 
   const TimestampAndStatus = () => (
     <div className={cn(
-        "flex items-center gap-1.5 text-xs",
-        isCurrentUser ? 'text-gray-300' : 'text-muted-foreground'
+      "flex items-center gap-1.5 text-xs",
+      isCurrentUser ? 'text-primary-foreground/70' : 'text-muted-foreground'
     )}>
-        <span>
-          {message.timestamp ? format(message.timestamp.toDate(), 'h:mm a') : ''}
-        </span>
-        {isCurrentUser && (
-          message.isRead ? (
-            <CheckCheck className="h-4 w-4 text-green-400" />
+      <span>
+        {message.timestamp ? format(message.timestamp.toDate(), 'h:mm a') : ''}
+      </span>
+      {isCurrentUser && (
+        message.isRead ? (
+          <CheckCheck className="h-4 w-4 text-blue-300 dark:text-blue-400" />
+        ) : (
+          message.timestamp ? (
+            <CheckCheck className="h-4 w-4 text-primary-foreground/70" />
           ) : (
-            <Check className="h-4 w-4 text-gray-300" />
+            <Check className="h-4 w-4 text-primary-foreground/70" />
           )
-        )}
+        )
+      )}
     </div>
   );
 
@@ -186,14 +190,14 @@ function MessageBubble({ message, isCurrentUser, activeConversationId, currentUs
         <CornerUpLeft className="h-5 w-5 text-muted-foreground" />
       </div>
 
-      <div 
+      <div
         ref={wrapperRef}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
         className="touch-pan-y"
-        style={{ transform: `translateX(${translateX}px)`}}
+        style={{ transform: `translateX(${translateX}px)` }}
       >
         {message.mediaType === 'audio' && message.mediaUrl ? (
           <div className={cn('flex items-end gap-2 group', isCurrentUser ? 'justify-end' : 'justify-start')}>
@@ -211,33 +215,33 @@ function MessageBubble({ message, isCurrentUser, activeConversationId, currentUs
               )}
             >
               {message.replyTo && (
-                  <ReplyPreview
-                    replyTo={message.replyTo}
-                    currentUser={currentUser}
-                    otherParticipant={otherParticipant}
-                    onReplyClick={onReplyClick}
-                  />
+                <ReplyPreview
+                  replyTo={message.replyTo}
+                  currentUser={currentUser}
+                  otherParticipant={otherParticipant}
+                  onReplyClick={onReplyClick}
+                />
               )}
               {message.mediaType === 'image' && message.mediaUrl && (
-                  <Dialog>
-                      <DialogTrigger>
-                          <div className="relative h-48 w-48 cursor-pointer rounded-lg overflow-hidden">
-                              <Image src={message.mediaUrl} alt="Sent image" layout="fill" className="object-cover" />
-                          </div>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-3xl p-0">
-                          <Image src={message.mediaUrl} alt="Sent image" width={1024} height={1024} className="w-full h-auto rounded-lg" />
-                      </DialogContent>
-                  </Dialog>
+                <Dialog>
+                  <DialogTrigger>
+                    <div className="relative h-48 w-48 cursor-pointer rounded-lg overflow-hidden">
+                      <Image src={message.mediaUrl} alt="Sent image" layout="fill" className="object-cover" />
+                    </div>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-3xl p-0">
+                    <Image src={message.mediaUrl} alt="Sent image" width={1024} height={1024} className="w-full h-auto rounded-lg" />
+                  </DialogContent>
+                </Dialog>
               )}
-              
+
               <div className="flex items-end gap-2 px-2 pb-1 pt-1">
-                  {hasText && (
-                      <p className="text-sm break-words flex-1">{message.text}</p>
-                  )}
-                  <div className={cn("flex-shrink-0 self-end", hasText && "pl-8")}>
-                      <TimestampAndStatus />
-                  </div>
+                {hasText && (
+                  <p className="text-sm break-words flex-1">{message.text}</p>
+                )}
+                <div className={cn("flex-shrink-0 self-end", hasText && "pl-8")}>
+                  <TimestampAndStatus />
+                </div>
               </div>
             </div>
           </div>

@@ -247,7 +247,7 @@ export default function ProfilePage() {
     );
   }
 
-  const avatarUrl = userProfile?.profilePicture || user.photoURL;
+  const avatarUrl = userProfile?.profilePicture || user.photoURL || undefined;
 
   return (
     <>

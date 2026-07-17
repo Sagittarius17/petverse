@@ -4,7 +4,7 @@ import React, { DependencyList, createContext, useContext, ReactNode, useMemo, u
 import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, onSnapshot, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
-import { Performance, getPerformance } from 'firebase/performance';
+import { FirebasePerformance, getPerformance } from 'firebase/performance';
 import { Messaging, getMessaging } from 'firebase/messaging';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 import { toast } from '@/hooks/use-toast';
@@ -29,7 +29,7 @@ export interface FirebaseContextState {
   firebaseApp: FirebaseApp | null;
   firestore: Firestore | null;
   auth: Auth | null; // The Auth service instance
-  performance: Performance | null;
+  performance: FirebasePerformance | null;
   messaging: Messaging | null;
   // User authentication state
   user: User | null;
@@ -42,7 +42,7 @@ export interface FirebaseServicesAndUser {
   firebaseApp: FirebaseApp;
   firestore: Firestore;
   auth: Auth;
-  performance: Performance | null;
+  performance: FirebasePerformance | null;
   messaging: Messaging | null;
   user: User | null;
   isUserLoading: boolean;
@@ -74,7 +74,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     userError: null,
   });
 
-  const [performance, setPerformance] = useState<Performance | null>(null);
+  const [performance, setPerformance] = useState<FirebasePerformance | null>(null);
   const [messaging, setMessaging] = useState<Messaging | null>(null);
 
   // Effect to subscribe to Firebase auth state changes

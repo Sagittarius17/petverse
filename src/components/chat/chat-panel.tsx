@@ -16,6 +16,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import MessageBubble from './message-bubble';
 import { useChatStore } from '@/lib/chat-store';
+import { compressChatImage } from '@/lib/compress-image';
 import { cn } from '@/lib/utils';
 import { format, formatDistanceToNow, isToday, isYesterday, isThisWeek, parseISO } from 'date-fns';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -60,20 +61,20 @@ interface Conversation {
     [key: string]: boolean;
   };
   unreadCount?: {
-      [key: string]: number;
+    [key: string]: number;
   };
 }
 
 
 interface UserProfile extends DocumentData {
-    id: string;
-    username: string;
-    displayName: string;
-    photoURL?: string;
-    isOnline?: boolean;
-    lastSeen?: Timestamp;
-    status?: 'Active' | 'Inactive';
-    profilePicture?: string;
+  id: string;
+  username: string;
+  displayName: string;
+  photoURL?: string;
+  isOnline?: boolean;
+  lastSeen?: Timestamp;
+  status?: 'Active' | 'Inactive';
+  profilePicture?: string;
 }
 
 
@@ -87,8 +88,8 @@ const BILLU_CONVERSATION_ID = 'ai-chatbot-billu';
 const billuAvatar = PlaceHolderImages.find(p => p.id === 'billu-avatar') || { imageUrl: '', imageHint: 'cat' };
 
 function formatRelativeTime(timestamp?: Timestamp): string {
-    if (!timestamp) return '';
-    return formatDistanceToNow(timestamp.toDate(), { addSuffix: true });
+  if (!timestamp) return '';
+  return formatDistanceToNow(timestamp.toDate(), { addSuffix: true });
 }
 
 function formatDateSeparator(timestamp: Timestamp): string {
@@ -100,20 +101,20 @@ function formatDateSeparator(timestamp: Timestamp): string {
 
 // New component for the presence indicator dot
 function PresenceIndicator({ userId }: { userId: string }) {
-    const firestore = useFirestore();
-    const userDocRef = useMemoFirebase(
-      () => (firestore ? doc(firestore, 'users', userId) : null),
-      [firestore, userId]
-    );
-    const { data: userProfile } = useDoc<UserProfile>(userDocRef);
+  const firestore = useFirestore();
+  const userDocRef = useMemoFirebase(
+    () => (firestore ? doc(firestore, 'users', userId) : null),
+    [firestore, userId]
+  );
+  const { data: userProfile } = useDoc<UserProfile>(userDocRef);
 
-    if (userProfile?.status === 'Inactive') return null;
-  
-    if (userProfile?.isOnline) {
-      return <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-green-500 ring-2 ring-background" />;
-    }
-  
-    return null;
+  if (userProfile?.status === 'Inactive') return null;
+
+  if (userProfile?.isOnline) {
+    return <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-green-500 ring-2 ring-background" />;
+  }
+
+  return null;
 }
 
 
@@ -130,22 +131,22 @@ function OtherParticipantStatus({ otherParticipantId, typingStatus }: { otherPar
   }
 
   if (userProfile?.status === 'Inactive') {
-      return <p className="text-xs absolute left-18 top-7 text-slate-500 dark:text-slate-400">Suspended</p>;
+    return <p className="text-xs text-slate-500 dark:text-slate-400">Suspended</p>;
   }
 
   if (typingStatus) {
-    return <p className="text-xs absolute left-18 top-7 text-green-400 animate-pulse">typing...</p>;
+    return <p className="text-xs text-green-400 animate-pulse">typing...</p>;
   }
 
   if (userProfile?.isOnline) {
-    return <p className="text-xs absolute left-18 top-7 text-green-400">Online</p>;
+    return <p className="text-xs text-green-400">Online</p>;
   }
 
   if (userProfile?.lastSeen) {
-    return <p className="text-xs absolute left-18 top-7 text-muted-foreground">last seen {formatRelativeTime(userProfile.lastSeen)}</p>;
+    return <p className="text-xs text-muted-foreground">last seen {formatRelativeTime(userProfile.lastSeen)}</p>;
   }
 
-  return <p className="text-xs absolute left-18 top-7 text-muted-foreground">Offline</p>;
+  return <p className="text-xs text-muted-foreground">Offline</p>;
 }
 
 
@@ -153,7 +154,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   const firestore = useFirestore();
   const { toast } = useToast();
   const { activeConversationId, setActiveConversationId, replyingTo, setReplyingTo } = useChatStore();
-  
+
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -161,14 +162,14 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
-  
+
   const [billuChatHistory, setBilluChatHistory] = useState<Message[]>([]);
   const [isBilluThinking, setIsBilluThinking] = useState(false);
-  
+
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [isRecording, setIsRecording] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -187,27 +188,27 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   const handleScrollToMessage = (messageId: string) => {
     const messageElement = viewportRef.current?.querySelector(`[data-message-id='${messageId}']`);
     if (messageElement) {
-        messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setHighlightedMessageId(messageId);
-        setTimeout(() => {
-            setHighlightedMessageId(null);
-        }, 1500); // Animation duration should match CSS
+      messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setHighlightedMessageId(messageId);
+      setTimeout(() => {
+        setHighlightedMessageId(null);
+      }, 1500); // Animation duration should match CSS
     } else {
-        toast({
-            variant: "destructive",
-            title: "Could not find message",
-            description: "The original message may not be loaded in the chat history.",
-        });
+      toast({
+        variant: "destructive",
+        title: "Could not find message",
+        description: "The original message may not be loaded in the chat history.",
+      });
     }
   };
 
   const handleConversationSelect = async (convoId: string) => {
     setActiveConversationId(convoId);
     if (convoId !== BILLU_CONVERSATION_ID && firestore && currentUser && !currentUser.isAnonymous) {
-        const convoRef = doc(firestore, 'conversations', convoId);
-        await updateDoc(convoRef, {
-            [`unreadCount.${currentUser.uid}`]: 0
-        });
+      const convoRef = doc(firestore, 'conversations', convoId);
+      await updateDoc(convoRef, {
+        [`unreadCount.${currentUser.uid}`]: 0
+      });
     }
   };
 
@@ -215,9 +216,9 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
   // Fetch conversations where the current user is a participant
   useEffect(() => {
     if (!firestore || !currentUser || currentUser.isAnonymous) {
-        setConversations([]);
-        setIsLoadingConvos(false);
-        return;
+      setConversations([]);
+      setIsLoadingConvos(false);
+      return;
     };
 
     setIsLoadingConvos(true);
@@ -227,9 +228,9 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
       const convosPromises = querySnapshot.docs.map(async (docSnap) => {
         const data = docSnap.data();
         const otherParticipantId = data.participants.find((p: string) => p !== currentUser.uid);
-        
+
         let otherParticipant: Conversation['otherParticipant'] = null;
-        
+
         if (otherParticipantId) {
           const userDoc = await getDoc(doc(firestore, 'users', otherParticipantId));
           if (userDoc.exists()) {
@@ -243,7 +244,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
             };
           }
         }
-        
+
         return {
           id: docSnap.id,
           participants: data.participants,
@@ -255,7 +256,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
       });
 
       let resolvedConvos = await Promise.all(convosPromises);
-      
+
       resolvedConvos.sort((a, b) => {
         const timeA = a.lastMessage?.timestamp?.toMillis() || 0;
         const timeB = b.lastMessage?.timestamp?.toMillis() || 0;
@@ -269,7 +270,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     return () => unsubscribe();
   }, [firestore, currentUser]);
 
-  
+
   // Fetch messages for the active conversation and mark as read
   useEffect(() => {
     if (!firestore || !activeConversationId || activeConversationId === BILLU_CONVERSATION_ID || !currentUser) {
@@ -283,22 +284,22 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
       collection(firestore, `conversations/${activeConversationId}/messages`),
       orderBy('timestamp', 'asc')
     );
-    
+
     const unsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
       if (isInitialSnapshot.current) {
         isInitialSnapshot.current = false;
       } else {
         querySnapshot.docChanges().forEach((change) => {
-            if (change.type === 'added') {
-                const messageData = change.doc.data();
-                if (messageData.senderId !== currentUser.uid) {
-                    const audio = new Audio('/sounds/open_chat_msg_receive.mp3');
-                    audio.play().catch(e => console.error("Error playing receive sound:", e));
-                }
+          if (change.type === 'added') {
+            const messageData = change.doc.data();
+            if (messageData.senderId !== currentUser.uid) {
+              const audio = new Audio('/sounds/open_chat_msg_receive.mp3');
+              audio.play().catch(e => console.error("Error playing receive sound:", e));
             }
+          }
         });
       }
-      
+
       const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
       setMessages(msgs);
       setIsLoadingMessages(false);
@@ -321,7 +322,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
 
     return () => unsubscribe();
   }, [firestore, activeConversationId, currentUser]);
-  
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, billuChatHistory, isBilluThinking, mediaPreview]);
@@ -330,27 +331,27 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     if (!firestore || !activeConversationId || !currentUser) return;
     const convoDocRef = doc(firestore, 'conversations', activeConversationId);
     updateDoc(convoDocRef, {
-        [`typing.${currentUser.uid}`]: isTyping
+      [`typing.${currentUser.uid}`]: isTyping
     });
   };
 
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value);
-    
+
     if (activeConversationId === BILLU_CONVERSATION_ID || currentUser.isAnonymous) return;
 
     if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
+      clearTimeout(typingTimeoutRef.current);
     } else {
-        updateTypingStatus(true);
+      updateTypingStatus(true);
     }
 
     typingTimeoutRef.current = setTimeout(() => {
-        updateTypingStatus(false);
-        typingTimeoutRef.current = null;
+      updateTypingStatus(false);
+      typingTimeoutRef.current = null;
     }, 3000);
   };
-  
+
   const handleBilluSubmit = async (messageText: string) => {
     const userMessage: Message = {
       id: `user-${Date.now()}`,
@@ -359,10 +360,10 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
       timestamp: Timestamp.now(),
       isRead: true,
     };
-    
+
     setBilluChatHistory(prev => [...prev, userMessage]);
     setIsBilluThinking(true);
-    
+
     try {
       const { response } = await billuChatbot({ message: messageText });
       const billuMessage: Message = {
@@ -406,12 +407,12 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     setMediaFile(null);
     setMediaPreview(null);
     setReplyingTo(null);
-    
+
     if (activeConversationId === BILLU_CONVERSATION_ID) {
       handleBilluSubmit(messageText);
       return;
     }
-    
+
     if (!firestore || !activeConversationId || !currentUser || currentUser.isAnonymous) return;
 
     if (typingTimeoutRef.current) {
@@ -419,61 +420,61 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
       typingTimeoutRef.current = null;
     }
     updateTypingStatus(false);
-    
+
     try {
-        let messageData: Partial<Message> & { senderId: string, timestamp: any } = {
-            senderId: currentUser.uid,
-            timestamp: serverTimestamp(),
-            isRead: false,
+      let messageData: Record<string, any> = {
+        senderId: currentUser.uid,
+        timestamp: serverTimestamp(),
+        isRead: false,
+      };
+
+      if (messageText) {
+        messageData.text = messageText;
+      }
+
+      if (mediaFileToSend && mediaPreviewToSend) {
+        messageData.mediaUrl = mediaPreviewToSend;
+        messageData.mediaType = mediaFileToSend.type.startsWith('image/') ? 'image' : 'audio';
+      }
+
+      if (replyingToContext) {
+        const truncatedText = replyingToContext.text ? replyingToContext.text.substring(0, 70) + (replyingToContext.text.length > 70 ? '...' : '') : undefined;
+
+        messageData.replyTo = {
+          messageId: replyingToContext.id,
+          senderId: replyingToContext.senderId,
+          ...(truncatedText && { text: truncatedText }),
+          ...(replyingToContext.mediaType && { mediaType: replyingToContext.mediaType }),
         };
+      }
 
-        if (messageText) {
-            messageData.text = messageText;
-        }
+      const convoDocRef = doc(firestore, 'conversations', activeConversationId);
+      await addDoc(collection(convoDocRef, 'messages'), messageData);
 
-        if (mediaFileToSend && mediaPreviewToSend) {
-            messageData.mediaUrl = mediaPreviewToSend;
-            messageData.mediaType = mediaFileToSend.type.startsWith('image/') ? 'image' : 'audio';
-        }
-
-        if (replyingToContext) {
-          const truncatedText = replyingToContext.text ? replyingToContext.text.substring(0, 70) + (replyingToContext.text.length > 70 ? '...' : '') : undefined;
-          
-          messageData.replyTo = {
-            messageId: replyingToContext.id,
-            senderId: replyingToContext.senderId,
-            ...(truncatedText && { text: truncatedText }),
-            ...(replyingToContext.mediaType && { mediaType: replyingToContext.mediaType }),
-          };
-        }
-        
-        const convoDocRef = doc(firestore, 'conversations', activeConversationId);
-        await addDoc(collection(convoDocRef, 'messages'), messageData);
-        
-        const otherParticipantId = selectedConversation?.otherParticipant?.id;
-        if (otherParticipantId) {
-            const lastMessageText = messageText || (mediaFileToSend?.type.startsWith('image/') ? 'Sent an image' : 'Sent a voice note');
-            await updateDoc(convoDocRef, {
-                [`unreadCount.${otherParticipantId}`]: increment(1),
-                lastMessage: {
-                    text: lastMessageText,
-                    timestamp: serverTimestamp(),
-                    senderId: currentUser.uid,
-                }
-            });
-        }
-    } catch (error) {
-        console.error("Error sending message:", error);
-        toast({
-            variant: "destructive",
-            title: "Failed to send message",
-            description: "Please try again.",
+      const otherParticipantId = selectedConversation?.otherParticipant?.id;
+      if (otherParticipantId) {
+        const lastMessageText = messageText || (mediaFileToSend?.type.startsWith('image/') ? 'Sent an image' : 'Sent a voice note');
+        await updateDoc(convoDocRef, {
+          [`unreadCount.${otherParticipantId}`]: increment(1),
+          lastMessage: {
+            text: lastMessageText,
+            timestamp: serverTimestamp(),
+            senderId: currentUser.uid,
+          }
         });
-        // Restore the input fields on error
-        setNewMessage(messageText);
-        setReplyingTo(replyingToContext);
-        setMediaFile(mediaFileToSend);
-        setMediaPreview(mediaPreviewToSend);
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast({
+        variant: "destructive",
+        title: "Failed to send message",
+        description: "Please try again.",
+      });
+      // Restore the input fields on error
+      setNewMessage(messageText);
+      setReplyingTo(replyingToContext);
+      setMediaFile(mediaFileToSend);
+      setMediaPreview(mediaPreviewToSend);
     }
   };
 
@@ -483,7 +484,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
       handleSendMessage();
     }
   };
-  
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -495,19 +496,23 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
         });
         return;
       }
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setMediaPreview(e.target?.result as string);
+      compressChatImage(file).then((compressed) => {
+        setMediaPreview(compressed);
         setMediaFile(file);
-      };
-      reader.readAsDataURL(file);
+      }).catch(() => {
+        toast({
+          variant: 'destructive',
+          title: 'Image Error',
+          description: 'Could not process the image file.',
+        });
+      });
     }
   };
 
   const clearMediaPreview = () => {
     setMediaPreview(null);
     setMediaFile(null);
-    if(fileInputRef.current) fileInputRef.current.value = '';
+    if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
   const handleMicButtonPress = async (e: React.MouseEvent | React.TouchEvent) => {
@@ -532,7 +537,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
           return;
         }
         if (!firestore || !activeConversationId || !currentUser) return;
-        
+
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         const reader = new FileReader();
         reader.readAsDataURL(audioBlob);
@@ -682,29 +687,29 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
                       <AvatarFallback>{isSuspended ? '?' : <PawPrint className="h-6 w-6 text-muted-foreground" />}</AvatarFallback>
                     </Avatar>
                     {convo.otherParticipant && convo.id !== BILLU_CONVERSATION_ID && (
-                       <PresenceIndicator userId={convo.otherParticipant.id} />
+                      <PresenceIndicator userId={convo.otherParticipant.id} />
                     )}
                     {convo.id === BILLU_CONVERSATION_ID && (
-                        <div className="absolute bottom-0 right-0 block p-0.5 rounded-full bg-green-500 ring-2 ring-background">
-                            <Sparkles className="h-2 w-2 text-white" />
-                        </div>
+                      <div className="absolute bottom-0 right-0 block p-0.5 rounded-full bg-green-500 ring-2 ring-background">
+                        <Sparkles className="h-2 w-2 text-white" />
+                      </div>
                     )}
                   </div>
                   <div className="flex-1 overflow-hidden min-w-0">
                     <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="outline">{isSuspended ? '[User Deleted/Suspended]' : (convo.otherParticipant?.displayName || 'Unknown User')}</Badge>
-                          {unread > 0 && (
-                              <Badge className="h-5 w-5 p-0 flex items-center justify-center bg-green-600 text-white">{unread}</Badge>
-                          )}
-                        </div>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap pl-2">
-                            {formatRelativeTime(convo.lastMessage?.timestamp)}
-                        </span>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="outline">{isSuspended ? '[User Deleted/Suspended]' : (convo.otherParticipant?.displayName || 'Unknown User')}</Badge>
+                        {unread > 0 && (
+                          <Badge className="h-5 w-5 p-0 flex items-center justify-center bg-green-600 text-white">{unread}</Badge>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap pl-2">
+                        {formatRelativeTime(convo.lastMessage?.timestamp)}
+                      </span>
                     </div>
-                    <p className={cn("text-sm truncate", unread > 0 ? "font-bold absolute left-[12vh] text-foreground" : "text-xs absolute left-[12vh] text-muted-foreground")}>
-                        {convo.lastMessage?.senderId === currentUser.uid && 'You: '}
-                        {convo.lastMessage?.text}
+                    <p className={cn("truncate text-xs", unread > 0 ? "font-bold text-green-600 dark:text-green-500" : "text-muted-foreground")}>
+                      {convo.lastMessage?.senderId === currentUser.uid && 'You: '}
+                      {convo.lastMessage?.text}
                     </p>
                   </div>
                 </div>
@@ -723,7 +728,7 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
 
   const renderMessageView = () => {
     if (activeConversationId === BILLU_CONVERSATION_ID) return renderBilluChatView();
-    
+
     const isSuspended = otherParticipant?.status === 'Inactive';
     const participantAvatar = otherParticipant?.photoURL;
 
@@ -734,228 +739,228 @@ export default function ChatPanel({ isOpen, onClose, currentUser }: ChatPanelPro
     };
 
     return (
-        <div className="flex flex-col h-full">
-            {selectedConversation && otherParticipant ? (
-                <>
-                <SheetHeader className="pb-2 px-2 border-b flex-row items-center gap-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 rounded-full" onClick={() => setActiveConversationId(null)}>
-                        <ArrowLeft className="h-5 w-5" />
-                    </Button>
-                    <Avatar className="h-9 w-9">
-                        <AvatarImage src={isSuspended ? undefined : participantAvatar} />
-                        <AvatarFallback>{isSuspended ? '?' : <PawPrint className="h-5 w-5 text-muted-foreground" />}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 overflow-hidden">
-                        <SheetTitle className="text-sm absolute left-18 top-2 font-semibold truncate">{isSuspended ? '[User Deleted/Suspended]' : (otherParticipant.displayName || 'Chat')}</SheetTitle>
-                        <SheetDescription asChild>
-                             <OtherParticipantStatus 
-                                otherParticipantId={otherParticipant.id} 
-                                typingStatus={isSuspended ? false : selectedConversation.typing?.[otherParticipant.id]}
-                            />
-                        </SheetDescription>
-                    </div>
-                </SheetHeader>
-                <ScrollArea className="flex-1 bg-secondary/50 p-4" viewportRef={viewportRef}>
-                    {isLoadingMessages ? (
-                        <div className="flex justify-center items-center h-full">
-                            <div className="relative flex h-16 w-16 items-center justify-center">
-                                <div className="absolute h-full w-full animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-                                <PawPrint className="h-8 w-8 text-primary" />
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="space-y-2">
-                            {messages.map((msg, index) => {
-                                const prevMsg = messages[index - 1];
-                                const showDateSeparator = !prevMsg || !msg.timestamp || !prevMsg.timestamp || !isSameDay(msg.timestamp.toDate(), prevMsg.timestamp.toDate());
-                                return (
-                                    <React.Fragment key={msg.id}>
-                                        {showDateSeparator && msg.timestamp && (
-                                            <div className="text-center text-xs text-muted-foreground my-4">
-                                                {formatDateSeparator(msg.timestamp)}
-                                            </div>
-                                        )}
-                                        <MessageBubble
-                                            message={msg}
-                                            isCurrentUser={msg.senderId === currentUser.uid}
-                                            activeConversationId={activeConversationId!}
-                                            currentUser={currentUser}
-                                            otherParticipant={otherParticipant}
-                                            highlightedMessageId={highlightedMessageId}
-                                            onReplyClick={handleScrollToMessage}
-                                        />
-                                    </React.Fragment>
-                                )
-                            })}
-                            <div ref={messagesEndRef} />
-                        </div>
-                    )}
-                </ScrollArea>
-                <form onSubmit={handleSendMessage} className="p-2 border-t space-y-2">
-                    {replyingTo && (
-                        <div className="p-2 rounded-lg bg-secondary">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 overflow-hidden">
-                              <CornerUpLeft className="h-4 w-4 text-green-600 flex-shrink-0" />
-                              <div className="overflow-hidden">
-                                <p className="text-sm font-semibold text-green-600">Replying to {replyingTo.displayName}</p>
-                                <p className="text-sm text-muted-foreground truncate">
-                                  {replyingTo.text ? replyingTo.text : `A ${replyingTo.mediaType}`}
-                                </p>
-                              </div>
-                            </div>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={() => setReplyingTo(null)}>
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                    )}
-                    {mediaPreview && (
-                        <div className="relative p-2">
-                            <Image src={mediaPreview} alt="Media preview" width={80} height={80} className="rounded-md" />
-                            <Button variant="destructive" size="icon" className="absolute top-0 right-0 h-6 w-6 rounded-full" onClick={clearMediaPreview}>
-                                <X className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    )}
-                    <div className="relative flex items-center bg-secondary rounded-full">
-                        <Button type="button" variant="ghost" size="icon" className="shrink-0 rounded-full" onClick={() => fileInputRef.current?.click()} disabled={isRecording}>
-                            <Paperclip />
-                        </Button>
-                         <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" hidden />
-                        {isRecording ? (
-                             <div className="flex-1 flex items-center justify-between px-2 overflow-hidden h-10">
-                                <div className={cn(
-                                    "flex w-full items-center justify-between transition-transform duration-200 ease-out",
-                                    isCancelling ? "-translate-x-16" : "translate-x-0"
-                                )}>
-                                    <div className="flex items-center gap-2 text-red-500">
-                                        <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
-                                        <span className="font-mono text-sm tabular-nums">{new Date(recordingTime * 1000).toISOString().substr(14, 5)}</span>
-                                    </div>
-                                    <div className="flex items-center text-muted-foreground text-xs">
-                                        <ArrowLeft className="h-4 w-4 mr-1" />
-                                        <span>Slide to cancel</span>
-                                    </div>
-                                </div>
-                            </div>
-                        ) : (
-                            <Input
-                                value={newMessage}
-                                onChange={handleTyping}
-                                onKeyDown={handleKeyDown}
-                                placeholder="Type a message..."
-                                autoComplete="off"
-                                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-                                disabled={isSuspended}
-                            />
-                        )}
-                        <div className="flex items-center">
-                            {newMessage.trim() || mediaPreview ? (
-                                <Button type="submit" variant="ghost" size="icon" className="shrink-0 rounded-full text-green-600">
-                                    <Send />
-                                </Button>
-                            ) : (
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className={cn("shrink-0 rounded-full z-10", isRecording && "bg-green-600 text-white animate-pulse")}
-                                    onMouseDown={handleMicButtonPress}
-                                    onTouchStart={handleMicButtonPress}
-                                    disabled={isSuspended}
-                                >
-                                    <Mic />
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-                </form>
-                </>
-            ) : (
-                <div className="h-full flex flex-col">
-                     <SheetHeader className="p-4 border-b">
-                        <SheetTitle>Error</SheetTitle>
-                    </SheetHeader>
-                    <div className="flex-1 flex flex-col items-center justify-center text-center text-muted-foreground p-8">
-                        <p className="text-lg font-semibold">Conversation Not Found</p>
-                        <p className="text-sm">Could not find the selected conversation.</p>
-                        <Button variant="link" onClick={() => setActiveConversationId(null)}>Back to conversations</Button>
-                    </div>
+      <div className="flex flex-col h-full">
+        {selectedConversation && otherParticipant ? (
+          <>
+            <SheetHeader className="py-2 px-2 border-b flex-row items-center gap-2 space-y-0">
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 rounded-full" onClick={() => setActiveConversationId(null)}>
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={isSuspended ? undefined : participantAvatar} />
+                <AvatarFallback>{isSuspended ? '?' : <PawPrint className="h-5 w-5 text-muted-foreground" />}</AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col flex-1 overflow-hidden text-left">
+                <SheetTitle className="text-sm font-semibold truncate">{isSuspended ? '[User Deleted/Suspended]' : (otherParticipant.displayName || 'Chat')}</SheetTitle>
+                <SheetDescription asChild>
+                  <OtherParticipantStatus
+                    otherParticipantId={otherParticipant.id}
+                    typingStatus={isSuspended ? false : selectedConversation.typing?.[otherParticipant.id]}
+                  />
+                </SheetDescription>
+              </div>
+            </SheetHeader>
+            <ScrollArea className="flex-1 bg-secondary/50 p-4" viewportRef={viewportRef}>
+              {isLoadingMessages ? (
+                <div className="flex justify-center items-center h-full">
+                  <div className="relative flex h-16 w-16 items-center justify-center">
+                    <div className="absolute h-full w-full animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+                    <PawPrint className="h-8 w-8 text-primary" />
+                  </div>
                 </div>
-            )}
-        </div>
+              ) : (
+                <div className="space-y-2">
+                  {messages.map((msg, index) => {
+                    const prevMsg = messages[index - 1];
+                    const showDateSeparator = !prevMsg || !msg.timestamp || !prevMsg.timestamp || !isSameDay(msg.timestamp.toDate(), prevMsg.timestamp.toDate());
+                    return (
+                      <React.Fragment key={msg.id}>
+                        {showDateSeparator && msg.timestamp && (
+                          <div className="text-center text-xs text-muted-foreground my-4">
+                            {formatDateSeparator(msg.timestamp)}
+                          </div>
+                        )}
+                        <MessageBubble
+                          message={msg}
+                          isCurrentUser={msg.senderId === currentUser.uid}
+                          activeConversationId={activeConversationId!}
+                          currentUser={currentUser}
+                          otherParticipant={otherParticipant}
+                          highlightedMessageId={highlightedMessageId}
+                          onReplyClick={handleScrollToMessage}
+                        />
+                      </React.Fragment>
+                    )
+                  })}
+                  <div ref={messagesEndRef} />
+                </div>
+              )}
+            </ScrollArea>
+            <form onSubmit={handleSendMessage} className="p-2 border-t space-y-2">
+              {replyingTo && (
+                <div className="p-2 rounded-lg bg-secondary">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 overflow-hidden">
+                      <CornerUpLeft className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      <div className="overflow-hidden">
+                        <p className="text-sm font-semibold text-green-600">Replying to {replyingTo.displayName}</p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {replyingTo.text ? replyingTo.text : `A ${replyingTo.mediaType}`}
+                        </p>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={() => setReplyingTo(null)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+              {mediaPreview && (
+                <div className="relative p-2">
+                  <Image src={mediaPreview} alt="Media preview" width={80} height={80} className="rounded-md" />
+                  <Button variant="destructive" size="icon" className="absolute top-0 right-0 h-6 w-6 rounded-full" onClick={clearMediaPreview}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              <div className="relative flex items-center bg-secondary rounded-full">
+                <Button type="button" variant="ghost" size="icon" className="shrink-0 rounded-full" onClick={() => fileInputRef.current?.click()} disabled={isRecording}>
+                  <Paperclip />
+                </Button>
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" hidden />
+                {isRecording ? (
+                  <div className="flex-1 flex items-center justify-between px-2 overflow-hidden h-10">
+                    <div className={cn(
+                      "flex w-full items-center justify-between transition-transform duration-200 ease-out",
+                      isCancelling ? "-translate-x-16" : "translate-x-0"
+                    )}>
+                      <div className="flex items-center gap-2 text-red-500">
+                        <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
+                        <span className="font-mono text-sm tabular-nums">{new Date(recordingTime * 1000).toISOString().substr(14, 5)}</span>
+                      </div>
+                      <div className="flex items-center text-muted-foreground text-xs">
+                        <ArrowLeft className="h-4 w-4 mr-1" />
+                        <span>Slide to cancel</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <Input
+                    value={newMessage}
+                    onChange={handleTyping}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Type a message..."
+                    autoComplete="off"
+                    className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                    disabled={isSuspended}
+                  />
+                )}
+                <div className="flex items-center">
+                  {newMessage.trim() || mediaPreview ? (
+                    <Button type="submit" variant="ghost" size="icon" className="shrink-0 rounded-full text-green-600">
+                      <Send />
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className={cn("shrink-0 rounded-full z-10", isRecording && "bg-green-600 text-white animate-pulse")}
+                      onMouseDown={handleMicButtonPress}
+                      onTouchStart={handleMicButtonPress}
+                      disabled={isSuspended}
+                    >
+                      <Mic />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </form>
+          </>
+        ) : (
+          <div className="h-full flex flex-col">
+            <SheetHeader className="p-4 border-b">
+              <SheetTitle>Error</SheetTitle>
+            </SheetHeader>
+            <div className="flex-1 flex flex-col items-center justify-center text-center text-muted-foreground p-8">
+              <p className="text-lg font-semibold">Conversation Not Found</p>
+              <p className="text-sm">Could not find the selected conversation.</p>
+              <Button variant="link" onClick={() => setActiveConversationId(null)}>Back to conversations</Button>
+            </div>
+          </div>
+        )}
+      </div>
     );
   }
 
   const renderBilluChatView = () => (
     <div className="flex flex-col h-full">
-        <SheetHeader className="pb-2 px-2 border-b flex-row items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 rounded-full" onClick={() => setActiveConversationId(null)}>
-                <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <Avatar className="h-9 w-9">
-                <AvatarImage src={billuAvatar.imageUrl} />
-                <AvatarFallback>B</AvatarFallback>
-            </Avatar>
-            <div className="flex-1 overflow-hidden">
-                <SheetTitle className="text-sm absolute left-18 top-2 font-semibold truncate">Ask Billu!</SheetTitle>
-                 <SheetDescription className="text-xs absolute left-18 top-6">Your AI companion</SheetDescription>
+      <SheetHeader className="pb-2 px-2 border-b flex-row items-center gap-2 space-y-0">
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 rounded-full" onClick={() => setActiveConversationId(null)}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <Avatar className="h-9 w-9">
+          <AvatarImage src={billuAvatar.imageUrl} />
+          <AvatarFallback>B</AvatarFallback>
+        </Avatar>
+        <div className="flex flex-col flex-1 overflow-hidden text-left">
+          <SheetTitle className="text-sm font-semibold truncate">Ask Billu!</SheetTitle>
+          <SheetDescription className="text-xs">Your AI companion</SheetDescription>
+        </div>
+      </SheetHeader>
+      <ScrollArea className="flex-1 bg-secondary/50 p-4">
+        <div className="text-center my-8">
+          <Avatar className="h-16 w-16 mx-auto mb-4">
+            <AvatarImage src={billuAvatar.imageUrl} />
+            <AvatarFallback>B</AvatarFallback>
+          </Avatar>
+          <p className="font-semibold">Ask Billu anything!</p>
+          <p className="text-sm text-muted-foreground">Your purr-fect AI companion. 🐾</p>
+        </div>
+        <div className="space-y-2">
+          {billuChatHistory.map((msg) => (
+            <MessageBubble key={msg.id} message={msg} isCurrentUser={msg.senderId === currentUser.uid} activeConversationId={activeConversationId!} currentUser={currentUser} otherParticipant={null} highlightedMessageId={null} onReplyClick={() => { }} />
+          ))}
+          {isBilluThinking && (
+            <div className="flex items-end gap-2 justify-start">
+              <div className="max-w-xs md:max-w-md rounded-2xl px-3 py-2 relative bg-background border rounded-bl-none">
+                <p className="text-sm break-words animate-pulse">Billu is thinking...</p>
+              </div>
             </div>
-        </SheetHeader>
-        <ScrollArea className="flex-1 bg-secondary/50 p-4">
-            <div className="text-center my-8">
-                <Avatar className="h-16 w-16 mx-auto mb-4">
-                    <AvatarImage src={billuAvatar.imageUrl} />
-                    <AvatarFallback>B</AvatarFallback>
-                </Avatar>
-                <p className="font-semibold">Ask Billu anything!</p>
-                <p className="text-sm text-muted-foreground">Your purr-fect AI companion. 🐾</p>
-            </div>
-            <div className="space-y-2">
-                {billuChatHistory.map((msg) => (
-                     <MessageBubble key={msg.id} message={msg} isCurrentUser={msg.senderId === currentUser.uid} activeConversationId={activeConversationId!} currentUser={currentUser} otherParticipant={null} highlightedMessageId={null} onReplyClick={() => {}} />
-                ))}
-                {isBilluThinking && (
-                    <div className="flex items-end gap-2 justify-start">
-                        <div className="max-w-xs md:max-w-md rounded-2xl px-3 py-2 relative bg-background border rounded-bl-none">
-                            <p className="text-sm break-words animate-pulse">Billu is thinking...</p>
-                        </div>
-                    </div>
-                )}
-                <div ref={messagesEndRef} />
-            </div>
-        </ScrollArea>
-        <form onSubmit={handleSendMessage} className="p-2 border-t">
-            <div className="relative flex items-center">
-                <Input
-                    value={newMessage}
-                    onChange={handleTyping}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Ask Billu something..."
-                    autoComplete="off"
-                    className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
-                <Button type="submit" variant="ghost" size="icon" className="shrink-0 rounded-full text-green-600" disabled={!newMessage.trim() || isBilluThinking}>
-                    <Send />
-                </Button>
-            </div>
-        </form>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+      </ScrollArea>
+      <form onSubmit={handleSendMessage} className="p-2 border-t">
+        <div className="relative flex items-center">
+          <Input
+            value={newMessage}
+            onChange={handleTyping}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask Billu something..."
+            autoComplete="off"
+            className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
+          <Button type="submit" variant="ghost" size="icon" className="shrink-0 rounded-full text-green-600" disabled={!newMessage.trim() || isBilluThinking}>
+            <Send />
+          </Button>
+        </div>
+      </form>
     </div>
   );
 
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-        <SheetContent side="floating-right" className="p-0 flex flex-col">
-            {activeConversationId ? renderMessageView() : renderConversationList()}
-        </SheetContent>
+      <SheetContent side="floating-right" className="p-0 flex flex-col">
+        {activeConversationId ? renderMessageView() : renderConversationList()}
+      </SheetContent>
     </Sheet>
   );
 }
 
 function isSameDay(date1: Date, date2: Date) {
   return date1.getFullYear() === date2.getFullYear() &&
-         date1.getMonth() === date2.getMonth() &&
-         date1.getDate() === date2.getDate();
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate();
 }

@@ -7,7 +7,7 @@ import Image from 'next/image';
 import Script from 'next/script';
 import useCartStore from '@/lib/cart-store';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, serverTimestamp, doc, updateDoc, DocumentData, arrayUnion } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc, DocumentData, arrayUnion } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -293,7 +293,7 @@ export default function CheckoutPage() {
             });
 
             // 2. Save address to user profile if it doesn't exist
-            const userDoc = await doc(userDocRef).get();
+            const userDoc = await getDoc(userDocRef);
             const userData = userDoc.data() as UserProfile;
             const addressExists = userData.addresses?.some(a => a.id === address.id);
             

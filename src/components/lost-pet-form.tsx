@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from "@/hooks/use-toast";
 import { handleLostPetReport } from '@/app/lost-and-found/actions';
+import { compressImage } from '@/lib/compress-image';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -103,53 +104,40 @@ export default function LostPetForm() {
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
-    
-    const firstFile = data.petImage[0];
-    const reader = new FileReader();
-    reader.readAsDataURL(firstFile);
 
-    reader.onloadend = async () => {
-      const base64data = reader.result as string;
-      try {
-        const result = await handleLostPetReport({
-          reportType: data.reportType,
-          ownerName: data.ownerName,
-          contactEmail: data.contactEmail,
-          petName: data.petName,
-          lastSeenLocation: data.lastSeenLocation,
-          petImageDataUri: base64data,
-        });
+    try {
+      const firstFile = data.petImage[0];
+      const base64data = await compressImage(firstFile, 1280, 1280, 0.85);
 
-        if (!result.success) {
-          throw new Error(result.error || 'Failed to submit report.');
-        }
+      const result = await handleLostPetReport({
+        reportType: data.reportType,
+        ownerName: data.ownerName,
+        contactEmail: data.contactEmail,
+        petName: data.petName,
+        lastSeenLocation: data.lastSeenLocation,
+        petImageDataUri: base64data,
+      });
 
-        toast({
-          title: "Report Submitted!",
-          description: `Your ${data.reportType.toLowerCase()} report for ${data.petName} has been posted. It includes an AI-generated description.`,
-        });
-
-        form.reset();
-        setImagePreviews([]);
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Submission Failed",
-          description: error instanceof Error ? error.message : "An unknown error occurred.",
-        });
-      } finally {
-        setIsSubmitting(false);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to submit report.');
       }
-    };
 
-    reader.onerror = () => {
+      toast({
+        title: "Report Submitted!",
+        description: `Your ${data.reportType.toLowerCase()} report for ${data.petName} has been posted. It includes an AI-generated description.`,
+      });
+
+      form.reset();
+      setImagePreviews([]);
+    } catch (error) {
       toast({
         variant: "destructive",
-        title: "File Read Error",
-        description: "Could not read the selected image file.",
+        title: "Submission Failed",
+        description: error instanceof Error ? error.message : "An unknown error occurred.",
       });
+    } finally {
       setIsSubmitting(false);
-    };
+    }
   };
 
   return (

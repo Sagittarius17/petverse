@@ -270,16 +270,16 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
 
   const ReadReceipt = () => {
     if (!isCurrentUser) return null;
-    
+
     const baseClass = "h-4 w-4";
 
     if (message.isPlayed) {
-      return <Headphones className={cn(baseClass, "text-green-400")} />;
+      return <Headphones className={cn(baseClass, "text-blue-300 dark:text-blue-400")} />;
     }
     if (message.isRead) {
-      return <Mic className={cn(baseClass, "text-green-400")} />;
+      return <Mic className={cn(baseClass, "text-blue-300 dark:text-blue-400")} />;
     }
-    return <Mic className={cn(baseClass, "text-gray-400")} />;
+    return <Mic className={cn(baseClass, "text-primary-foreground/70")} />;
   };
 
   const displayTime = isPlaying ? formatTime(currentTime) : formatTime(duration);
@@ -322,12 +322,12 @@ export default function VoiceNotePlayer({ message, isCurrentUser, activeConversa
         </div>
       </div>
       <div className="flex justify-between items-center px-1">
-        <span className={cn("text-xs font-mono tabular-nums", isCurrentUser ? 'text-gray-300' : 'text-muted-foreground')}>
-            {displayTime}
+        <span className={cn("text-xs", isCurrentUser ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+          {displayTime}
         </span>
-        <div className={cn("flex items-center gap-1.5 text-xs", isCurrentUser ? 'text-gray-300' : 'text-muted-foreground')}>
-            <span>{message.timestamp ? new Date(message.timestamp.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
-            <ReadReceipt />
+        <div className={cn("flex items-center gap-1.5 text-xs", isCurrentUser ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+          <span>{message.timestamp ? new Date(message.timestamp.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+          <ReadReceipt />
         </div>
       </div>
     </div>

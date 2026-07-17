@@ -106,7 +106,7 @@ export default function FirestoreObserver() {
         right: window.innerWidth - (position.left + rect.width),
     };
     
-    const nearestSide = Object.keys(distances).reduce((a, b) => distances[a] < distances[b] ? a : b) as 'top' | 'right' | 'bottom' | 'left';
+    const nearestSide = (Object.keys(distances) as (keyof typeof distances)[]).reduce((a, b) => distances[a] < distances[b] ? a : b);
     
     setDockedSide(nearestSide);
     setIsDocked(true);
